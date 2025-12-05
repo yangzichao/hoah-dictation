@@ -15,16 +15,15 @@ struct CloudModelCardView: View {
     @State private var verificationStatus: VerificationStatus = .none
     @State private var isConfiguredState: Bool = false
     @State private var verificationError: String? = nil
+    @State private var apiKeyEntries: [CloudAPIKeyEntry] = []
+    @State private var activeKeyId: UUID? = nil
     
     enum VerificationStatus {
         case none, verifying, success, failure
     }
     
     private var isConfigured: Bool {
-        guard let savedKey = UserDefaults.standard.string(forKey: "\(providerKey)APIKey") else {
-            return false
-        }
-        return !savedKey.isEmpty
+        CloudAPIKeyManager.shared.hasKeys(for: providerKey)
     }
     
     private var providerKey: String {
@@ -72,7 +71,7 @@ struct CloudModelCardView: View {
         }
         .background(CardBackground(isSelected: isCurrent, useAccentGradientWhenSelected: isCurrent))
         .onAppear {
-            loadSavedAPIKey()
+            loadKeys()
             isConfiguredState = isConfigured
         }
     }
@@ -197,6 +196,14 @@ struct CloudModelCardView: View {
             if isConfiguredState {
                 Menu {
                     Button {
+                        withAnimation(.interpolatingSpring(stiffness: 170, damping: 20)) {
+                            isExpanded.toggle()
+                        }
+                    } label: {
+                        Label("Manage API Keys", systemImage: "key")
+                    }
+                    
+                    Button {
                         clearAPIKey()
                     } label: {
                         Label("Remove API Key", systemImage: "trash")
@@ -218,34 +225,131 @@ struct CloudModelCardView: View {
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(Color(.labelColor))
             
-            HStack(spacing: 8) {
-                SecureField("Enter your \(model.provider.rawValue) API key", text: $apiKey)
-                    .textFieldStyle(.roundedBorder)
-                    .disabled(isVerifying)
-                
-                Button(action: verifyAPIKey) {
-                    HStack(spacing: 4) {
-                        if isVerifying {
-                            ProgressView()
-                                .scaleEffect(0.7)
-                                .frame(width: 12, height: 12)
-                        } else {
-                            Image(systemName: verificationStatus == .success ? "checkmark" : "checkmark.shield")
+            if apiKeyEntries.isEmpty {
+                // Initial state: no keys yet, show simple input
+                HStack(spacing: 8) {
+                    SecureField("Enter your \(model.provider.rawValue) API key", text: $apiKey)
+                        .textFieldStyle(.roundedBorder)
+                        .disabled(isVerifying)
+                    
+                    Button(action: verifyAPIKey) {
+                        HStack(spacing: 4) {
+                            if isVerifying {
+                                ProgressView()
+                                    .scaleEffect(0.7)
+                                    .frame(width: 12, height: 12)
+                            } else {
+                                Image(systemName: verificationStatus == .success ? "checkmark" : "checkmark.shield")
+                                    .font(.system(size: 12, weight: .medium))
+                            }
+                            Text(isVerifying ? "Verifying..." : "Verify")
                                 .font(.system(size: 12, weight: .medium))
                         }
-                        Text(isVerifying ? "Verifying..." : "Verify")
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(verificationStatus == .success ? Color(.systemGreen) : Color(.controlAccentColor))
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(apiKey.isEmpty || isVerifying)
+                }
+            } else {
+                // Multiple keys management
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(apiKeyEntries) { entry in
+                        HStack(spacing: 8) {
+                            if activeKeyId == entry.id {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                            } else {
+                                Image(systemName: "circle")
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Text(maskedKey(entry.value))
+                                .font(.system(.body, design: .monospaced))
+                            
+                            Spacer()
+                            
+                            Text(formatLastUsed(entry.lastUsedAt))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            if activeKeyId != entry.id {
+                                Button("Use") {
+                                    selectKey(entry)
+                                }
+                                .buttonStyle(.borderless)
+                            }
+                            
+                            Button {
+                                removeKey(entry)
+                            } label: {
+                                Image(systemName: "trash")
+                            }
+                            .buttonStyle(.borderless)
+                            .foregroundColor(.red)
+                        }
+                    }
+                }
+                .padding(8)
+                .background(Color.secondary.opacity(0.05))
+                .cornerRadius(8)
+                
+                HStack {
+                    Button {
+                        rotateToNextKey()
+                    } label: {
+                        Label("Next Key", systemImage: "arrow.triangle.2.circlepath")
                             .font(.system(size: 12, weight: .medium))
                     }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(verificationStatus == .success ? Color(.systemGreen) : Color(.controlAccentColor))
-                    )
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    
+                    Spacer()
                 }
-                .buttonStyle(.plain)
-                .disabled(apiKey.isEmpty || isVerifying)
+                
+                Divider()
+                    .padding(.vertical, 4)
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Add Another API Key")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.secondary)
+                    
+                    HStack(spacing: 8) {
+                        SecureField("Enter your \(model.provider.rawValue) API key", text: $apiKey)
+                            .textFieldStyle(.roundedBorder)
+                            .disabled(isVerifying)
+                        
+                        Button(action: verifyAPIKey) {
+                            HStack(spacing: 4) {
+                                if isVerifying {
+                                    ProgressView()
+                                        .scaleEffect(0.7)
+                                        .frame(width: 12, height: 12)
+                                } else {
+                                    Image(systemName: "checkmark.shield")
+                                        .font(.system(size: 12, weight: .medium))
+                                }
+                                Text(isVerifying ? "Verifying..." : "Verify")
+                                    .font(.system(size: 12, weight: .medium))
+                            }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(Color(.controlAccentColor))
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(apiKey.isEmpty || isVerifying)
+                    }
+                }
             }
             
             if verificationStatus == .failure {
@@ -258,7 +362,8 @@ struct CloudModelCardView: View {
                         .font(.caption)
                         .foregroundColor(Color(.systemRed))
                 }
-            } else if verificationStatus == .success {
+            } else if verificationStatus == .success && apiKeyEntries.count == 1 {
+                // Only show initial success message in the first-time flow
                 Text("API key verified successfully!")
                     .font(.caption)
                     .foregroundColor(Color(.systemGreen))
@@ -266,11 +371,13 @@ struct CloudModelCardView: View {
         }
     }
     
-    private func loadSavedAPIKey() {
-        if let savedKey = UserDefaults.standard.string(forKey: "\(providerKey)APIKey") {
-            apiKey = savedKey
-            verificationStatus = .success
-        }
+    private func loadKeys() {
+        let manager = CloudAPIKeyManager.shared
+        apiKeyEntries = manager.keys(for: providerKey)
+        activeKeyId = manager.activeKeyId(for: providerKey)
+        verificationStatus = .none
+        verificationError = nil
+        apiKey = ""
     }
     
     private func verifyAPIKey() {
@@ -306,8 +413,10 @@ struct CloudModelCardView: View {
                 if isValid {
                     self.verificationStatus = .success
                     self.verificationError = nil
-                    // Save the API key
-                    UserDefaults.standard.set(self.apiKey, forKey: "\(self.providerKey)APIKey")
+                    
+                    let manager = CloudAPIKeyManager.shared
+                    manager.addKey(self.apiKey, for: self.providerKey)
+                    self.loadKeys()
                     self.isConfiguredState = true
                     
                     // Collapse the configuration section after successful verification
@@ -326,11 +435,14 @@ struct CloudModelCardView: View {
     }
     
     private func clearAPIKey() {
-        UserDefaults.standard.removeObject(forKey: "\(providerKey)APIKey")
+        let manager = CloudAPIKeyManager.shared
+        manager.removeAllKeys(for: providerKey)
         apiKey = ""
         verificationStatus = .none
         verificationError = nil
         isConfiguredState = false
+        apiKeyEntries = []
+        activeKeyId = nil
         
         // If this model is currently the default, clear it
         if isCurrent {
@@ -345,5 +457,40 @@ struct CloudModelCardView: View {
         withAnimation(.easeInOut(duration: 0.3)) {
             isExpanded = false
         }
+    }
+    
+    private func selectKey(_ entry: CloudAPIKeyEntry) {
+        let manager = CloudAPIKeyManager.shared
+        manager.selectKey(id: entry.id, for: providerKey)
+        loadKeys()
+    }
+    
+    private func removeKey(_ entry: CloudAPIKeyEntry) {
+        let manager = CloudAPIKeyManager.shared
+        manager.removeKey(id: entry.id, for: providerKey)
+        loadKeys()
+        isConfiguredState = !apiKeyEntries.isEmpty
+    }
+    
+    private func rotateToNextKey() {
+        let manager = CloudAPIKeyManager.shared
+        if manager.rotateKey(for: providerKey) {
+            loadKeys()
+        }
+    }
+    
+    private func maskedKey(_ key: String) -> String {
+        let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return String(repeating: "•", count: 8) }
+        let suffix = trimmed.suffix(4)
+        return "••••\(suffix)"
+    }
+    
+    private func formatLastUsed(_ date: Date?) -> String {
+        guard let date = date else { return "Never used" }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 }

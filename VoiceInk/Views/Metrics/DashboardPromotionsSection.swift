@@ -5,25 +5,15 @@ struct DashboardPromotionsSection: View {
     let licenseState: LicenseViewModel.LicenseState
     
     private var shouldShowUpgradePromotion: Bool {
-        switch licenseState {
-        case .trial(let daysRemaining):
-            return daysRemaining <= 2
-        case .trialExpired:
-            return true
-        case .licensed:
-            return false
-        }
+        false
     }
     
     private var shouldShowAffiliatePromotion: Bool {
-        if case .licensed = licenseState {
-            return true
-        }
         return false
     }
     
     private var shouldShowPromotions: Bool {
-        shouldShowUpgradePromotion || shouldShowAffiliatePromotion
+        false
     }
     
     var body: some View {
