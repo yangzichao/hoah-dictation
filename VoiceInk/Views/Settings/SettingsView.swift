@@ -5,7 +5,6 @@ import LaunchAtLogin
 import AVFoundation
 
 struct SettingsView: View {
-    @EnvironmentObject private var updaterViewModel: UpdaterViewModel
     @EnvironmentObject private var menuBarManager: MenuBarManager
     @EnvironmentObject private var hotkeyManager: HotkeyManager
     @EnvironmentObject private var whisperState: WhisperState
@@ -15,7 +14,6 @@ struct SettingsView: View {
     @ObservedObject private var mediaController = MediaController.shared
     @ObservedObject private var playbackController = PlaybackController.shared
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
-    @AppStorage("autoUpdateCheck") private var autoUpdateCheck = true
     @AppStorage("enableAnnouncements") private var enableAnnouncements = true
     @State private var showResetOnboardingAlert = false
     @State private var currentShortcut = KeyboardShortcuts.getShortcut(for: .toggleMiniRecorder)
@@ -320,12 +318,6 @@ struct SettingsView: View {
                         
                         LaunchAtLogin.Toggle()
                             .toggleStyle(.switch)
-
-                        Toggle("Enable automatic update checks", isOn: $autoUpdateCheck)
-                            .toggleStyle(.switch)
-                            .onChange(of: autoUpdateCheck) { _, newValue in
-                                updaterViewModel.toggleAutoUpdates(newValue)
-                            }
                         
                         Toggle("Show app announcements", isOn: $enableAnnouncements)
                             .toggleStyle(.switch)
@@ -337,12 +329,8 @@ struct SettingsView: View {
                                 }
                             }
                         
-                        Button("Check for Updates Now") {
-                            updaterViewModel.checkForUpdates()
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.large)
-                        .disabled(!updaterViewModel.canCheckForUpdates)
+                        Text("Updates are managed manually for this fork. Grab new builds from your own distribution channel when you're ready.")
+                            .settingsDescription()
                         
                         Divider()
 

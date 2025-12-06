@@ -5,7 +5,6 @@ struct MenuBarView: View {
     @EnvironmentObject var whisperState: WhisperState
     @EnvironmentObject var hotkeyManager: HotkeyManager
     @EnvironmentObject var menuBarManager: MenuBarManager
-    @EnvironmentObject var updaterViewModel: UpdaterViewModel
     @EnvironmentObject var enhancementService: AIEnhancementService
     @EnvironmentObject var aiService: AIService
     @ObservedObject var audioDeviceManager = AudioDeviceManager.shared
@@ -213,11 +212,6 @@ struct MenuBarView: View {
                 }
             
             Divider()
-            
-            Button("Check for Updates") {
-                updaterViewModel.checkForUpdates()
-            }
-            .disabled(!updaterViewModel.canCheckForUpdates)
             
             Button("Help and Support") {
                 EmailSupport.openSupportEmail()

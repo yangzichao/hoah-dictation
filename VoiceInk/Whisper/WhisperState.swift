@@ -96,7 +96,6 @@ class WhisperState: NSObject, ObservableObject {
     let modelsDirectory: URL
     let recordingsDirectory: URL
     let enhancementService: AIEnhancementService?
-    var licenseViewModel: LicenseViewModel
     let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "WhisperState")
     var notchWindowManager: NotchWindowManager?
     var miniWindowManager: MiniWindowManager?
@@ -114,7 +113,6 @@ class WhisperState: NSObject, ObservableObject {
         self.recordingsDirectory = appSupportDirectory.appendingPathComponent("Recordings")
         
         self.enhancementService = enhancementService
-        self.licenseViewModel = LicenseViewModel()
         
         super.init()
         
@@ -390,14 +388,7 @@ class WhisperState: NSObject, ObservableObject {
 
         if await checkCancellationAndCleanup() { return }
 
-        if var textToPaste = finalPastedText, transcription.transcriptionStatus == TranscriptionStatus.completed.rawValue {
-            if case .trialExpired = licenseViewModel.licenseState {
-                textToPaste = """
-                    Your trial has expired. Upgrade to VoiceInk Pro at tryvoiceink.com/buy
-                    \n\(textToPaste)
-                    """
-            }
-
+        if let textToPaste = finalPastedText, transcription.transcriptionStatus == TranscriptionStatus.completed.rawValue {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 CursorPaster.pasteAtCursor(textToPaste + " ")
 
