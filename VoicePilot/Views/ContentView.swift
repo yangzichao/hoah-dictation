@@ -8,11 +8,10 @@ enum ViewType: String, CaseIterable, Identifiable {
     case transcribeAudio = "Transcribe Audio"
     case history = "History"
     case models = "AI Models"
-    case enhancement = "Enhancement"
+    case agentMode = "Agent Mode"
     case powerMode = "Power Mode"
     case permissions = "Permissions"
     case audioInput = "Audio Input"
-    case dictionary = "Dictionary"
     case settings = "Settings"
 
     var id: String { rawValue }
@@ -23,11 +22,10 @@ enum ViewType: String, CaseIterable, Identifiable {
         case .transcribeAudio: return "waveform.circle.fill"
         case .history: return "doc.text.fill"
         case .models: return "brain.head.profile"
-        case .enhancement: return "wand.and.stars"
+        case .agentMode: return "wand.and.stars"
         case .powerMode: return "sparkles.square.fill.on.square"
         case .permissions: return "shield.fill"
         case .audioInput: return "mic.fill"
-        case .dictionary: return "character.book.closed.fill"
         case .settings: return "gearshape.fill"
         }
     }
@@ -138,8 +136,8 @@ struct ContentView: View {
                     selectedView = .history
                 case "Permissions":
                     selectedView = .permissions
-                case "Enhancement":
-                    selectedView = .enhancement
+                case "Agent Mode":
+                    selectedView = .agentMode
                 case "Transcribe Audio":
                     selectedView = .transcribeAudio
                 case "Power Mode":
@@ -158,7 +156,7 @@ struct ContentView: View {
             MetricsView()
         case .models:
             ModelManagementView(whisperState: whisperState)
-        case .enhancement:
+        case .agentMode:
             EnhancementSettingsView()
         case .transcribeAudio:
             AudioTranscribeView()
@@ -166,8 +164,6 @@ struct ContentView: View {
             TranscriptionHistoryView()
         case .audioInput:
             AudioInputSettingsView()
-        case .dictionary:
-            DictionarySettingsView(whisperPrompt: whisperState.whisperPrompt)
         case .powerMode:
             PowerModeView()
         case .settings:

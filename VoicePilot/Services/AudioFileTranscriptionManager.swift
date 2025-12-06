@@ -122,8 +122,6 @@ class AudioTranscriptionManager: ObservableObject {
                 if UserDefaults.standard.object(forKey: "IsTextFormattingEnabled") as? Bool ?? true {
                     text = WhisperTextFormatter.format(text)
                 }
-
-                text = WordReplacementService.shared.applyReplacements(to: text)
                 
                 // Handle enhancement if enabled
                 if let enhancementService = whisperState.enhancementService,

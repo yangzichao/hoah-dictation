@@ -73,9 +73,6 @@ class AudioTranscriptionService: ObservableObject {
                 text = WhisperTextFormatter.format(text)
             }
 
-            text = WordReplacementService.shared.applyReplacements(to: text)
-            logger.notice("✅ Word replacements applied")
-            
             // Get audio duration
             let audioAsset = AVURLAsset(url: url)
             let duration = CMTimeGetSeconds(try await audioAsset.load(.duration))

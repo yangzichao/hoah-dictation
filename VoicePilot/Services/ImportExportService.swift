@@ -30,8 +30,6 @@ struct VoicePilotExportedSettings: Codable {
     let version: String
     let customPrompts: [CustomPrompt]
     let powerModeConfigs: [PowerModeConfig]
-    let dictionaryItems: [DictionaryItem]?
-    let wordReplacements: [String: String]?
     let generalSettings: GeneralSettings?
     let customEmojis: [String]?
     let customCloudModels: [CustomCloudModel]?
@@ -40,8 +38,6 @@ struct VoicePilotExportedSettings: Codable {
 class ImportExportService {
     static let shared = ImportExportService()
     private let currentSettingsVersion: String
-    private let dictionaryItemsKey = "CustomVocabularyItems"
-    private let wordReplacementsKey = "wordReplacements"
 
 
     private let keyIsMenuBarOnly = "IsMenuBarOnly"
@@ -76,14 +72,6 @@ class ImportExportService {
         // Export custom models
         let customModels = CustomModelManager.shared.customModels
 
-        var exportedDictionaryItems: [DictionaryItem]? = nil
-        if let data = UserDefaults.standard.data(forKey: dictionaryItemsKey),
-           let items = try? JSONDecoder().decode([DictionaryItem].self, from: data) {
-            exportedDictionaryItems = items
-        }
-
-        let exportedWordReplacements = UserDefaults.standard.dictionary(forKey: wordReplacementsKey) as? [String: String]
-
         let generalSettingsToExport = GeneralSettings(
             toggleMiniRecorderShortcut: KeyboardShortcuts.getShortcut(for: .toggleMiniRecorder),
             toggleMiniRecorderShortcut2: KeyboardShortcuts.getShortcut(for: .toggleMiniRecorder2),
@@ -110,8 +98,6 @@ class ImportExportService {
             version: currentSettingsVersion,
             customPrompts: exportablePrompts,
             powerModeConfigs: powerConfigs,
-            dictionaryItems: exportedDictionaryItems,
-            wordReplacements: exportedWordReplacements,
             generalSettings: generalSettingsToExport,
             customEmojis: emojiManager.customEmojis,
             customCloudModels: customModels
@@ -156,7 +142,7 @@ class ImportExportService {
         openPanel.canChooseDirectories = false
         openPanel.allowsMultipleSelection = false
         openPanel.title = "Import VoicePilot Settings"
-        openPanel.message = "Choose a settings file to import. This will overwrite ALL settings (prompts, power modes, dictionary, general app settings)."
+        openPanel.message = "Choose a settings file to import. This will overwrite ALL settings (prompts, power modes, general app settings)."
 
         DispatchQueue.main.async {
             if openPanel.runModal() == .OK {
@@ -197,20 +183,6 @@ class ImportExportService {
                         for emoji in customEmojis {
                             _ = emojiManager.addCustomEmoji(emoji)
                         }
-                    }
-
-                    if let itemsToImport = importedSettings.dictionaryItems {
-                        if let encoded = try? JSONEncoder().encode(itemsToImport) {
-                            UserDefaults.standard.set(encoded, forKey: "CustomVocabularyItems")
-                        }
-                    } else {
-                        print("No custom vocabulary items (for spelling) found in the imported file. Existing items remain unchanged.")
-                    }
-
-                    if let replacementsToImport = importedSettings.wordReplacements {
-                        UserDefaults.standard.set(replacementsToImport, forKey: self.wordReplacementsKey)
-                    } else {
-                        print("No word replacements found in the imported file. Existing replacements remain unchanged.")
                     }
 
                     if let general = importedSettings.generalSettings {
@@ -303,7 +275,7 @@ class ImportExportService {
         DispatchQueue.main.async {
             let alert = NSAlert()
             alert.messageText = "Import Successful"
-            alert.informativeText = message + "\n\nIMPORTANT: If you were using AI enhancement features, please make sure to reconfigure your API keys in the Enhancement section.\n\nIt is recommended to restart VoicePilot for all changes to take full effect."
+            alert.informativeText = message + "\n\nIMPORTANT: If you were using Agent Mode features, please make sure to reconfigure your API keys in the Agent Mode section.\n\nIt is recommended to restart VoicePilot for all changes to take full effect."
             alert.alertStyle = .informational
             alert.addButton(withTitle: "OK")
             alert.addButton(withTitle: "Configure API Keys")
@@ -313,7 +285,7 @@ class ImportExportService {
                 NotificationCenter.default.post(
                     name: .navigateToDestination,
                     object: nil,
-                    userInfo: ["destination": "Enhancement"]
+                    userInfo: ["destination": "Agent Mode"]
                 )
             }
         }

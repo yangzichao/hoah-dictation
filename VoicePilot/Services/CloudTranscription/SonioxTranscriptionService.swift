@@ -64,13 +64,6 @@ class SonioxTranscriptionService {
             // Disable diarization as per app requirement
             "enable_speaker_diarization": false
         ]
-        // Attach custom vocabulary terms from the app's dictionary (if any)
-        let dictionaryTerms = getCustomDictionaryTerms()
-        if !dictionaryTerms.isEmpty {
-            payload["context"] = [
-                "terms": dictionaryTerms
-            ]
-        }
         let selectedLanguage = UserDefaults.standard.string(forKey: "SelectedLanguage") ?? "auto"
         if selectedLanguage != "auto" && !selectedLanguage.isEmpty {
             payload["language_hints"] = [selectedLanguage]
@@ -167,30 +160,6 @@ class SonioxTranscriptionService {
         body.append(crlf.data(using: .utf8)!)
         body.append("--\(boundary)--\(crlf)".data(using: .utf8)!)
         return body
-    }
-    
-    private func getCustomDictionaryTerms() -> [String] {
-        guard let data = UserDefaults.standard.data(forKey: "CustomVocabularyItems") else {
-            return []
-        }
-        // Decode without depending on UI layer types; extract "word" strings
-        guard let json = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
-            return []
-        }
-        let words = json.compactMap { $0["word"] as? String }
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-        // De-duplicate while preserving order
-        var seen = Set<String>()
-        var unique: [String] = []
-        for w in words {
-            let key = w.lowercased()
-            if !seen.contains(key) {
-                seen.insert(key)
-                unique.append(w)
-            }
-        }
-        return unique
     }
     
     private struct APIConfig { let apiKey: String }
