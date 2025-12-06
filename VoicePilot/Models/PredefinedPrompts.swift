@@ -9,7 +9,6 @@ enum PredefinedPrompts {
     static let assistantPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
     static let polishPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000003")!
     static let summarizePromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000005")!
-    static let actionItemsPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000006")!
     static let emailDraftPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000007")!
     
     static var all: [CustomPrompt] {
@@ -64,17 +63,7 @@ You are polishing a transcript for clarity and correctness without changing inte
                 icon: "text.alignleft",
                 description: "Auto-activates on summary cues",
                 isPredefined: true,
-                triggerWords: ["summarize", "tl;dr", "summary"],
-                useSystemInstructions: true
-            ),
-            CustomPrompt(
-                id: actionItemsPromptId,
-                title: "Action Items",
-                promptText: "Extract action items with assignee (if mentioned), due date (if stated), and a short imperative task line.",
-                icon: "checkmark.circle",
-                description: "Auto-activates on action/todo cues",
-                isPredefined: true,
-                triggerWords: ["action items", "todo", "to-do", "tasks"],
+                triggerWords: ["summarize my conversation", "give me a summary of this conversation"],
                 useSystemInstructions: true
             ),
             CustomPrompt(
@@ -84,7 +73,7 @@ You are polishing a transcript for clarity and correctness without changing inte
                 icon: "envelope.fill",
                 description: "Auto-activates on email cues",
                 isPredefined: true,
-                triggerWords: ["email", "draft email", "compose email"],
+                triggerWords: ["draft an email reply", "compose an email reply", "write an email reply"],
                 useSystemInstructions: true
             ),
 
