@@ -5,7 +5,6 @@ class WindowManager: NSObject {
     static let shared = WindowManager()
     
     private static let mainWindowIdentifier = NSUserInterfaceItemIdentifier("com.prakashjoshipax.voiceink.mainWindow")
-    private static let onboardingWindowIdentifier = NSUserInterfaceItemIdentifier("com.prakashjoshipax.voiceink.onboardingWindow")
     private static let mainWindowAutosaveName = NSWindow.FrameAutosaveName("VoicePilotMainWindowFrame")
     
     private weak var mainWindow: NSWindow?
@@ -38,26 +37,6 @@ class WindowManager: NSObject {
         applyInitialPlacementIfNeeded(to: window)
         registerMainWindowIfNeeded(window)
         window.orderFrontRegardless()
-    }
-    
-    func configureOnboardingPanel(_ window: NSWindow) {
-        if window.identifier == nil || window.identifier != Self.onboardingWindowIdentifier {
-            window.identifier = Self.onboardingWindowIdentifier
-        }
-        
-        let requiredStyleMask: NSWindow.StyleMask = [.titled, .fullSizeContentView, .resizable]
-        window.styleMask.formUnion(requiredStyleMask)
-        window.titlebarAppearsTransparent = true
-        window.titleVisibility = .hidden
-        window.isMovableByWindowBackground = true
-        window.level = .normal
-        window.backgroundColor = .clear
-        window.isReleasedWhenClosed = false
-        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        window.title = "VoicePilot Onboarding"
-        window.isOpaque = false
-        window.minSize = NSSize(width: 900, height: 780)
-        window.makeKeyAndOrderFront(nil)
     }
 
     func registerMainWindow(_ window: NSWindow) {

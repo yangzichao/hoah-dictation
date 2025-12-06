@@ -13,8 +13,6 @@ struct SettingsView: View {
     @ObservedObject private var soundManager = SoundManager.shared
     @ObservedObject private var mediaController = MediaController.shared
     @ObservedObject private var playbackController = PlaybackController.shared
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
-    @State private var showResetOnboardingAlert = false
     @State private var currentShortcut = KeyboardShortcuts.getShortcut(for: .toggleMiniRecorder)
     @State private var isCustomCancelEnabled = false
     @State private var isCustomSoundsExpanded = false
@@ -322,14 +320,6 @@ struct SettingsView: View {
                         
                         Text("Updates are managed manually for this fork. Grab new builds from your own distribution channel when you're ready.")
                             .settingsDescription()
-                        
-                        Divider()
-
-                        Button("Reset Onboarding") {
-                            showResetOnboardingAlert = true
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.large)
                     }
                 }
                 
@@ -394,17 +384,6 @@ struct SettingsView: View {
         .background(Color(NSColor.controlBackgroundColor))
         .onAppear {
             isCustomCancelEnabled = KeyboardShortcuts.getShortcut(for: .cancelRecorder) != nil
-        }
-        .alert("Reset Onboarding", isPresented: $showResetOnboardingAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Reset", role: .destructive) {
-                // Defer state change to avoid layout issues while alert dismisses
-                DispatchQueue.main.async {
-                    hasCompletedOnboarding = false
-                }
-            }
-        } message: {
-            Text("Are you sure you want to reset the onboarding? You'll see the introduction screens again the next time you launch the app.")
         }
     }
     

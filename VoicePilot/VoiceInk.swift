@@ -17,7 +17,6 @@ struct VoicePilotApp: App {
     @StateObject private var aiService = AIService()
     @StateObject private var enhancementService: AIEnhancementService
     @StateObject private var activeWindowService = ActiveWindowService.shared
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var showMenuBarIcon = true
     
     // Audio cleanup manager for automatic deletion of old audio files
@@ -36,6 +35,7 @@ struct VoicePilotApp: App {
         }
 
         let logger = Logger(subsystem: "com.prakashjoshipax.voicepilot", category: "Initialization")
+        
         let schema = Schema([Transcription.self])
         var initializationFailed = false
         
@@ -178,69 +178,55 @@ struct VoicePilotApp: App {
     
     var body: some Scene {
         WindowGroup {
-            if hasCompletedOnboarding {
-                ContentView()
-                    .environmentObject(whisperState)
-                    .environmentObject(hotkeyManager)
-                    .environmentObject(menuBarManager)
-                    .environmentObject(aiService)
-                    .environmentObject(enhancementService)
-                    .modelContainer(container)
-                    .onAppear {
-                        // Check if container initialization failed
-                        if containerInitializationFailed {
-                            let alert = NSAlert()
-                            alert.messageText = "Critical Storage Error"
+            ContentView()
+                .environmentObject(whisperState)
+                .environmentObject(hotkeyManager)
+                .environmentObject(menuBarManager)
+                .environmentObject(aiService)
+                .environmentObject(enhancementService)
+                .modelContainer(container)
+                .onAppear {
+                    // Check if container initialization failed
+                    if containerInitializationFailed {
+                        let alert = NSAlert()
+                        alert.messageText = "Critical Storage Error"
                         alert.informativeText = "VoicePilot cannot initialize its storage system. The app cannot continue.\n\nPlease try reinstalling the app or contact support if the issue persists."
-                            alert.alertStyle = .critical
-                            alert.addButton(withTitle: "Quit")
-                            alert.runModal()
-                            
-                            NSApplication.shared.terminate(nil)
-                            return
-                        }
-                        // Start the transcription auto-cleanup service (handles immediate and scheduled transcript deletion)
-                        transcriptionAutoCleanupService.startMonitoring(modelContext: container.mainContext)
+                        alert.alertStyle = .critical
+                        alert.addButton(withTitle: "Quit")
+                        alert.runModal()
                         
-                        // Start the automatic audio cleanup process only if transcript cleanup is not enabled
-                        if !UserDefaults.standard.bool(forKey: "IsTranscriptionCleanupEnabled") {
-                            audioCleanupManager.startAutomaticCleanup(modelContext: container.mainContext)
-                        }
-                        
-                        // Process any pending open-file request now that the main ContentView is ready.
-                        if let pendingURL = appDelegate.pendingOpenFileURL {
-                            NotificationCenter.default.post(name: .navigateToDestination, object: nil, userInfo: ["destination": "Transcribe Audio"])
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                NotificationCenter.default.post(name: .openFileForTranscription, object: nil, userInfo: ["url": pendingURL])
-                            }
-                            appDelegate.pendingOpenFileURL = nil
-                        }
+                        NSApplication.shared.terminate(nil)
+                        return
                     }
-                    .background(WindowAccessor { window in
-                        WindowManager.shared.configureWindow(window)
-                    })
-                    .onDisappear {
-                        whisperState.unloadModel()
-                        
-                        // Stop the transcription auto-cleanup service
-                        transcriptionAutoCleanupService.stopMonitoring()
-                        
-                        // Stop the automatic audio cleanup process
-                        audioCleanupManager.stopAutomaticCleanup()
+                    // Start the transcription auto-cleanup service (handles immediate and scheduled transcript deletion)
+                    transcriptionAutoCleanupService.startMonitoring(modelContext: container.mainContext)
+                    
+                    // Start the automatic audio cleanup process only if transcript cleanup is not enabled
+                    if !UserDefaults.standard.bool(forKey: "IsTranscriptionCleanupEnabled") {
+                        audioCleanupManager.startAutomaticCleanup(modelContext: container.mainContext)
                     }
-            } else {
-                OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
-                    .environmentObject(hotkeyManager)
-                    .environmentObject(whisperState)
-                    .environmentObject(aiService)
-                    .environmentObject(enhancementService)
-                    .frame(minWidth: 880, minHeight: 780)
-                    .background(WindowAccessor { window in
-                        if window.identifier == nil || window.identifier != NSUserInterfaceItemIdentifier("com.prakashjoshipax.voiceink.onboardingWindow") {
-                            WindowManager.shared.configureOnboardingPanel(window)
+                    
+                    // Process any pending open-file request now that the main ContentView is ready.
+                    if let pendingURL = appDelegate.pendingOpenFileURL {
+                        NotificationCenter.default.post(name: .navigateToDestination, object: nil, userInfo: ["destination": "Transcribe Audio"])
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            NotificationCenter.default.post(name: .openFileForTranscription, object: nil, userInfo: ["url": pendingURL])
                         }
-                    })
-            }
+                        appDelegate.pendingOpenFileURL = nil
+                    }
+                }
+                .background(WindowAccessor { window in
+                    WindowManager.shared.configureWindow(window)
+                })
+                .onDisappear {
+                    whisperState.unloadModel()
+                    
+                    // Stop the transcription auto-cleanup service
+                    transcriptionAutoCleanupService.stopMonitoring()
+                    
+                    // Stop the automatic audio cleanup process
+                    audioCleanupManager.stopAutomaticCleanup()
+                }
         }
         .windowStyle(.hiddenTitleBar)
         .commands {
