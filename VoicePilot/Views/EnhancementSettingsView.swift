@@ -6,6 +6,21 @@ struct EnhancementSettingsView: View {
     @State private var isEditingPrompt = false
     @State private var isSettingsExpanded = true
     @State private var selectedPromptForEdit: CustomPrompt?
+
+    private var autoPrompts: [CustomPrompt] {
+        enhancementService.customPrompts.filter { $0.triggerWords.isEmpty }
+    }
+
+    private var triggerPrompts: [CustomPrompt] {
+        enhancementService.customPrompts.filter { !$0.triggerWords.isEmpty }
+    }
+
+    private var activeAutoPromptTitle: String {
+        if let title = autoPrompts.first(where: { $0.id == enhancementService.selectedPromptId })?.title {
+            return title
+        }
+        return "None"
+    }
     
     var body: some View {
         ScrollView {
@@ -17,9 +32,9 @@ struct EnhancementSettingsView: View {
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
                                 HStack {
-                                    Text("Enable Enhancement")
+                                    Text("Enable Auto Enhancement")
                                         .font(.headline)
-                                    
+                                     
                                     InfoTip(
                                         title: "AI Enhancement",
                                         message: "AI enhancement lets you pass the transcribed audio through LLMS to post-process using different prompts suitable for different use cases like e-mails, summary, writing, etc.",
@@ -27,7 +42,7 @@ struct EnhancementSettingsView: View {
                                     )
                                 }
                                 
-                                Text("Turn on AI-powered enhancement features")
+                                Text("Automatically apply AI-powered enhancement after each transcription")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -75,11 +90,26 @@ struct EnhancementSettingsView: View {
                     
                     // 3. Enhancement Modes & Assistant Section
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Enhancement Prompt")
-                            .font(.headline)
+                        // Auto enhancement (manual selection) section
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("Auto Enhancement Modes")
+                                    .font(.headline)
+                                Spacer()
+                                Button("Reset Built-in Prompts") {
+                                    enhancementService.resetPredefinedPrompts()
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                            }
+                            
+                            Text("Only one mode is active at a time. It auto-applies after each transcription while AI enhancement is on. Current: \(activeAutoPromptTitle).")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                         
-                        // Reorderable prompts grid with drag-and-drop
                         ReorderablePromptGrid(
+                            prompts: autoPrompts,
                             selectedPromptId: enhancementService.selectedPromptId,
                             onPromptSelected: { prompt in
                                 enhancementService.setActivePrompt(prompt)
@@ -93,6 +123,41 @@ struct EnhancementSettingsView: View {
                             onAddNewPrompt: {
                                 isEditingPrompt = true
                             }
+                        )
+
+                        Divider()
+
+                        // Trigger-based prompts section
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("Prompt Triggers")
+                                    .font(.headline)
+                                Spacer()
+                                Toggle("Enable Prompt Triggers", isOn: $enhancementService.arePromptTriggersEnabled)
+                                    .toggleStyle(.switch)
+                            }
+                            
+                            Text("When enabled, these prompts auto-activate if their trigger words are present in your text.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        ReorderablePromptGrid(
+                            prompts: triggerPrompts,
+                            selectedPromptId: enhancementService.selectedPromptId,
+                            onPromptSelected: { prompt in
+                                enhancementService.setActivePrompt(prompt)
+                            },
+                            onEditPrompt: { prompt in
+                                selectedPromptForEdit = prompt
+                            },
+                            onDeletePrompt: { prompt in
+                                enhancementService.deletePrompt(prompt)
+                            },
+                            onAddNewPrompt: {
+                                isEditingPrompt = true
+                            },
+                            isEnabled: enhancementService.arePromptTriggersEnabled
                         )
                     }
                     .padding()
@@ -118,17 +183,19 @@ struct EnhancementSettingsView: View {
 private struct ReorderablePromptGrid: View {
     @EnvironmentObject private var enhancementService: AIEnhancementService
     
+    let prompts: [CustomPrompt]
     let selectedPromptId: UUID?
     let onPromptSelected: (CustomPrompt) -> Void
     let onEditPrompt: ((CustomPrompt) -> Void)?
     let onDeletePrompt: ((CustomPrompt) -> Void)?
     let onAddNewPrompt: (() -> Void)?
+    var isEnabled: Bool = true
     
     @State private var draggingItem: CustomPrompt?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if enhancementService.customPrompts.isEmpty {
+            if prompts.isEmpty {
                 Text("No prompts available")
                     .foregroundColor(.secondary)
                     .font(.caption)
@@ -138,7 +205,7 @@ private struct ReorderablePromptGrid: View {
                 ]
                 
                 LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(enhancementService.customPrompts) { prompt in
+                    ForEach(prompts) { prompt in
                         prompt.promptIcon(
                             isSelected: selectedPromptId == prompt.id,
                             onTap: {
@@ -191,6 +258,7 @@ private struct ReorderablePromptGrid: View {
                 }
                 .padding(.vertical, 12)
                 .padding(.horizontal, 16)
+                .opacity(isEnabled ? 1 : 0.55)
                 
                 HStack {
                     Image(systemName: "info.circle")

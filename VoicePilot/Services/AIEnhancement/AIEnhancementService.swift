@@ -52,6 +52,12 @@ class AIEnhancementService: ObservableObject {
         }
     }
 
+    @Published var arePromptTriggersEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(arePromptTriggersEnabled, forKey: "arePromptTriggersEnabled")
+        }
+    }
+
     @Published var lastSystemMessageSent: String?
     @Published var lastUserMessageSent: String?
 
@@ -80,6 +86,7 @@ class AIEnhancementService: ObservableObject {
         self.isEnhancementEnabled = UserDefaults.standard.bool(forKey: "isAIEnhancementEnabled")
         self.useClipboardContext = UserDefaults.standard.bool(forKey: "useClipboardContext")
         self.useScreenCaptureContext = UserDefaults.standard.bool(forKey: "useScreenCaptureContext")
+        self.arePromptTriggersEnabled = UserDefaults.standard.object(forKey: "arePromptTriggersEnabled") as? Bool ?? true
 
         if let savedPromptsData = UserDefaults.standard.data(forKey: "customPrompts"),
            let decodedPrompts = try? JSONDecoder().decode([CustomPrompt].self, from: savedPromptsData) {
@@ -561,6 +568,7 @@ class AIEnhancementService: ObservableObject {
     }
 
     func deletePrompt(_ prompt: CustomPrompt) {
+        guard !prompt.isPredefined else { return }
         customPrompts.removeAll { $0.id == prompt.id }
         if selectedPromptId == prompt.id {
             selectedPromptId = allPrompts.first?.id
@@ -571,24 +579,83 @@ class AIEnhancementService: ObservableObject {
         selectedPromptId = prompt.id
     }
 
-    private func initializePredefinedPrompts() {
-        let predefinedTemplates = PredefinedPrompts.createDefaultPrompts()
+    func resetPromptToDefault(_ prompt: CustomPrompt) {
+        guard prompt.isPredefined,
+              let template = PredefinedPrompts.createDefaultPrompts().first(where: { $0.id == prompt.id }),
+              let index = customPrompts.firstIndex(where: { $0.id == prompt.id }) else { return }
 
-        for template in predefinedTemplates {
-            if let existingIndex = customPrompts.firstIndex(where: { $0.id == template.id }) {
-                var updatedPrompt = customPrompts[existingIndex]
-                updatedPrompt = CustomPrompt(
-                    id: updatedPrompt.id,
+        let restoredPrompt = CustomPrompt(
+            id: template.id,
+            title: template.title,
+            promptText: template.promptText,
+            isActive: customPrompts[index].isActive,
+            icon: template.icon,
+            description: template.description,
+            isPredefined: true,
+            triggerWords: template.triggerWords,
+            useSystemInstructions: template.useSystemInstructions
+        )
+        customPrompts[index] = restoredPrompt
+
+        if selectedPromptId == nil {
+            selectedPromptId = restoredPrompt.id
+        }
+    }
+
+    func resetPredefinedPrompts() {
+        let templates = PredefinedPrompts.createDefaultPrompts()
+        var updatedPrompts = customPrompts
+
+        for template in templates {
+            if let index = updatedPrompts.firstIndex(where: { $0.id == template.id }) {
+                let existing = updatedPrompts[index]
+                updatedPrompts[index] = CustomPrompt(
+                    id: template.id,
                     title: template.title,
                     promptText: template.promptText,
-                    isActive: updatedPrompt.isActive,
+                    isActive: existing.isActive,
                     icon: template.icon,
                     description: template.description,
                     isPredefined: true,
-                    triggerWords: updatedPrompt.triggerWords,
+                    triggerWords: template.triggerWords,
                     useSystemInstructions: template.useSystemInstructions
                 )
-                customPrompts[existingIndex] = updatedPrompt
+            } else {
+                updatedPrompts.append(template)
+            }
+        }
+
+        customPrompts = updatedPrompts
+
+        if selectedPromptId == nil || !updatedPrompts.contains(where: { $0.id == selectedPromptId }) {
+            selectedPromptId = templates.first?.id
+        }
+    }
+
+    private func initializePredefinedPrompts() {
+        let predefinedTemplates = PredefinedPrompts.createDefaultPrompts()
+        let templateIDs = Set(predefinedTemplates.map { $0.id })
+
+        // Remove predefined prompts that are no longer part of the shipped set
+        customPrompts.removeAll { prompt in
+            prompt.isPredefined && !templateIDs.contains(prompt.id)
+        }
+
+        for template in predefinedTemplates {
+            if let existingIndex = customPrompts.firstIndex(where: { $0.id == template.id }) {
+                let existingPrompt = customPrompts[existingIndex]
+                let mergedPrompt = CustomPrompt(
+                    id: existingPrompt.id,
+                    title: template.title,
+                    promptText: template.promptText,
+                    isActive: existingPrompt.isActive,
+                    icon: template.icon,
+                    description: template.description,
+                    isPredefined: true,
+                    triggerWords: existingPrompt.triggerWords,
+                    useSystemInstructions: template.useSystemInstructions
+                )
+                customPrompts[existingIndex] = mergedPrompt
             } else {
                 customPrompts.append(template)
             }

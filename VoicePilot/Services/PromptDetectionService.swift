@@ -18,6 +18,17 @@ class PromptDetectionService {
     
     @MainActor
     func analyzeText(_ text: String, with enhancementService: AIEnhancementService) -> PromptDetectionResult {
+        guard enhancementService.arePromptTriggersEnabled else {
+            return PromptDetectionResult(
+                shouldEnableAI: false,
+                selectedPromptId: nil,
+                processedText: text,
+                detectedTriggerWord: nil,
+                originalEnhancementState: enhancementService.isEnhancementEnabled,
+                originalPromptId: enhancementService.selectedPromptId
+            )
+        }
+
         let originalEnhancementState = enhancementService.isEnhancementEnabled
         let originalPromptId = enhancementService.selectedPromptId
 

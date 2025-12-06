@@ -60,7 +60,7 @@ struct PromptEditorView: View {
         VStack(spacing: 0) {
             // Header with modern styling
             HStack {
-                Text(isEditingPredefinedPrompt ? "Edit Trigger Words" : (mode == .add ? "New Prompt" : "Edit Prompt"))
+                Text(mode == .add ? "New Prompt" : (isEditingPredefinedPrompt ? "Edit Built-in Prompt" : "Edit Prompt"))
                     .font(.title2)
                     .fontWeight(.bold)
                 Spacer()
@@ -79,7 +79,7 @@ struct PromptEditorView: View {
                             .fontWeight(.medium)
                     }
                     .buttonStyle(.borderedProminent)
-                    .disabled(isEditingPredefinedPrompt ? false : (title.isEmpty || promptText.isEmpty))
+                    .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || promptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     .keyboardShortcut(.return, modifiers: .command)
                 }
             }
@@ -91,155 +91,148 @@ struct PromptEditorView: View {
             
             ScrollView {
                 VStack(spacing: 24) {
-                    if isEditingPredefinedPrompt {
-                        // Simplified view for predefined prompts - only trigger word editing
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("Editing: \(title)")
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.primary)
-                                .padding(.horizontal)
-                                .padding(.top, 8)
-                            
-                            Text("You can only customize the trigger words for system prompts.")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .padding(.horizontal)
-                            
-                            // Trigger Words Field using reusable component
-                            TriggerWordsEditor(triggerWords: $triggerWords)
-                                .padding(.horizontal)
-                        }
-                        .padding(.vertical, 20)
-                        
-                    } else {
-                        // Full editing interface for custom prompts
-                        // Title and Icon Section with improved layout
-                        HStack(spacing: 20) {
-                            // Title Field
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Title")
+                    if isEditingPredefinedPrompt, case .edit(let prompt) = mode {
+                        HStack(alignment: .top) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Built-in prompt")
                                     .font(.headline)
+                                Text("Default and other built-in prompts can be edited but not deleted. Reset anytime to restore the original text and trigger words.")
+                                    .font(.subheadline)
                                     .foregroundColor(.secondary)
-                                TextField("Enter a short, descriptive title", text: $title)
-                                    .textFieldStyle(.roundedBorder)
-                                    .font(.body)
                             }
-                            .frame(maxWidth: .infinity)
-                            
-                            // Icon Selector with preview
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Icon")
-                                    .font(.headline)
-                                    .foregroundColor(.secondary)
-                                
-                                // Preview of selected icon - clickable to open popover (square button)
-                                Button(action: {
-                                    showingIconPicker = true
-                                }) {
-                                    Image(systemName: selectedIcon)
-                                        .font(.system(size: 20))
-                                        .foregroundColor(.primary)
-                                        .frame(width: 48, height: 48)
-                                        .background(Color(NSColor.controlBackgroundColor))
-                                        .cornerRadius(8)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 8)
-                                                .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
-                                        )
-                                }
-                                .buttonStyle(.plain)
+                            Spacer()
+                            Button("Reset to Default") {
+                                resetToDefaultTemplate(for: prompt)
                             }
-                            .popover(isPresented: $showingIconPicker, arrowEdge: .bottom) {
-                                IconPickerPopover(selectedIcon: $selectedIcon, isPresented: $showingIconPicker)
-                            }
+                            .buttonStyle(.bordered)
                         }
                         .padding(.horizontal)
                         .padding(.top, 8)
-                        
-                        // Description Field
+                    }
+
+                    // Title and Icon Section with improved layout
+                    HStack(spacing: 20) {
+                        // Title Field
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Description")
+                            Text("Title")
                                 .font(.headline)
                                 .foregroundColor(.secondary)
-                            
-                            Text("Add a brief description of what this prompt does")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                            
-                            TextField("Enter a description", text: $description)
+                            TextField("Enter a short, descriptive title", text: $title)
                                 .textFieldStyle(.roundedBorder)
                                 .font(.body)
                         }
-                        .padding(.horizontal)
+                        .frame(maxWidth: .infinity)
                         
-                        // Prompt Text Section with improved styling
+                        // Icon Selector with preview
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Prompt Instructions")
+                            Text("Icon")
                                 .font(.headline)
                                 .foregroundColor(.secondary)
                             
-                            Text("Define how AI should enhance your transcriptions")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                            
-                            if !isEditingPredefinedPrompt {
-                                HStack(spacing: 8) {
-                                    Toggle("Use System Instructions", isOn: $useSystemInstructions)
-                                    
-                                    InfoTip(
-                                        title: "System Instructions",
-                                        message: "If enabled, your instructions are combined with a general-purpose template to improve transcription quality.\n\nDisable for full control over the AI's system prompt (for advanced users)."
+                            // Preview of selected icon - clickable to open popover (square button)
+                            Button(action: {
+                                showingIconPicker = true
+                            }) {
+                                Image(systemName: selectedIcon)
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.primary)
+                                    .frame(width: 48, height: 48)
+                                    .background(Color(NSColor.controlBackgroundColor))
+                                    .cornerRadius(8)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
                                     )
-                                }
-                                .padding(.bottom, 4)
                             }
-
-                            TextEditor(text: $promptText)
-                                .font(.system(.body, design: .monospaced))
-                                .frame(minHeight: 200)
-                                .padding(12)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color(NSColor.textBackgroundColor))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
-                                )
+                            .buttonStyle(.plain)
                         }
-                        .padding(.horizontal)
-                        
-                        // Trigger Words Field using reusable component
-                        TriggerWordsEditor(triggerWords: $triggerWords)
-                            .padding(.horizontal)
-                        
-                        if case .add = mode {
-                            // Popover keeps templates accessible without taking space in the layout
-                            Button("Start with a Predefined Template") {
-                                showingPredefinedPrompts.toggle()
-                            }
+                        .popover(isPresented: $showingIconPicker, arrowEdge: .bottom) {
+                            IconPickerPopover(selectedIcon: $selectedIcon, isPresented: $showingIconPicker)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    
+                    // Description Field
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Description")
                             .font(.headline)
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 12)
+                            .foregroundColor(.secondary)
+                        
+                        Text("Add a brief description of what this prompt does")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        TextField("Enter a description", text: $description)
+                            .textFieldStyle(.roundedBorder)
+                            .font(.body)
+                    }
+                    .padding(.horizontal)
+                    
+                    // Prompt Text Section with improved styling
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Prompt Instructions")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                        
+                        Text("Define how AI should enhance your transcriptions")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        HStack(spacing: 8) {
+                            Toggle("Use System Instructions", isOn: $useSystemInstructions)
+                            
+                            InfoTip(
+                                title: "System Instructions",
+                                message: "If enabled, your instructions are combined with a general-purpose template to improve transcription quality.\n\nDisable for full control over the AI's system prompt (for advanced users)."
+                            )
+                        }
+                        .padding(.bottom, 4)
+
+                        TextEditor(text: $promptText)
+                            .font(.system(.body, design: .monospaced))
+                            .frame(minHeight: 200)
+                            .padding(12)
                             .background(
-                                Capsule()
-                                    .fill(Color(.windowBackgroundColor).opacity(0.9))
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color(NSColor.textBackgroundColor))
                             )
                             .overlay(
-                                Capsule()
+                                RoundedRectangle(cornerRadius: 8)
                                     .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
                             )
-                            .buttonStyle(.plain)
-                            .padding(.horizontal)
-                            .popover(isPresented: $showingPredefinedPrompts, arrowEdge: .bottom) {
-                                PredefinedPromptsView { template in
-                                    title = template.title
-                                    promptText = template.promptText
-                                    selectedIcon = template.icon
-                                    description = template.description
-                                    showingPredefinedPrompts = false
-                                }
+                    }
+                    .padding(.horizontal)
+                    
+                    // Trigger Words Field using reusable component
+                    TriggerWordsEditor(triggerWords: $triggerWords)
+                        .padding(.horizontal)
+                    
+                    if case .add = mode {
+                        // Popover keeps templates accessible without taking space in the layout
+                        Button("Start with a Predefined Template") {
+                            showingPredefinedPrompts.toggle()
+                        }
+                        .font(.headline)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(
+                            Capsule()
+                                .fill(Color(.windowBackgroundColor).opacity(0.9))
+                        )
+                        .overlay(
+                            Capsule()
+                                .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                        )
+                        .buttonStyle(.plain)
+                        .padding(.horizontal)
+                        .popover(isPresented: $showingPredefinedPrompts, arrowEdge: .bottom) {
+                            PredefinedPromptsView { template in
+                                title = template.title
+                                promptText = template.promptText
+                                selectedIcon = template.icon
+                                description = template.description ?? ""
+                                showingPredefinedPrompts = false
                             }
                         }
                     }
@@ -264,17 +257,30 @@ struct PromptEditorView: View {
         case .edit(let prompt):
             let updatedPrompt = CustomPrompt(
                 id: prompt.id,
-                title: prompt.isPredefined ? prompt.title : title,
-                promptText: prompt.isPredefined ? prompt.promptText : promptText,
+                title: title,
+                promptText: promptText,
                 isActive: prompt.isActive,
-                icon: prompt.isPredefined ? prompt.icon : selectedIcon,
-                description: prompt.isPredefined ? prompt.description : (description.isEmpty ? nil : description),
+                icon: selectedIcon,
+                description: description.isEmpty ? nil : description,
                 isPredefined: prompt.isPredefined,
                 triggerWords: triggerWords,
                 useSystemInstructions: useSystemInstructions
             )
             enhancementService.updatePrompt(updatedPrompt)
         }
+    }
+
+    private func resetToDefaultTemplate(for prompt: CustomPrompt) {
+        guard let template = PredefinedPrompts.createDefaultPrompts().first(where: { $0.id == prompt.id }) else { return }
+
+        title = template.title
+        promptText = template.promptText
+        selectedIcon = template.icon
+        description = template.description ?? ""
+        triggerWords = template.triggerWords
+        useSystemInstructions = template.useSystemInstructions
+
+        enhancementService.resetPromptToDefault(prompt)
     }
 }
 
