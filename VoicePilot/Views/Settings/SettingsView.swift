@@ -14,7 +14,6 @@ struct SettingsView: View {
     @ObservedObject private var mediaController = MediaController.shared
     @ObservedObject private var playbackController = PlaybackController.shared
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
-    @AppStorage("enableAnnouncements") private var enableAnnouncements = true
     @State private var showResetOnboardingAlert = false
     @State private var currentShortcut = KeyboardShortcuts.getShortcut(for: .toggleMiniRecorder)
     @State private var isCustomCancelEnabled = false
@@ -319,15 +318,7 @@ struct SettingsView: View {
                         LaunchAtLogin.Toggle()
                             .toggleStyle(.switch)
                         
-                        Toggle("Show app announcements", isOn: $enableAnnouncements)
-                            .toggleStyle(.switch)
-                            .onChange(of: enableAnnouncements) { _, newValue in
-                                if newValue {
-                                    AnnouncementsService.shared.start()
-                                } else {
-                                    AnnouncementsService.shared.stop()
-                                }
-                            }
+                        // Announcements removed in this fork to keep the app lightweight.
                         
                         Text("Updates are managed manually for this fork. Grab new builds from your own distribution channel when you're ready.")
                             .settingsDescription()

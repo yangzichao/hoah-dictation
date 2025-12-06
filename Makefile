@@ -40,13 +40,17 @@ setup: whisper
 	@echo "Whisper framework is ready at $(FRAMEWORK_PATH)"
 	@echo "Please ensure your Xcode project references the framework from this new location."
 
+BUILD_DIR := $(PWD)/build/DerivedData
+
 build: setup
-	xcodebuild -project VoicePilot.xcodeproj -target VoicePilot -configuration Debug CODE_SIGN_IDENTITY="" build
+	xcodebuild -scheme VoicePilot -configuration Debug \
+		CODE_SIGN_IDENTITY="" ARCHS=arm64 ONLY_ACTIVE_ARCH=YES SWIFT_DISABLE_EXPLICIT_MODULES=YES \
+		-derivedDataPath $(BUILD_DIR)
 
 # Run application
 run:
 	@echo "Looking for VoicePilot.app..."
-	@APP_PATH=$$(find "$$HOME/Library/Developer/Xcode/DerivedData" -name "VoicePilot.app" -type d | head -1) && \
+	@APP_PATH=$$(find "$(BUILD_DIR)" "$$HOME/Library/Developer/Xcode/DerivedData" -name "VoicePilot.app" -type d | head -1) && \
 	if [ -n "$$APP_PATH" ]; then \
 		echo "Found app at: $$APP_PATH"; \
 		open "$$APP_PATH"; \

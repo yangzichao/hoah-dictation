@@ -18,7 +18,6 @@ struct VoicePilotApp: App {
     @StateObject private var enhancementService: AIEnhancementService
     @StateObject private var activeWindowService = ActiveWindowService.shared
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-    @AppStorage("enableAnnouncements") private var enableAnnouncements = true
     @State private var showMenuBarIcon = true
     
     // Audio cleanup manager for automatic deletion of old audio files
@@ -200,10 +199,6 @@ struct VoicePilotApp: App {
                             NSApplication.shared.terminate(nil)
                             return
                         }
-                        if enableAnnouncements {
-                            AnnouncementsService.shared.start()
-                        }
-                        
                         // Start the transcription auto-cleanup service (handles immediate and scheduled transcript deletion)
                         transcriptionAutoCleanupService.startMonitoring(modelContext: container.mainContext)
                         
@@ -225,7 +220,6 @@ struct VoicePilotApp: App {
                         WindowManager.shared.configureWindow(window)
                     })
                     .onDisappear {
-                        AnnouncementsService.shared.stop()
                         whisperState.unloadModel()
                         
                         // Stop the transcription auto-cleanup service
