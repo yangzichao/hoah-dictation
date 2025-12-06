@@ -283,6 +283,9 @@ class AIEnhancementService: ObservableObject {
             }
 
         default:
+            if aiService.selectedProvider == .awsBedrock {
+                return try await makeBedrockRequest(systemMessage: systemMessage, userMessage: formattedText)
+            }
             let url = URL(string: aiService.selectedProvider.baseURL)!
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
@@ -390,6 +393,89 @@ class AIEnhancementService: ObservableObject {
         // This part should ideally not be reached, but as a fallback:
         throw EnhancementError.enhancementFailed
     }
+    
+    private func makeBedrockRequest(systemMessage: String, userMessage: String) async throws -> String {
+        let apiKey = aiService.bedrockApiKey
+        let region = aiService.bedrockRegion
+        let modelId = aiService.currentModel
+        
+        guard !apiKey.isEmpty, !region.isEmpty, !modelId.isEmpty else {
+            throw EnhancementError.notConfigured
+        }
+        
+        let prompt = "\(systemMessage)\n\(userMessage)"
+        let messages: [[String: Any]] = [
+            [
+                "role": "user",
+                "content": [
+                    ["text": prompt]
+                ]
+            ]
+        ]
+        let payload: [String: Any] = [
+            "modelId": modelId,
+            "messages": messages,
+            "inferenceConfig": [
+                "maxTokens": 1024,
+                "temperature": aiService.currentModel.lowercased().hasPrefix("gpt-5") ? 1.0 : 0.3
+            ]
+        ]
+        let payloadData = try JSONSerialization.data(withJSONObject: payload)
+        
+        let host = "bedrock-runtime.\(region).amazonaws.com"
+        let url = URL(string: "https://\(host)/model/\(modelId)/converse")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = payloadData
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw EnhancementError.invalidResponse
+            }
+            
+            if httpResponse.statusCode == 200 {
+                if let result = Self.parseBedrockResponse(data: data) {
+                    return AIEnhancementOutputFilter.filter(result.trimmingCharacters(in: .whitespacesAndNewlines))
+                } else {
+                    throw EnhancementError.enhancementFailed
+                }
+            } else if httpResponse.statusCode == 429 {
+                throw EnhancementError.rateLimitExceeded
+            } else if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
+                throw EnhancementError.apiKeyInvalid
+            } else if (500...599).contains(httpResponse.statusCode) {
+                throw EnhancementError.serverError
+            } else {
+                let errorString = String(data: data, encoding: .utf8) ?? "Could not decode error response."
+                throw EnhancementError.customError("HTTP \(httpResponse.statusCode): \(errorString)")
+            }
+        } catch let error as EnhancementError {
+            throw error
+        } catch {
+            throw EnhancementError.customError(error.localizedDescription)
+        }
+    }
+    
+    private static func parseBedrockResponse(data: Data) -> String? {
+        if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            if let text = json["output_text"] as? String { return text }
+            if let text = json["outputText"] as? String { return text }
+            if let text = json["completion"] as? String { return text }
+            if let text = json["generated_text"] as? String { return text }
+            if let outputs = json["outputs"] as? [[String: Any]] {
+                if let first = outputs.first {
+                    if let text = first["text"] as? String { return text }
+                    if let text = first["output_text"] as? String { return text }
+                }
+            }
+        } else if let asString = String(data: data, encoding: .utf8) {
+            return asString
+        }
+        return nil
+    }
 
     func enhance(_ text: String) async throws -> (String, TimeInterval, String?) {
         let startTime = Date()
@@ -484,6 +570,7 @@ enum EnhancementError: Error {
     case networkError
     case serverError
     case rateLimitExceeded
+    case apiKeyInvalid
     case customError(String)
 }
 
@@ -502,6 +589,8 @@ extension EnhancementError: LocalizedError {
             return "The AI provider's server encountered an error. Please try again later."
         case .rateLimitExceeded:
             return "Rate limit exceeded. Please try again later."
+        case .apiKeyInvalid:
+            return "The API key appears to be invalid or has been revoked."
         case .customError(let message):
             return message
         }

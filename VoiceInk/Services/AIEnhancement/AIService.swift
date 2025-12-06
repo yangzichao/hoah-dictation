@@ -13,6 +13,7 @@ enum AIProvider: String, CaseIterable {
     case soniox = "Soniox"
     case ollama = "Ollama"
     case custom = "Custom"
+    case awsBedrock = "AWS Bedrock"
     
     
     var baseURL: String {
@@ -41,6 +42,9 @@ enum AIProvider: String, CaseIterable {
             return UserDefaults.standard.string(forKey: "ollamaBaseURL") ?? "http://localhost:11434"
         case .custom:
             return UserDefaults.standard.string(forKey: "customProviderBaseURL") ?? ""
+        case .awsBedrock:
+            let region = UserDefaults.standard.string(forKey: "AWSBedrockRegion") ?? "us-east-1"
+            return "https://bedrock-runtime.\(region).amazonaws.com"
         }
     }
     
@@ -70,6 +74,8 @@ enum AIProvider: String, CaseIterable {
             return UserDefaults.standard.string(forKey: "customProviderModel") ?? ""
         case .openRouter:
             return "openai/gpt-oss-120b"
+        case .awsBedrock:
+            return UserDefaults.standard.string(forKey: "AWSBedrockModelId") ?? "meta.llama3-70b-instruct-v1:0"
         }
     }
     
@@ -135,6 +141,8 @@ enum AIProvider: String, CaseIterable {
             return []
         case .openRouter:
             return []
+        case .awsBedrock:
+            return []
         }
     }
     
@@ -142,6 +150,8 @@ enum AIProvider: String, CaseIterable {
         switch self {
         case .ollama:
             return false
+        case .awsBedrock:
+            return true
         default:
             return true
         }
@@ -151,6 +161,17 @@ enum AIProvider: String, CaseIterable {
 class AIService: ObservableObject {
     @Published var apiKey: String = ""
     @Published var isAPIKeyValid: Bool = false
+    
+    // AWS Bedrock credentials/config
+    @Published var bedrockApiKey: String = UserDefaults.standard.string(forKey: "AWSBedrockAPIKey") ?? "" {
+        didSet { userDefaults.set(bedrockApiKey, forKey: "AWSBedrockAPIKey") }
+    }
+    @Published var bedrockRegion: String = UserDefaults.standard.string(forKey: "AWSBedrockRegion") ?? "us-east-1" {
+        didSet { userDefaults.set(bedrockRegion, forKey: "AWSBedrockRegion") }
+    }
+    @Published var bedrockModelId: String = UserDefaults.standard.string(forKey: "AWSBedrockModelId") ?? "meta.llama3-70b-instruct-v1:0" {
+        didSet { userDefaults.set(bedrockModelId, forKey: "AWSBedrockModelId") }
+    }
     @Published var customBaseURL: String = UserDefaults.standard.string(forKey: "customProviderBaseURL") ?? "" {
         didSet {
             userDefaults.set(customBaseURL, forKey: "customProviderBaseURL")
@@ -165,7 +186,10 @@ class AIService: ObservableObject {
         didSet {
             userDefaults.set(selectedProvider.rawValue, forKey: "selectedAIProvider")
             if selectedProvider.requiresAPIKey {
-                if let savedKey = userDefaults.string(forKey: "\(selectedProvider.rawValue)APIKey") {
+                if selectedProvider == .awsBedrock {
+                    self.apiKey = ""
+                    self.isAPIKeyValid = !bedrockApiKey.isEmpty && !bedrockRegion.isEmpty && !bedrockModelId.isEmpty
+                } else if let savedKey = userDefaults.string(forKey: "\(selectedProvider.rawValue)APIKey") {
                     self.apiKey = savedKey
                     self.isAPIKeyValid = true
                 } else {
@@ -197,6 +221,9 @@ class AIService: ObservableObject {
             if provider == .ollama {
                 return ollamaService.isConnected
             } else if provider.requiresAPIKey {
+                if provider == .awsBedrock {
+                    return !bedrockApiKey.isEmpty && !bedrockRegion.isEmpty && !bedrockModelId.isEmpty
+                }
                 return userDefaults.string(forKey: "\(provider.rawValue)APIKey") != nil
             }
             return false
@@ -204,6 +231,9 @@ class AIService: ObservableObject {
     }
     
     var currentModel: String {
+        if selectedProvider == .awsBedrock {
+            return bedrockModelId
+        }
         if let selectedModel = selectedModels[selectedProvider],
            !selectedModel.isEmpty,
            (selectedProvider == .ollama && !selectedModel.isEmpty) || availableModels.contains(selectedModel) {
@@ -230,7 +260,9 @@ class AIService: ObservableObject {
         }
         
         if selectedProvider.requiresAPIKey {
-            if let savedKey = userDefaults.string(forKey: "\(selectedProvider.rawValue)APIKey") {
+            if selectedProvider == .awsBedrock {
+                self.isAPIKeyValid = !bedrockApiKey.isEmpty && !bedrockRegion.isEmpty && !bedrockModelId.isEmpty
+            } else if let savedKey = userDefaults.string(forKey: "\(selectedProvider.rawValue)APIKey") {
                 self.apiKey = savedKey
                 self.isAPIKeyValid = true
             }
@@ -282,6 +314,16 @@ class AIService: ObservableObject {
             return
         }
         
+        if selectedProvider == .awsBedrock {
+            saveBedrockConfig(
+                apiKey: bedrockApiKey,
+                region: bedrockRegion,
+                modelId: bedrockModelId
+            )
+            completion(isAPIKeyValid, nil)
+            return
+        }
+        
         verifyAPIKey(key) { [weak self] isValid, errorMessage in
             guard let self = self else { return }
             DispatchQueue.main.async {
@@ -304,6 +346,11 @@ class AIService: ObservableObject {
             return
         }
         
+        if selectedProvider == .awsBedrock {
+            completion(true, nil)
+            return
+        }
+        
         switch selectedProvider {
         case .anthropic:
             verifyAnthropicAPIKey(key, completion: completion)
@@ -318,6 +365,14 @@ class AIService: ObservableObject {
         default:
             verifyOpenAICompatibleAPIKey(key, completion: completion)
         }
+    }
+    
+    func saveBedrockConfig(apiKey: String, region: String, modelId: String) {
+        bedrockApiKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        bedrockRegion = region.trimmingCharacters(in: .whitespacesAndNewlines)
+        bedrockModelId = modelId.trimmingCharacters(in: .whitespacesAndNewlines)
+        isAPIKeyValid = !bedrockApiKey.isEmpty && !bedrockRegion.isEmpty && !bedrockModelId.isEmpty
+        NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
     }
     
     private func verifyOpenAICompatibleAPIKey(_ key: String, completion: @escaping (Bool, String?) -> Void) {
@@ -514,9 +569,16 @@ class AIService: ObservableObject {
     func clearAPIKey() {
         guard selectedProvider.requiresAPIKey else { return }
         
-        apiKey = ""
-        isAPIKeyValid = false
-        userDefaults.removeObject(forKey: "\(selectedProvider.rawValue)APIKey")
+        if selectedProvider == .awsBedrock {
+            bedrockApiKey = ""
+            bedrockRegion = "us-east-1"
+            bedrockModelId = "anthropic.claude-3-5-sonnet-20241022-v2:0"
+            isAPIKeyValid = false
+        } else {
+            apiKey = ""
+            isAPIKeyValid = false
+            userDefaults.removeObject(forKey: "\(selectedProvider.rawValue)APIKey")
+        }
         NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
     }
     
@@ -602,5 +664,3 @@ class AIService: ObservableObject {
 
     }
 }
-
-

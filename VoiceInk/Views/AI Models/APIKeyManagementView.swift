@@ -302,6 +302,48 @@ struct APIKeyManagementView: View {
                 .padding()
                 .background(Color.secondary.opacity(0.03))
                 .cornerRadius(12)
+            } else if aiService.selectedProvider == .awsBedrock {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("AWS Bedrock Configuration")
+                        .font(.headline)
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        SecureField("API Key (bedrock-api-key-...)", text: $aiService.bedrockApiKey)
+                            .textFieldStyle(.roundedBorder)
+                        
+                        TextField("Region (e.g., us-east-1)", text: $aiService.bedrockRegion)
+                            .textFieldStyle(.roundedBorder)
+                        
+                        TextField("Model ID (e.g., anthropic.claude-3-5-sonnet-20241022-v2:0)", text: $aiService.bedrockModelId)
+                            .textFieldStyle(.roundedBorder)
+                    }
+                    
+                    HStack {
+                        Button(action: {
+                            aiService.saveBedrockConfig(
+                                apiKey: aiService.bedrockApiKey,
+                                region: aiService.bedrockRegion,
+                                modelId: aiService.bedrockModelId
+                            )
+                        }) {
+                            Label("Save", systemImage: "checkmark.circle.fill")
+                        }
+                        .disabled(aiService.bedrockApiKey.isEmpty || aiService.bedrockRegion.isEmpty || aiService.bedrockModelId.isEmpty)
+                        
+                        Spacer()
+                        
+                        Button(role: .destructive) {
+                            aiService.clearAPIKey()
+                        } label: {
+                            Label("Clear", systemImage: "trash")
+                                .foregroundColor(.red)
+                        }
+                        .buttonStyle(.borderless)
+                    }
+                }
+                .padding()
+                .background(Color.secondary.opacity(0.03))
+                .cornerRadius(12)
             } else {
                 // API Key Display for other providers if valid
                 if aiService.isAPIKeyValid {
@@ -388,14 +430,16 @@ struct APIKeyManagementView: View {
                                             URL(string: "https://elevenlabs.io/speech-synthesis")!
                                         case .deepgram:
                                             URL(string: "https://console.deepgram.com/api-keys")!
-                                            case .soniox:
-                                                URL(string: "https://console.soniox.com/")!
+                                        case .soniox:
+                                            URL(string: "https://console.soniox.com/")!
                                         case .ollama, .custom:
                                             URL(string: "")! // This case should never be reached
                                         case .openRouter:
                                             URL(string: "https://openrouter.ai/keys")!
                                         case .cerebras:
                                             URL(string: "https://cloud.cerebras.ai/")!
+                                        case .awsBedrock:
+                                            URL(string: "https://console.aws.amazon.com/iam/home#/security_credentials")!
                                         }
                                         NSWorkspace.shared.open(url)
                                     } label: {
