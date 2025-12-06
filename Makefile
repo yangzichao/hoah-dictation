@@ -1,5 +1,5 @@
 # Define a directory for dependencies in the user's home folder
-DEPS_DIR := $(HOME)/VoiceInk-Dependencies
+DEPS_DIR := $(HOME)/VoicePilot-Dependencies
 WHISPER_CPP_DIR := $(DEPS_DIR)/whisper.cpp
 FRAMEWORK_PATH := $(WHISPER_CPP_DIR)/build-apple/whisper.xcframework
 
@@ -41,17 +41,17 @@ setup: whisper
 	@echo "Please ensure your Xcode project references the framework from this new location."
 
 build: setup
-	xcodebuild -project VoiceInk.xcodeproj -scheme VoiceInk -configuration Debug CODE_SIGN_IDENTITY="" build
+	xcodebuild -project VoicePilot.xcodeproj -target VoicePilot -configuration Debug CODE_SIGN_IDENTITY="" build
 
 # Run application
 run:
-	@echo "Looking for VoiceInk.app..."
-	@APP_PATH=$$(find "$$HOME/Library/Developer/Xcode/DerivedData" -name "VoiceInk.app" -type d | head -1) && \
+	@echo "Looking for VoicePilot.app..."
+	@APP_PATH=$$(find "$$HOME/Library/Developer/Xcode/DerivedData" -name "VoicePilot.app" -type d | head -1) && \
 	if [ -n "$$APP_PATH" ]; then \
 		echo "Found app at: $$APP_PATH"; \
 		open "$$APP_PATH"; \
 	else \
-		echo "VoiceInk.app not found. Please run 'make build' first."; \
+		echo "VoicePilot.app not found. Please run 'make build' first."; \
 		exit 1; \
 	fi
 
@@ -66,9 +66,9 @@ help:
 	@echo "Available targets:"
 	@echo "  check/healthcheck  Check if required CLI tools are installed"
 	@echo "  whisper            Clone and build whisper.cpp XCFramework"
-	@echo "  setup              Copy whisper XCFramework to VoiceInk project"
-	@echo "  build              Build the VoiceInk Xcode project"
-	@echo "  run                Launch the built VoiceInk app"
+	@echo "  setup              Copy whisper XCFramework to VoicePilot project"
+	@echo "  build              Build the VoicePilot Xcode project"
+	@echo "  run                Launch the built VoicePilot app"
 	@echo "  dev                Build and run the app (for development)"
 	@echo "  all                Run full build process (default)"
 	@echo "  clean              Remove build artifacts"

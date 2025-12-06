@@ -1,10 +1,10 @@
-# Contributing to VoiceInk
+# Contributing to VoicePilot
 
-First off, thank you for considering contributing to VoiceInk! It's people like you that make VoiceInk such a great tool.
+First off, thank you for considering contributing to VoicePilot! It's people like you that make VoicePilot such a great tool.
 
 ## ⚠️ Pull Requests Not Accepted
 
-**As of now, this project is not accepting pull requests.** While VoiceInk is open source and you're welcome to fork and modify it for your own use.
+**As of now, this project is not accepting pull requests.** While VoicePilot is open source and you're welcome to fork and modify it for your own use.
 
 **You can still contribute by:**
 - 🐛 **Reporting bugs** - Open an issue with detailed information
@@ -18,7 +18,7 @@ Thank you for understanding!
 
 ## ~~Important Notice About Pull Requests~~
 
-~~We welcome forks and improvements to VoiceInk! However, please note:~~
+~~We welcome forks and improvements to VoicePilot! However, please note:~~
 
 ~~1. **The acceptance of Pull Requests is solely at the discretion of the project maintainers**~~
 ~~2. **Before making significant changes or starting work on major features:**~~
@@ -114,4 +114,4 @@ If you have any questions or need clarification, feel free to:
 2. Start a discussion
 3. Reach out to the maintainers
 
-Thank you for contributing to VoiceInk! 🎉 
+Thank you for contributing to VoicePilot! 🎉 
