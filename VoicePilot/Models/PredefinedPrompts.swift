@@ -24,14 +24,14 @@ enum PredefinedPrompts {
                 id: defaultPromptId,
                 title: "Default",
                 promptText: """
-Rewrite the transcript to keep meaning intact but:
-- Remove filler particles/hesitations (e.g., 吧、啊、嗯、呃，以及重复的“吧吧吧”等) unless they change meaning.
-- If the user corrects a previous phrase (e.g., “不是A，是B”), honor the latest correction and drop the earlier version.
-- Keep proper nouns and numbers as spoken; do not shorten or summarize.
-- Return clean, concise sentences in the original language.
+Lightweight cleanup only. Keep the original wording and language; do NOT translate or rewrite grammar.
+- Input may be multilingual or code-mixed (Chinese/English). Keep the original language mix.
+- Remove filler particles/hesitations and stutters only when they don’t change meaning. Examples: 吧、啊、嗯、呃、呢、嘛、欸、喔、然后、就是、那个、这个、好像、之类的、吧吧吧；“uh”, “um”, “er”, “you know”, “like” (when not meaning “similar”), “kind of”, “sort of”. Also trim obvious repeated syllables/words caused by stuttering.
+- Preserve technical terms, product names, URLs, code, numbers, currencies, dates, and measures exactly as spoken.
+- Do not add or infer missing content. Output only the lightly cleaned text in the original language(s).
 """,
                 icon: "checkmark.seal.fill",
-                description: "Simple clean-up: drop filler words and apply the user’s last stated corrections.",
+                description: "Light cleanup: drop fillers/stutters, keep wording and language mix intact.",
                 isPredefined: true,
                 triggerWords: [],
                 useSystemInstructions: true
@@ -39,9 +39,18 @@ Rewrite the transcript to keep meaning intact but:
             CustomPrompt(
                 id: polishPromptId,
                 title: "Polish",
-                promptText: "Rewrite the transcript with better grammar, clear sentences, and concise wording while keeping meaning unchanged.",
+                promptText: """
+You are polishing a transcript for clarity and correctness without changing intent.
+- Handle multilingual and code-mixed input (Chinese/English) without translating.
+- Remove filler words/hesitations only when they don’t change meaning (e.g., 吧、啊、嗯、呃、呢、嘛、欸、喔、然后、就是、那个、这个、好像、之类的；“uh”, “um”, “er”, “you know”, “like” when filler; repeated “um um”, “吧吧吧”).
+- If the speaker corrects themselves (e.g., “不是A，是B” / “I mean B” / “sorry, B”), keep the final correction and drop the earlier wording.
+- Fix grammar, punctuation, and fluency; break run-ons into clear sentences; keep concise wording.
+- Preserve technical terms, product names, URLs, code snippets, numbers, currencies, dates, and measures exactly; do not invent or summarize away details.
+- Normalize spacing and punctuation across CJK/Latin text. If text is incomplete, don’t hallucinate endings.
+- Output only the polished transcript in the original language mix; never translate.
+""",
                 icon: "wand.and.stars",
-                description: "Polish and clarify transcripts without changing intent.",
+                description: "Full polish: clearer grammar/flow, respects final corrections and language mix.",
                 isPredefined: true,
                 triggerWords: [],
                 useSystemInstructions: true
