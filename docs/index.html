@@ -31,9 +31,12 @@
             <div class="container">
                 <h2>Speak freely.</h2>
                 <p>Voice-to-text for macOS, focused on fast local/LLM transcription and lightweight UI.</p>
-                <!-- NOTE: The dmg file should be placed in docs/downloads/VoicePilot.dmg -->
-                <a href="https://github.com/yangzichao/VoicePilot/releases/download/2.1.1/VoicePilot-2.1.1.dmg"
+                <!-- NOTE: The dmg file is automatically fetched from GitHub Releases -->
+                <a href="https://github.com/yangzichao/VoicePilot/releases" id="download-btn"
                     class="cta-button">Download for macOS</a>
+                <p id="version-text"
+                    style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-muted); opacity: 0.8;">Latest
+                    Release</p>
             </div>
         </section>
 
@@ -69,6 +72,26 @@
         <p>&copy; 2024 VoicePilot. Licensed under GPL v3. <br> <a href="https://github.com/yangzichao/VoicePilot">View
                 on GitHub</a></p>
     </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const repo = 'yangzichao/VoicePilot';
+            const btn = document.getElementById('download-btn');
+            const versionText = document.getElementById('version-text');
+
+            fetch(`https://api.github.com/repos/${repo}/releases/latest`)
+                .then(response => response.json())
+                .then(data => {
+                    const dmgAsset = data.assets.find(asset => asset.name.endsWith('.dmg'));
+                    if (dmgAsset) {
+                        btn.href = dmgAsset.browser_download_url;
+                        btn.innerText = `Download ${data.tag_name}`;
+                        versionText.innerText = `Latest: ${data.tag_name} (${(dmgAsset.size / 1024 / 1024).toFixed(1)} MB)`;
+                    }
+                })
+                .catch(err => console.error('Error fetching release:', err));
+        });
+    </script>
 </body>
 
 </html>
