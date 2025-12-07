@@ -9,13 +9,17 @@ enum LanguageDisplayMode {
 struct LanguageSelectionView: View {
     @ObservedObject var whisperState: WhisperState
     @AppStorage("SelectedLanguage") private var selectedLanguage: String = "auto"
+    @AppStorage("HasManuallySelectedLanguage") private var hasManuallySelectedLanguage = false
     // Add display mode parameter with full as the default
     var displayMode: LanguageDisplayMode = .full
     @ObservedObject var whisperPrompt: WhisperPrompt
 
-    private func updateLanguage(_ language: String) {
+    private func updateLanguage(_ language: String, isUserSelection: Bool = false) {
         // Update UI state - the UserDefaults updating is now automatic with @AppStorage
         selectedLanguage = language
+        if isUserSelection {
+            hasManuallySelectedLanguage = true
+        }
 
         // Force the prompt to update for the new language
         whisperPrompt.updateTranscriptionPrompt()
@@ -51,6 +55,48 @@ struct LanguageSelectionView: View {
     // Get the display name of the current language
     private func currentLanguageDisplayName() -> String {
         return getCurrentModelLanguages()[selectedLanguage] ?? "Unknown"
+    }
+
+    private func preferredFallbackLanguage(from languages: [String: String], prefersAuto: Bool) -> String {
+        if prefersAuto, languages.keys.contains("auto") {
+            return "auto"
+        }
+        // Prefer English variants when auto is unavailable
+        if let english = languages.keys.first(where: { $0 == "en" || $0.hasPrefix("en-") }) {
+            return english
+        }
+        return languages.keys.sorted().first ?? "auto"
+    }
+
+    private func applyDefaultLanguageIfNeeded(for model: (any TranscriptionModel)?) {
+        guard let model else { return }
+        let languages = model.supportedLanguages
+        let supportsAuto = languages.keys.contains("auto")
+        let isEnglishOnly = !model.isMultilingualModel
+        let currentSelectionIsValid = languages[selectedLanguage] != nil
+        let defaultLanguage = preferredFallbackLanguage(from: languages, prefersAuto: supportsAuto)
+        let isEnglishSelection = selectedLanguage == "en" || selectedLanguage.hasPrefix("en-")
+
+        if isEnglishOnly {
+            hasManuallySelectedLanguage = false
+            updateLanguage(defaultLanguage)
+            return
+        }
+
+        if !currentSelectionIsValid {
+            hasManuallySelectedLanguage = false
+            updateLanguage(defaultLanguage)
+            return
+        }
+
+        if !hasManuallySelectedLanguage && selectedLanguage != "auto" && currentSelectionIsValid && !isEnglishSelection {
+            // Preserve explicit non-English selections that may have come from other flows (e.g., Power Mode)
+            hasManuallySelectedLanguage = true
+        }
+
+        if supportsAuto && !hasManuallySelectedLanguage && selectedLanguage != "auto" && isEnglishSelection {
+            updateLanguage("auto")
+        }
     }
 
     var body: some View {
@@ -93,7 +139,15 @@ struct LanguageSelectionView: View {
                     .disabled(true)
                 } else if isMultilingualModel() {
                     VStack(alignment: .leading, spacing: 8) {
-                        Picker("Select Language", selection: $selectedLanguage) {
+                        Picker(
+                            "Select Language",
+                            selection: Binding(
+                                get: { selectedLanguage },
+                                set: { newValue in
+                                    updateLanguage(newValue, isUserSelection: true)
+                                }
+                            )
+                        ) {
                             ForEach(
                                 currentModel.supportedLanguages.sorted(by: {
                                     if $0.key == "auto" { return true }
@@ -105,9 +159,6 @@ struct LanguageSelectionView: View {
                             }
                         }
                         .pickerStyle(MenuPickerStyle())
-                        .onChange(of: selectedLanguage) { oldValue, newValue in
-                            updateLanguage(newValue)
-                        }
 
                         Text("Current model: \(currentModel.displayName)")
                             .font(.caption)
@@ -122,8 +173,10 @@ struct LanguageSelectionView: View {
                     .onAppear {
                         let languages = currentModel.supportedLanguages
                         if selectedLanguage.isEmpty || languages[selectedLanguage] == nil {
+                            hasManuallySelectedLanguage = false
                             updateLanguage(languages.keys.contains("auto") ? "auto" : (languages.keys.sorted().first ?? "auto"))
                         }
+                        applyDefaultLanguageIfNeeded(for: currentModel)
                     }
                 } else {
                     // For English-only models, force set language to English
@@ -144,6 +197,7 @@ struct LanguageSelectionView: View {
                     }
                     .onAppear {
                         // Ensure English is set when viewing English-only model
+                        hasManuallySelectedLanguage = false
                         updateLanguage("en")
                     }
                 }
@@ -180,7 +234,7 @@ struct LanguageSelectionView: View {
                         }), id: \.key
                     ) { key, value in
                         Button {
-                            updateLanguage(key)
+                            updateLanguage(key, isUserSelection: true)
                         } label: {
                             HStack {
                                 Text(value)
@@ -208,9 +262,16 @@ struct LanguageSelectionView: View {
                 .disabled(true)
                 .onAppear {
                     // Ensure English is set for English-only models
+                    hasManuallySelectedLanguage = false
                     updateLanguage("en")
                 }
             }
+        }
+        .onAppear {
+            applyDefaultLanguageIfNeeded(for: whisperState.currentTranscriptionModel)
+        }
+        .onChange(of: whisperState.currentTranscriptionModel?.name) { _, _ in
+            applyDefaultLanguageIfNeeded(for: whisperState.currentTranscriptionModel)
         }
     }
 }
