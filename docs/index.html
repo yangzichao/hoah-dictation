@@ -21,11 +21,49 @@
     <main>
         <section class="hero">
             <div class="container">
-                <h1 class="hero-logo">VoicePilot</h1>
-                <h2 data-i18n="hero.subtitle">Speech-to-Text, Refined.</h2>
+                <div class="hero-header-group">
+                    <h1 class="hero-logo">VoicePilot</h1>
+                    <span class="hero-divider">|</span>
+                    <h2 data-i18n="hero.subtitle">Speech-to-Text, Refined.</h2>
+                </div>
+
                 <p data-i18n="hero.desc">Capture raw speech locally, then let <strong>AI Agents</strong> transform it
                     into perfect emails,
                     code, or notes.</p>
+
+                <!-- Download Area (Moved Up) -->
+                <div class="download-area" style="margin-bottom: 2.5rem;">
+                    <a href="https://github.com/yangzichao/VoicePilot/releases" id="download-btn" class="cta-button"
+                        data-i18n="cta.download">Download for macOS</a>
+                    <p id="version-text"
+                        style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted); opacity: 0.8; margin-bottom: 0;">
+                        Latest
+                        Release</p>
+                </div>
+
+                <!-- Rotating Live Demo -->
+                <div class="demo-container">
+                    <div class="demo-header">
+                        <span class="demo-badge">Live Demo</span>
+                        <span id="demo-scenario-title" class="demo-title">Bug Report</span>
+                    </div>
+                    <div class="demo-content">
+                        <div class="demo-line raw">
+                            <span class="icon">🎙️</span>
+                            <span id="demo-text-raw" class="typewriter">...</span>
+                        </div>
+                        <div class="demo-arrow">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 5v14M19 12l-7 7-7-7" />
+                            </svg>
+                        </div>
+                        <div class="demo-line polished">
+                            <span class="icon">✨</span>
+                            <span id="demo-text-polished" class="fade-in">...</span>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="workflow-cards">
                     <div class="glass-card">
@@ -59,14 +97,7 @@
                     </div>
                 </div>
 
-                <!-- NOTE: The dmg file is automatically fetched from GitHub Releases -->
-                <div class="download-area">
-                    <a href="https://github.com/yangzichao/VoicePilot/releases" id="download-btn" class="cta-button"
-                        data-i18n="cta.download">Download for macOS</a>
-                    <p id="version-text"
-                        style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted); opacity: 0.8;">Latest
-                        Release</p>
-                </div>
+
             </div>
         </section>
 
@@ -107,7 +138,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Language Toggle Logic
+            // --- Language Toggle Logic ---
             const translations = {
                 en: {
                     "hero.subtitle": "Speech-to-Text, Refined.",
@@ -155,24 +186,107 @@
             function updateLanguage(lang) {
                 document.querySelectorAll('[data-i18n]').forEach(el => {
                     const key = el.getAttribute('data-i18n');
-                    if (translations[lang][key]) {
+                    if (translations[lang] && translations[lang][key]) {
                         el.innerHTML = translations[lang][key];
                     }
                 });
                 toggleBtn.textContent = lang === 'en' ? 'EN / 中' : '中 / EN';
                 localStorage.setItem('vp_lang', lang);
                 currentLang = lang;
-            }
 
-            // Init
-            updateLanguage(currentLang);
+                // Restart demo on language switch
+                if (demoTimeout) clearTimeout(demoTimeout);
+                startDemo(lang);
+            }
 
             toggleBtn.addEventListener('click', () => {
                 const newLang = currentLang === 'en' ? 'zh' : 'en';
                 updateLanguage(newLang);
             });
 
-            // Download Logic
+            // --- Rotating Live Demo Logic ---
+            const scenarios = {
+                en: [
+                    {
+                        title: "Bug Report",
+                        raw: "So, um, the API is, uh, timing out? We should probably add a retry logic... just to be safe.",
+                        polished: "<strong>Issue:</strong> API Timeouts.<br><strong>Action:</strong> Add retry logic."
+                    },
+                    {
+                        title: "Quick Email",
+                        raw: "Hey, sorry I'm running late. Like 10 minutes? Start without me... I'll catch up.",
+                        polished: "Running 10 mins late. Please start without me."
+                    }
+                ],
+                zh: [
+                    {
+                        title: "Bug Report",
+                        raw: "那个，API 好像超时了？我们应该加个重试什么的... 保险一点。",
+                        polished: "<strong>问题:</strong> API 超时。<br><strong>行动:</strong> 增加重试逻辑。"
+                    },
+                    {
+                        title: "Quick Email",
+                        raw: "不好意思迟到了。大概10分钟？你们先开始吧... 我到了就加入。",
+                        polished: "迟到 10 分钟。请先开始会议。"
+                    }
+                ]
+            };
+
+            let demoTimeout;
+            let scenarioIndex = 0;
+            const rawEl = document.getElementById('demo-text-raw');
+            const polishedEl = document.getElementById('demo-text-polished');
+            const titleEl = document.getElementById('demo-scenario-title');
+
+            function typeWriter(text, element, speed, callback) {
+                let i = 0;
+                element.innerHTML = "";
+                element.classList.add('cursor');
+
+                function type() {
+                    if (i < text.length) {
+                        element.innerHTML += text.charAt(i);
+                        i++;
+                        demoTimeout = setTimeout(type, speed + (Math.random() * 20)); // Randomize slightly for realism
+                    } else {
+                        element.classList.remove('cursor');
+                        if (callback) callback();
+                    }
+                }
+                type();
+            }
+
+            function startDemo(lang) {
+                const currentScenarios = scenarios[lang] || scenarios['en'];
+                // Wrap around
+                if (scenarioIndex >= currentScenarios.length) scenarioIndex = 0;
+                const scenario = currentScenarios[scenarioIndex];
+
+                // Reset UI
+                titleEl.innerText = scenario.title;
+                rawEl.innerHTML = "";
+                polishedEl.innerHTML = "";
+                polishedEl.style.opacity = "0";
+
+                // 1. Type Raw Text
+                typeWriter(scenario.raw, rawEl, 40, () => {
+                    // 2. Pause before polishing
+                    demoTimeout = setTimeout(() => {
+                        // 3. Show Polished
+                        polishedEl.innerHTML = scenario.polished;
+                        polishedEl.style.transition = "opacity 0.8s ease";
+                        polishedEl.style.opacity = "1";
+
+                        // 4. Hold then next
+                        demoTimeout = setTimeout(() => {
+                            scenarioIndex++;
+                            startDemo(currentLang); // Recurse
+                        }, 4000); // Read time
+                    }, 800); // Processing time
+                });
+            }
+
+            // --- Download Logic ---
             const repo = 'yangzichao/VoicePilot';
             const btn = document.getElementById('download-btn');
             const versionText = document.getElementById('version-text');
@@ -183,18 +297,17 @@
                     const dmgAsset = data.assets.find(asset => asset.name.endsWith('.dmg'));
                     if (dmgAsset) {
                         btn.href = dmgAsset.browser_download_url;
-                        // Keep current lang text but append version if possible, or simple override logic
-                        // specific for download
                         const langText = currentLang === 'en' ? "Download" : "下载";
                         btn.innerText = `${langText} ${data.tag_name}`;
-
-                        // Update dynamic button text on lang switch as well (simple version)
-                        // Ideally we'd store the version to re-render, but for now let's just let the fetch set it once
-                        // or make the updateLanguage aware of version. 
-                        // Simplified: Let static text handle it until fetch updates.
+                        // We could keep version text logic simple or localized, for now keeping English structure with dynamic version
+                        versionText.innerText = `Latest: ${data.tag_name} (${(dmgAsset.size / 1024 / 1024).toFixed(1)} MB)`;
                     }
                 })
                 .catch(err => console.error('Error fetching release:', err));
+
+            // Init Everything
+            updateLanguage(currentLang);
+            // startDemo is called inside updateLanguage -> consistent init
         });
     </script>
 </body>

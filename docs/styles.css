@@ -78,7 +78,8 @@ body {
   text-align: center;
   position: relative;
   overflow: hidden;
-  padding: 2rem 1rem;
+  padding: 4rem 1rem 2rem;
+  /* Adjusted padding */
 }
 
 /* Ambient Background Glower */
@@ -106,10 +107,20 @@ body {
   align-items: center;
 }
 
+.hero-header-group {
+  display: flex;
+  align-items: baseline;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 .hero-logo {
-  font-size: 1.5rem;
+  font-size: 2.5rem;
+  /* Increased size for impact */
   font-weight: 700;
-  margin-bottom: 2rem;
+  margin: 0;
   background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -118,11 +129,21 @@ body {
   animation: fadeInUp 0.8s ease-out;
 }
 
+.hero-divider {
+  font-size: 2rem;
+  color: rgba(255, 255, 255, 0.2);
+  font-weight: 300;
+  transform: translateY(-4px);
+  /* Minor visual alignment */
+}
+
 .hero h2 {
-  font-size: 3.5rem;
+  font-size: 2.5rem;
+  /* Matched to logo */
   line-height: 1.1;
-  font-weight: 700;
-  margin-bottom: 1rem;
+  font-weight: 600;
+  /* Slightly lighter than logo */
+  margin: 0;
   letter-spacing: -0.03em;
   background: linear-gradient(to right, #ffffff 20%, #a5b4fc 80%);
   -webkit-background-clip: text;
@@ -424,4 +445,133 @@ footer a:hover {
 .lang-toggle:active {
   transform: scale(0.96);
   background: rgba(255, 255, 255, 0.15);
+}
+
+
+/* --- Live Demo Animation --- */
+.demo-container {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1.5rem 2rem;
+  margin: 2rem auto 3rem;
+  max-width: 650px;
+  width: 95%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: fadeInUp 0.8s ease-out 0.45s backwards;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.demo-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 0.8rem;
+}
+
+.demo-badge {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.demo-badge::before {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+  animation: pulseRed 2s infinite;
+}
+
+@keyframes pulseRed {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.demo-title {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.demo-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.demo-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.demo-line .icon {
+  font-size: 1.2rem;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+.demo-line.raw {
+  color: var(--text-muted);
+  font-style: italic;
+  font-family: 'Courier New', monospace;
+  /* Monospace for raw feel */
+}
+
+.demo-line.polished {
+  color: #fff;
+  font-weight: 500;
+}
+
+.demo-arrow {
+  display: flex;
+  justify-content: center;
+  color: var(--accent-blue);
+  opacity: 0.5;
+  margin: -0.2rem 0;
+}
+
+/* Cursor Effect */
+.cursor::after {
+  content: '|';
+  animation: blink 1s step-end infinite;
+  color: var(--accent-blue);
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
 }
