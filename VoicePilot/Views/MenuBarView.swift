@@ -211,14 +211,6 @@ struct MenuBarView: View {
                     LaunchAtLogin.isEnabled = newValue
                 }
             
-            Divider()
-            
-            Button("Help and Support") {
-                EmailSupport.openSupportEmail()
-            }
-            
-            Divider()
-            
             Button("Quit VoicePilot") {
                 NSApplication.shared.terminate(nil)
             }
