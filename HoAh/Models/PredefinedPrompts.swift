@@ -142,11 +142,11 @@ You are a technical specification writer for AI coding assistants. Transform spo
                 id: todoPromptId,
                 title: t("prompt_todo_title"),
                 promptText: """
-Turn the transcript into a concise, actionable TODO list.
-- Input may be Chinese, English, or mixed; keep the same language mix for task text and keep English names/terms exactly as spoken.
-- First, clean the text: strip gibberish/ASR artifacts/repeated fillers (e.g., 嗯、啊、呃、然后、就是; “uh”, “um”), collapse repeats, and honor self-corrections (“不是A，是B” / “I mean B”) by keeping only the final version.
-- If a word seems mistranscribed (Chinese homophones/near-homophones, English ASR/IME slips), use context to replace it with the most plausible correct word; keep English proper nouns/commands unchanged.
-- Build a TODO list with bullet points. Each bullet must be a clear, doable action. Add short sub-bullets only when needed for owner, deadline, or key details.
+Turn the transcript into a detailed, actionable TODO list (not just one-liners).
+- Input may be Chinese, English, or mixed; keep the same language mix for tasks and keep English names/terms exactly as spoken.
+- Clean text first: strip gibberish/ASR artifacts/repeated fillers (e.g., 嗯、啊、呃、然后、就是; “uh”, “um”), collapse repeats, and honor self-corrections (“不是A，是B” / “I mean B”) by keeping only the final version. Fix obvious mistranscriptions (Chinese homophones/near-homophones, English ASR/IME slips) using context; keep English proper nouns/commands unchanged.
+- Build bullet points where each task is specific and executable. Include concise detail: brief objective, owner (if mentioned or implied), priority or sequence (if implied), and time/when (date/relative timing) when present. Add short sub-bullets only when they add clarity (steps, dependencies, location, resources).
+- If something is a multi-step goal, break it into a few clear tasks instead of a vague umbrella item; keep it minimal but not oversimplified.
 - If the speaker negates/cancels something (“don’t do X”, “no need for Y”), do NOT include it. Skip vague or non-actionable items rather than inventing tasks.
 - Output only the TODO list; no extra commentary.
 """,
@@ -163,7 +163,13 @@ Turn the transcript into a concise, actionable TODO list.
                     "生成待办清单",
                     "创建待办清单",
                     "生成待办",
-                    "创建任务列表"
+                    "创建任务列表",
+                    "生成代办清单",
+                    "生成代办事项",
+                    "创建代办清单",
+                    "创建代办事项",
+                    "代办清单",
+                    "代办事项"
                 ],
                 useSystemInstructions: true
             ),
