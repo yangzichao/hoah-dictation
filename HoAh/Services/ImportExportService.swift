@@ -12,7 +12,7 @@ struct GeneralSettings: Codable {
     let selectedHotkey2RawValue: String?
     let launchAtLoginEnabled: Bool?
     let isMenuBarOnly: Bool?
-    let useAppleScriptPaste: Bool?
+
     let recorderType: String?
     let isTranscriptionCleanupEnabled: Bool?
     let transcriptionRetentionMinutes: Int?
@@ -41,7 +41,7 @@ class ImportExportService {
 
 
     private let keyIsMenuBarOnly = "IsMenuBarOnly"
-    private let keyUseAppleScriptPaste = "UseAppleScriptPaste"
+
     private let keyRecorderType = "RecorderType"
     private let keyIsAudioCleanupEnabled = "IsAudioCleanupEnabled"
     private let keyIsTranscriptionCleanupEnabled = "IsTranscriptionCleanupEnabled"
@@ -80,7 +80,7 @@ class ImportExportService {
             selectedHotkey2RawValue: hotkeyManager.selectedHotkey2.rawValue,
             launchAtLoginEnabled: LaunchAtLogin.isEnabled,
             isMenuBarOnly: menuBarManager.isMenuBarOnly,
-            useAppleScriptPaste: UserDefaults.standard.bool(forKey: keyUseAppleScriptPaste),
+
             recorderType: whisperState.recorderType,
             isTranscriptionCleanupEnabled: UserDefaults.standard.bool(forKey: keyIsTranscriptionCleanupEnabled),
             transcriptionRetentionMinutes: UserDefaults.standard.integer(forKey: keyTranscriptionRetentionMinutes),
@@ -215,9 +215,7 @@ class ImportExportService {
                         if let menuOnly = general.isMenuBarOnly {
                             menuBarManager.isMenuBarOnly = menuOnly
                         }
-                        if let appleScriptPaste = general.useAppleScriptPaste {
-                            UserDefaults.standard.set(appleScriptPaste, forKey: self.keyUseAppleScriptPaste)
-                        }
+
                         if let recType = general.recorderType {
                             whisperState.recorderType = recType
                         }

@@ -25,11 +25,7 @@ class CursorPaster {
         ClipboardManager.setClipboard(text, transient: !preserveTranscript)
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            if UserDefaults.standard.bool(forKey: "UseAppleScriptPaste") {
-                _ = pasteUsingAppleScript()
-            } else {
-                pasteUsingCommandV()
-            }
+            pasteUsingCommandV()
         }
 
         if !preserveTranscript {
@@ -44,24 +40,7 @@ class CursorPaster {
         }
     }
     
-    private static func pasteUsingAppleScript() -> Bool {
-        guard AXIsProcessTrusted() else {
-            return false
-        }
-        
-        let script = """
-        tell application "System Events"
-            keystroke "v" using command down
-        end tell
-        """
-        
-        var error: NSDictionary?
-        if let scriptObject = NSAppleScript(source: script) {
-            _ = scriptObject.executeAndReturnError(&error)
-            return error == nil
-        }
-        return false
-    }
+
     
     private static func pasteUsingCommandV() {
         guard AXIsProcessTrusted() else {
