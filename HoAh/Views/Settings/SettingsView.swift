@@ -266,8 +266,6 @@ struct SettingsView: View {
                     }
                 }
 
-                PowerModeSettingsSection()
-
                 ExperimentalFeaturesSection()
 
                 SettingsSection(
