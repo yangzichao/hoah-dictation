@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoicePilot - Voice-to-Text for macOS</title>
+    <title>HoAh - Voice-to-Text for macOS</title>
     <meta name="description"
         content="Voice-to-text for macOS, focused on fast local/LLM transcription and lightweight UI.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,7 +22,7 @@
         <section class="hero">
             <div class="container">
                 <div class="hero-header-group">
-                    <h1 class="hero-logo">VoicePilot</h1>
+                    <h1 class="hero-logo" data-i18n="common.appName">HoAh</h1>
                     <span class="hero-divider">|</span>
                     <h2 data-i18n="hero.subtitle">Speech-to-Text, Refined.</h2>
                 </div>
@@ -129,11 +129,11 @@
 
     <footer>
         <div class="footer-links">
-            <a href="#features">Features</a>
+            <a href="#features" data-i18n="footer.features">Features</a>
             <span class="divider">/</span>
             <a href="https://github.com/yangzichao/VoicePilot">GitHub</a>
         </div>
-        <p>&copy; 2024 VoicePilot. Licensed under GPL v3.</p>
+        <p>&copy; 2024 HoAh. Licensed under GPL v3.</p>
     </footer>
 
     <script>
@@ -141,6 +141,7 @@
             // --- Language Toggle Logic ---
             const translations = {
                 en: {
+                    "common.appName": "HoAh",
                     "hero.subtitle": "Speech-to-Text, Refined.",
                     "hero.desc": "Capture raw speech locally, then let <strong>AI Agents</strong> transform it into perfect emails, code, or notes.",
                     "step1.title": "Speak",
@@ -157,9 +158,11 @@
                     "feat3.desc": "Trimmed extras. The core flow is simply Voice → Transcript.",
                     "feat4.title": "Forever Free",
                     "feat4.desc": "Fully open-source. No subscriptions, no paywalls, no limits.",
-                    "cta.download": "Download for macOS"
+                    "cta.download": "Download for macOS",
+                    "footer.features": "Features"
                 },
                 zh: {
+                    "common.appName": "吼蛙 (HoAh)",
                     "hero.subtitle": "语音转文字，精雕细琢。",
                     "hero.desc": "本地捕捉原始语音，让 <strong>AI 智能体</strong> 将其转化为完美的邮件、代码或笔记。",
                     "step1.title": "说话",
@@ -176,7 +179,8 @@
                     "feat3.desc": "剔除冗余。核心流程仅为：语音 → 文本。",
                     "feat4.title": "永久免费",
                     "feat4.desc": "完全开源。无订阅，无付费墙，无限制。",
-                    "cta.download": "下载 macOS 版本"
+                    "cta.download": "下载 macOS 版本",
+                    "footer.features": "功能"
                 }
             };
 
