@@ -75,6 +75,7 @@
 "Paste Last Transcript(Enhanced)" = "粘贴上次转录（增强版）";
 "Paste Last Transcript(Original)" = "粘贴上次转录（原始）";
 "Preserve transcript in clipboard" = "在剪贴板中保留转录结果";
+"Keep the transcribed text in clipboard instead of restoring the original clipboard content" = "在剪贴板中保留转录文本，而不是恢复剪贴板原始内容。";
 "Quick tap to start hands-free recording (tap again to stop). Press and hold for push-to-talk (release to stop recording)." = "轻点一次开始免提录音（再次轻点停止）。按住则为按住说话（松开停止录音）。";
 "Retry Last Transcription" = "重试上次转录";
 "Select how you want the recorder to appear on your screen." = "选择录音窗口在屏幕上的展示方式。";
@@ -88,6 +89,8 @@
 "Other App Shortcuts" = "其他应用快捷键";
 "Additional shortcuts for HoAh" = "吼蛙的其他快捷操作";
 "Recording Feedback" = "录音反馈";
+"Recording Settings" = "录音设置";
+"Customize recorder behavior and feedback" = "自定义录音行为和反馈";
 "Customize app & system feedback" = "自定义应用和系统反馈";
 "Recorder Style" = "录音窗口样式";
 "Choose your preferred recorder interface" = "选择你偏好的录音界面";
@@ -97,7 +100,7 @@
 "Appearance, startup, and updates" = "外观、启动与更新";
 "Data & Privacy" = "数据与隐私";
 "Control transcript history and storage" = "控制转录历史与存储";
-"Data Management" = "数据管理";
+"Settings Management" = "设置管理";
 "Import or export your settings" = "导入或导出你的设置";
 
 "Audio file selected: %@" = "已选择音频文件：%@";
@@ -283,6 +286,7 @@
 "Output Format" = "输出格式";
 "PRO" = "PRO";
 "Pause Media during recording" = "录音时暂停媒体播放";
+"Automatically pause active media playback during recordings and resume afterward." = "录音期间自动暂停媒体播放，并在录音结束后恢复。";
 "Performance Analysis" = "性能分析";
 "Please fix the validation errors before saving." = "请先修复校验错误后再保存。";
 "Power Mode Still Active" = "Power 模式仍在启用中";
@@ -449,3 +453,13 @@
 
 "Hotkey 1" = "快捷键 1";
 "Hotkey 2" = "快捷键 2";
+
+/* Permissions View */
+"HoAh requires the following permissions to function properly" = "HoAh 需要以下权限才能正常运行";
+"Set up a keyboard shortcut to use HoAh anywhere" = "设置键盘快捷键以在任何地方使用 HoAh";
+"Configure Shortcut" = "配置快捷键";
+"Allow HoAh to record your voice for transcription" = "允许 HoAh 录制你的声音进行转录";
+"Request Permission" = "请求权限";
+"Open System Settings" = "打开系统设置";
+"Allow HoAh to paste transcribed text directly at your cursor position" = "允许 HoAh 在光标位置直接粘贴转录文本";
+"HoAh uses Accessibility permissions to paste the transcribed text directly into other applications at your cursor's position. This allows for a seamless dictation experience across your Mac." = "HoAh 使用辅助功能权限将转录文本直接粘贴到其他应用程序的光标位置。这样可以在你的 Mac 上实现无缝的听写体验。";

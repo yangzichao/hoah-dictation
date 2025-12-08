@@ -381,3 +381,16 @@
 "Smart Scenes Still Active" = "Smart Scenes Still Active";
 "Smart Scenes can't be disabled while any configuration is still enabled. Disable or remove your smart scenes first." = "Smart Scenes can't be disabled while any configuration is still enabled. Disable or remove your smart scenes first.";
 "After each recording session, revert enhancement and transcription preferences to whatever was configured before the smart scene was activated." = "After each recording session, revert enhancement and transcription preferences to whatever was configured before the smart scene was activated.";
+
+/* Permissions View */
+"HoAh requires the following permissions to function properly" = "HoAh requires the following permissions to function properly";
+"Keyboard Shortcut" = "Keyboard Shortcut";
+"Set up a keyboard shortcut to use HoAh anywhere" = "Set up a keyboard shortcut to use HoAh anywhere";
+"Configure Shortcut" = "Configure Shortcut";
+"Microphone Access" = "Microphone Access";
+"Allow HoAh to record your voice for transcription" = "Allow HoAh to record your voice for transcription";
+"Request Permission" = "Request Permission";
+"Open System Settings" = "Open System Settings";
+"Accessibility Access" = "Accessibility Access";
+"Allow HoAh to paste transcribed text directly at your cursor position" = "Allow HoAh to paste transcribed text directly at your cursor position";
+"HoAh uses Accessibility permissions to paste the transcribed text directly into other applications at your cursor's position. This allows for a seamless dictation experience across your Mac." = "HoAh uses Accessibility permissions to paste the transcribed text directly into other applications at your cursor's position. This allows for a seamless dictation experience across your Mac.";

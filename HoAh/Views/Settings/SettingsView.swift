@@ -211,11 +211,26 @@ struct SettingsView: View {
                 }
 
                 SettingsSection(
-                    icon: "speaker.wave.2.bubble.left.fill",
-                    title: "Recording Feedback",
-                    subtitle: "Customize app & system feedback"
+                    icon: "mic.circle",
+                    title: "Recording Settings",
+                    subtitle: "Customize recorder behavior and feedback"
                 ) {
                     VStack(alignment: .leading, spacing: 12) {
+                        // Recorder Style
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Select how you want the recorder to appear on your screen.")
+                                .settingsDescription()
+                            
+                            Picker("Recorder Style", selection: $whisperState.recorderType) {
+                                Text("Notch Recorder").tag("notch")
+                                Text("Mini Recorder").tag("mini")
+                            }
+                            .pickerStyle(.radioGroup)
+                            .padding(.vertical, 4)
+                        }
+
+                        Divider()
+
                         HStack {
                             Toggle(isOn: $soundManager.isEnabled) {
                                 Text("Sound feedback")
@@ -254,6 +269,12 @@ struct SettingsView: View {
                         }
                         .toggleStyle(.switch)
                         .help("Automatically mute system audio when recording starts and restore when recording stops")
+                        
+                        Toggle(isOn: $playbackController.isPauseMediaEnabled) {
+                            Text("Pause Media during recording")
+                        }
+                        .toggleStyle(.switch)
+                        .help("Automatically pause active media playback during recordings and resume afterward.")
 
                         Toggle(isOn: $preserveTranscriptInClipboard) {
                             Text("Preserve transcript in clipboard")
@@ -264,25 +285,7 @@ struct SettingsView: View {
                     }
                 }
 
-                ExperimentalFeaturesSection()
 
-                SettingsSection(
-                    icon: "rectangle.on.rectangle",
-                    title: "Recorder Style",
-                    subtitle: "Choose your preferred recorder interface"
-                ) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Select how you want the recorder to appear on your screen.")
-                            .settingsDescription()
-                        
-                        Picker("Recorder Style", selection: $whisperState.recorderType) {
-                            Text("Notch Recorder").tag("notch")
-                            Text("Mini Recorder").tag("mini")
-                        }
-                        .pickerStyle(.radioGroup)
-                        .padding(.vertical, 4)
-                    }
-                }
 
                 SettingsSection(
                     icon: "doc.on.clipboard",
@@ -343,14 +346,14 @@ struct SettingsView: View {
                     subtitle: "Control transcript history and storage"
                 ) {
                     AudioCleanupSettingsView()
-                }
-                
-                SettingsSection(
-                    icon: "arrow.up.arrow.down.circle",
-                    title: "Data Management",
-                    subtitle: "Import or export your settings"
-                ) {
+                    
+                    Divider()
+                        .padding(.vertical, 8)
+                    
                     VStack(alignment: .leading, spacing: 12) {
+                        Text("Settings Management")
+                            .font(.headline)
+                        
                         Text("Export your custom prompts, power modes, word replacements, keyboard shortcuts, and app preferences to a backup file. API keys are not included in the export.")
                             .settingsDescription()
 
@@ -391,6 +394,8 @@ struct SettingsView: View {
                         }
                     }
                 }
+                
+
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 6)

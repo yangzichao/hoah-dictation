@@ -215,10 +215,10 @@ struct PermissionsView: View {
                     // Keyboard Shortcut Permission
                     PermissionCard(
                         icon: "keyboard",
-                        title: "Keyboard Shortcut",
-                        description: "Set up a keyboard shortcut to use HoAh anywhere",
+                        title: String(localized: "Keyboard Shortcut"),
+                        description: String(localized: "Set up a keyboard shortcut to use HoAh anywhere"),
                         isGranted: hotkeyManager.selectedHotkey1 != .none,
-                        buttonTitle: "Configure Shortcut",
+                        buttonTitle: String(localized: "Configure Shortcut"),
                         buttonAction: {
                             NotificationCenter.default.post(
                                 name: .navigateToDestination,
@@ -232,10 +232,10 @@ struct PermissionsView: View {
                     // Audio Permission
                     PermissionCard(
                         icon: "mic",
-                        title: "Microphone Access",
-                        description: "Allow HoAh to record your voice for transcription",
+                        title: String(localized: "Microphone Access"),
+                        description: String(localized: "Allow HoAh to record your voice for transcription"),
                         isGranted: permissionManager.audioPermissionStatus == .authorized,
-                        buttonTitle: permissionManager.audioPermissionStatus == .notDetermined ? "Request Permission" : "Open System Settings",
+                        buttonTitle: permissionManager.audioPermissionStatus == .notDetermined ? String(localized: "Request Permission") : String(localized: "Open System Settings"),
                         buttonAction: {
                             if permissionManager.audioPermissionStatus == .notDetermined {
                                 permissionManager.requestAudioPermission()
@@ -251,18 +251,18 @@ struct PermissionsView: View {
                     // Accessibility Permission
                     PermissionCard(
                         icon: "hand.raised",
-                        title: "Accessibility Access",
-                        description: "Allow HoAh to paste transcribed text directly at your cursor position",
+                        title: String(localized: "Accessibility Access"),
+                        description: String(localized: "Allow HoAh to paste transcribed text directly at your cursor position"),
                         isGranted: permissionManager.isAccessibilityEnabled,
-                        buttonTitle: "Open System Settings",
+                        buttonTitle: String(localized: "Open System Settings"),
                         buttonAction: {
                             if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
                                 NSWorkspace.shared.open(url)
                             }
                         },
                         checkPermission: { permissionManager.checkAccessibilityPermissions() },
-                        infoTipTitle: "Accessibility Access",
-                        infoTipMessage: "HoAh uses Accessibility permissions to paste the transcribed text directly into other applications at your cursor's position. This allows for a seamless dictation experience across your Mac."
+                        infoTipTitle: String(localized: "Accessibility Access"),
+                        infoTipMessage: String(localized: "HoAh uses Accessibility permissions to paste the transcribed text directly into other applications at your cursor's position. This allows for a seamless dictation experience across your Mac.")
                     )
                     
                     // Screen Recording permission has been removed in this fork.
