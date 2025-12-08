@@ -69,9 +69,11 @@ struct PromptEditorView: View {
     private var headerTitle: String {
         switch mode {
         case .add:
-            return "New Prompt"
+            return NSLocalizedString("New Prompt", comment: "Title for creating a new prompt")
         case .edit:
-            return isEditingPredefinedPrompt ? "Edit Built-in Prompt" : "Edit Prompt"
+            return isEditingPredefinedPrompt 
+                ? NSLocalizedString("Edit Built-in Prompt", comment: "Title for editing a built-in prompt")
+                : NSLocalizedString("Edit Prompt", comment: "Title for editing a custom prompt")
         }
     }
     

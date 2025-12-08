@@ -753,6 +753,13 @@ class AIEnhancementService: ObservableObject {
         let templateIDs = Set(predefinedTemplates.map { $0.id })
         let (defaultActive, defaultTrigger) = predefinedTemplates.partitionedByTriggerWords()
 
+        // Force migration: If a prompt is currently in activePrompts but its template is now in defaultTrigger, move it.
+        // This handles cases like the "Terminal" prompt moving from manual to trigger-only.
+        let defaultTriggerIDs = Set(defaultTrigger.map { $0.id })
+        let migratingPrompts = activePrompts.filter { $0.isPredefined && defaultTriggerIDs.contains($0.id) }
+        activePrompts.removeAll { $0.isPredefined && defaultTriggerIDs.contains($0.id) }
+        triggerPrompts.append(contentsOf: migratingPrompts)
+
         // Remove predefined prompts that are no longer part of the shipped set
         activePrompts.removeAll { prompt in
             prompt.isPredefined && !templateIDs.contains(prompt.id)

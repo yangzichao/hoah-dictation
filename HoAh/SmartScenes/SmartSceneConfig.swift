@@ -36,10 +36,10 @@ struct SmartSceneConfig: Codable, Identifiable, Equatable {
         self.selectedPrompt = selectedPrompt
         self.useScreenCapture = useScreenCapture
         self.isAutoSendEnabled = isAutoSendEnabled
-        self.selectedAIProvider = selectedAIProvider ?? UserDefaults.standard.string(forKey: "selectedAIProvider")
+        self.selectedAIProvider = selectedAIProvider
         self.selectedAIModel = selectedAIModel
-        self.selectedTranscriptionModelName = selectedTranscriptionModelName ?? UserDefaults.standard.string(forKey: "CurrentTranscriptionModel")
-        self.selectedLanguage = selectedLanguage ?? UserDefaults.standard.string(forKey: "SelectedLanguage") ?? "auto"
+        self.selectedTranscriptionModelName = selectedTranscriptionModelName
+        self.selectedLanguage = selectedLanguage
         self.isEnabled = isEnabled
         self.isDefault = isDefault
     }
@@ -147,7 +147,11 @@ class SmartScenesManager: ObservableObject {
     private func loadConfigurations() {
         if let data = UserDefaults.standard.data(forKey: configKey),
            let configs = try? JSONDecoder().decode([SmartSceneConfig].self, from: data) {
-            configurations = configs
+            configurations = configs.map { cfg in
+                var copy = cfg
+                copy.isDefault = false
+                return copy
+            }
         }
     }
 
@@ -214,25 +218,15 @@ class SmartScenesManager: ObservableObject {
     }
     
     func getDefaultConfiguration() -> SmartSceneConfig? {
-        return configurations.first { $0.isEnabled && $0.isDefault }
+        return nil
     }
     
     func hasDefaultConfiguration() -> Bool {
-        return configurations.contains { $0.isDefault }
+        return false
     }
     
     func setAsDefault(configId: UUID) {
-        // Clear any existing default
-        for index in configurations.indices {
-            configurations[index].isDefault = false
-        }
-        
-        // Set the specified config as default
-        if let index = configurations.firstIndex(where: { $0.id == configId }) {
-            configurations[index].isDefault = true
-        }
-        
-        saveConfigurations()
+        // Default smart scene is deprecated; keep no-op for compatibility.
     }
     
     func enableConfiguration(with id: UUID) {

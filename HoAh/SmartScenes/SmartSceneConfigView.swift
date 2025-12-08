@@ -19,6 +19,7 @@ struct ConfigurationView: View {
     @State private var selectedLanguage: String?
     @State private var installedApps: [(url: URL, name: String, bundleId: String, icon: NSImage)] = []
     @State private var searchText = ""
+    @State private var showAdvancedAISettings = false
     
     // Validation state
     @State private var validationErrors: [PowerModeValidationError] = []
@@ -36,7 +37,6 @@ struct ConfigurationView: View {
     // New state for screen capture toggle (deprecated, always off)
     @State private var useScreenCapture = false
     @State private var isAutoSendEnabled = false
-    @State private var isDefault = false
     
     // State for prompt editing (similar to EnhancementSettingsView)
     @State private var isEditingPrompt = false
@@ -53,14 +53,6 @@ struct ConfigurationView: View {
     
     // Whisper state for model selection
     @EnvironmentObject private var whisperState: WhisperState
-    
-    // Computed property to check if current config is the default
-    private var isCurrentConfigDefault: Bool {
-        if case .edit(let config) = mode {
-            return config.isDefault
-        }
-        return false
-    }
     
     private var filteredApps: [(url: URL, name: String, bundleId: String, icon: NSImage)] {
         if searchText.isEmpty {
@@ -95,7 +87,6 @@ struct ConfigurationView: View {
             _selectedEmoji = State(initialValue: "✏️")
             _useScreenCapture = State(initialValue: false)
             _isAutoSendEnabled = State(initialValue: false)
-            _isDefault = State(initialValue: false)
             // Default to current global AI provider/model for new configurations - use UserDefaults only
             _selectedAIProvider = State(initialValue: UserDefaults.standard.string(forKey: "selectedAIProvider"))
             _selectedAIModel = State(initialValue: nil) // Initialize to nil and set it after view appears
@@ -112,7 +103,6 @@ struct ConfigurationView: View {
             _websiteConfigs = State(initialValue: latestConfig.urlConfigs ?? [])
             _useScreenCapture = State(initialValue: false)
             _isAutoSendEnabled = State(initialValue: latestConfig.isAutoSendEnabled)
-            _isDefault = State(initialValue: latestConfig.isDefault)
             _selectedAIProvider = State(initialValue: latestConfig.selectedAIProvider)
             _selectedAIModel = State(initialValue: latestConfig.selectedAIModel)
         }
@@ -131,11 +121,12 @@ struct ConfigurationView: View {
                 if case .edit(let config) = mode {
                     Button("Delete") {
                         let alert = NSAlert()
-                        alert.messageText = "Delete Smart Scene?"
-                        alert.informativeText = "Are you sure you want to delete the '\(config.name)' smart scene? This action cannot be undone."
+                        alert.messageText = NSLocalizedString("Delete Smart Scene?", comment: "Alert title for deleting smart scene")
+                        let informativeText = String(format: NSLocalizedString("Are you sure you want to delete the '%@' smart scene? This action cannot be undone.", comment: "Alert message for deleting smart scene"), config.name)
+                        alert.informativeText = informativeText
                         alert.alertStyle = .warning
-                        alert.addButton(withTitle: "Delete")
-                        alert.addButton(withTitle: "Cancel")
+                        alert.addButton(withTitle: NSLocalizedString("Delete", comment: "Delete action"))
+                        alert.addButton(withTitle: NSLocalizedString("Cancel", comment: "Cancel action"))
                         
                         // Style the Delete button as destructive
                         alert.buttons[0].hasDestructiveAction = true
@@ -186,25 +177,12 @@ struct ConfigurationView: View {
                                 )
                             }
                             
-                            TextField("Name your smart scene", text: $configName)
+                            TextField(NSLocalizedString("Name your smart scene", comment: "Placeholder for smart scene name"), text: $configName)
                                 .font(.system(size: 18, weight: .bold))
                                 .textFieldStyle(.plain)
                                 .foregroundColor(.primary)
                                 .tint(.accentColor)
                                 .focused($isNameFieldFocused)
-                        }
-                        
-                        // Default Smart Scene Toggle
-                        HStack {
-                            Toggle("Set as default smart scene", isOn: $isDefault)
-                                .font(.system(size: 14))
-                            
-                            InfoTip(
-                                title: "Default Smart Scene",
-                                message: "Default smart scene is used when no specific app or website matches are found"
-                            )
-                            
-                            Spacer()
                         }
                     }
                     .padding(.horizontal, 20)
@@ -219,11 +197,15 @@ struct ConfigurationView: View {
                     }
                     
                     VStack(spacing: 16) {
-                        SectionHeader(title: "When to Trigger")
+                        SectionHeader(title: NSLocalizedString("When to Trigger", comment: "Section header"))
+                        Text("Add at least one app or website trigger; otherwise this smart scene stays inactive.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Text("Applications")
+                                Text(NSLocalizedString("Applications", comment: "Label for applications"))
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                 
@@ -242,7 +224,7 @@ struct ConfigurationView: View {
                             if selectedAppConfigs.isEmpty {
                                 HStack {
                                     Spacer()
-                                    Text("No applications added")
+                                    Text(NSLocalizedString("No applications added", comment: "Empty state for applications"))
                                         .foregroundColor(.secondary)
                                         .font(.subheadline)
                                     Spacer()
@@ -293,7 +275,7 @@ struct ConfigurationView: View {
                         Divider()
                         
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Websites")
+                            Text(NSLocalizedString("Websites", comment: "Label for websites"))
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                                 
@@ -317,7 +299,7 @@ struct ConfigurationView: View {
                             if websiteConfigs.isEmpty {
                                 HStack {
                                     Spacer()
-                                    Text("No websites added")
+                                    Text(NSLocalizedString("No websites added", comment: "Empty state for websites"))
                                         .foregroundColor(.secondary)
                                         .font(.subheadline)
                                     Spacer()
@@ -363,91 +345,20 @@ struct ConfigurationView: View {
                     .padding(.horizontal)
                     
                     VStack(spacing: 16) {
-                        SectionHeader(title: "Transcription")
-                        
-                        if whisperState.usableModels.isEmpty {
-                            Text("No transcription models available. Please connect to a cloud service or download a local model in the AI Models tab.")
+                        SectionHeader(title: NSLocalizedString("Transcription", comment: "Section header"))
+                        let currentModelName = whisperState.currentTranscriptionModel?.displayName ?? "Uses current app setting"
+                        let currentLanguage = UserDefaults.standard.string(forKey: "SelectedLanguage") ?? "auto"
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(NSLocalizedString("Uses your current transcription settings", comment: "Description for transcription settings"))
                                 .font(.subheadline)
+                                .foregroundColor(.primary)
+                            Text("Model: \(currentModelName) • Language: \(currentLanguage == "auto" ? "Auto-detect" : currentLanguage)")
+                                .font(.caption)
                                 .foregroundColor(.secondary)
-                                .padding()
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .background(CardBackground(isSelected: false))
-                        } else {
-                            let modelBinding = Binding<String?>(
-                                get: {
-                                    selectedTranscriptionModelName ?? whisperState.usableModels.first?.name
-                                },
-                                set: { selectedTranscriptionModelName = $0 }
-                            )
-                            
-                            HStack {
-                                Text("Model")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                
-                                Picker("", selection: modelBinding) {
-                                    ForEach(whisperState.usableModels, id: \.name) { model in
-                                        Text(model.displayName).tag(model.name as String?)
-                                    }
-                                }
-                                .labelsHidden()
-
-                                Spacer()
-                            }
                         }
-                        
-                        if languageSelectionDisabled() {
-                            HStack {
-                                Text("Language")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                
-                                Text("Autodetected")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                
-                                Spacer()
-                            }
-                        } else if let selectedModel = effectiveModelName,
-                                  let modelInfo = whisperState.allAvailableModels.first(where: { $0.name == selectedModel }),
-                                  modelInfo.isMultilingualModel {
-                            
-                            let languageBinding = Binding<String?>(
-                                get: {
-                                    selectedLanguage ?? UserDefaults.standard.string(forKey: "SelectedLanguage") ?? "auto"
-                                },
-                                set: { selectedLanguage = $0 }
-                            )
-                            
-                            HStack {
-                                Text("Language")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                
-                                Picker("", selection: languageBinding) {
-                                    ForEach(modelInfo.supportedLanguages.sorted(by: { 
-                                        if $0.key == "auto" { return true }
-                                        if $1.key == "auto" { return false }
-                                        return $0.value < $1.value
-                                    }), id: \.key) { key, value in
-                                        Text(value).tag(key as String?)
-                                    }
-                                }
-                                .labelsHidden()
-
-                                Spacer()
-                            }
-                        } else if let selectedModel = effectiveModelName,
-                                  let modelInfo = whisperState.allAvailableModels.first(where: { $0.name == selectedModel }),
-                                  !modelInfo.isMultilingualModel {
-                            
-                            EmptyView()
-                                .onAppear {
-                                    if selectedLanguage == nil {
-                                        selectedLanguage = "en"
-                                    }
-                                }
-                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(CardBackground(isSelected: false))
                     }
                     .padding()
                     .background(CardBackground(isSelected: false))
@@ -455,11 +366,11 @@ struct ConfigurationView: View {
                     
                     VStack(spacing: 16) {
                         SectionHeader(title: "AI Enhancement")
-
+                        
                         Toggle("Enable AI Enhancement", isOn: $isAIEnhancementEnabled)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .onChange(of: isAIEnhancementEnabled) { oldValue, newValue in
-                                if newValue {
+                                if newValue && showAdvancedAISettings {
                                     if selectedAIProvider == nil {
                                         selectedAIProvider = aiService.selectedProvider.rawValue
                                     }
@@ -470,108 +381,132 @@ struct ConfigurationView: View {
                             }
 
                         Divider()
-                            
-                            let providerBinding = Binding<AIProvider>(
-                                get: {
-                                    if let providerName = selectedAIProvider,
-                                       let provider = AIProvider(rawValue: providerName) {
-                                        return provider
-                                    }
-                                    return aiService.selectedProvider
-                                },
-                                set: { newValue in
-                                    selectedAIProvider = newValue.rawValue
-                                    aiService.selectedProvider = newValue
-                                    selectedAIModel = nil
-                                }
-                            )
-                            
-                            
-                        
-                        
+
                         if isAIEnhancementEnabled {
-                            
-                            HStack {
-                                Text("AI Provider")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                
-                                if aiService.connectedProviders.isEmpty {
-                                    Text("No providers connected")
-                                        .foregroundColor(.secondary)
-                                        .italic()
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                } else {
-                                    Picker("", selection: providerBinding) {
-                                        ForEach(aiService.connectedProviders.filter { $0 != .elevenLabs }, id: \.self) { provider in
-                                            Text(provider.rawValue).tag(provider)
+                            Text(NSLocalizedString("Uses current AI provider/model unless you override below.", comment: "Description for AI settings"))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                            DisclosureGroup(isExpanded: $showAdvancedAISettings) {
+                                let providerBinding = Binding<AIProvider>(
+                                    get: {
+                                        if let providerName = selectedAIProvider,
+                                           let provider = AIProvider(rawValue: providerName) {
+                                            return provider
                                         }
+                                        return aiService.selectedProvider
+                                    },
+                                    set: { newValue in
+                                        selectedAIProvider = newValue.rawValue
+                                        aiService.selectedProvider = newValue
+                                        selectedAIModel = nil
                                     }
-                                    .labelsHidden()
-                                    .onChange(of: selectedAIProvider) { oldValue, newValue in
-                                        if let provider = newValue.flatMap({ AIProvider(rawValue: $0) }) {
-                                            selectedAIModel = provider.defaultModel
-                                        }
-                                    }
-                                    Spacer()
-                                }
-                            }
-                            
-                            let providerName = selectedAIProvider ?? aiService.selectedProvider.rawValue
-                            if let provider = AIProvider(rawValue: providerName),
-                               provider != .custom {
-                                
+                                )
+
                                 HStack {
-                                    Text("AI Model")
+                                    Text("AI Provider")
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
                                     
-                                    if aiService.availableModels.isEmpty {
-                                        Text(provider == .openRouter ? "No models loaded" : "No models available")
+                                    if aiService.connectedProviders.isEmpty {
+                                        Text("No providers connected")
                                             .foregroundColor(.secondary)
                                             .italic()
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                     } else {
-                                        let modelBinding = Binding<String>(
-                                            get: { 
-                                                if let model = selectedAIModel, !model.isEmpty {
-                                                    return model
-                                                }
-                                                return aiService.currentModel
-                                            },
-                                            set: { newModelValue in
-                                                selectedAIModel = newModelValue
-                                                aiService.selectModel(newModelValue)
-                                            }
-                                        )
-                                        
-                                        let models = provider == .openRouter ? aiService.availableModels : (provider == .ollama ? aiService.availableModels : provider.availableModels)
-                                        
-                                        Picker("", selection: modelBinding) {
-                                            ForEach(models, id: \.self) { model in
-                                                Text(model).tag(model)
+                                        Picker("", selection: providerBinding) {
+                                            ForEach(aiService.connectedProviders.filter { $0 != .elevenLabs }, id: \.self) { provider in
+                                                Text(provider.rawValue).tag(provider)
                                             }
                                         }
                                         .labelsHidden()
-                                        
-                                        if provider == .openRouter {
-                                            Button(action: {
-                                                Task {
-                                                    await aiService.fetchOpenRouterModels()
-                                                }
-                                            }) {
-                                                Image(systemName: "arrow.clockwise")
+                                        .onChange(of: selectedAIProvider) { _, newValue in
+                                            if let provider = newValue.flatMap({ AIProvider(rawValue: $0) }) {
+                                                selectedAIModel = provider.defaultModel
                                             }
-                                            .buttonStyle(.borderless)
-                                            .help("Refresh models")
                                         }
-                                        
                                         Spacer()
                                     }
                                 }
+                                
+                                let providerName = selectedAIProvider ?? aiService.selectedProvider.rawValue
+                                if let provider = AIProvider(rawValue: providerName),
+                                   provider != .custom {
+                                    
+                                    HStack {
+                                        Text("AI Model")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        
+                                        if aiService.availableModels.isEmpty {
+                                            Text(provider == .openRouter ? "No models loaded" : "No models available")
+                                                .foregroundColor(.secondary)
+                                                .italic()
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                        } else {
+                                            let modelBinding = Binding<String>(
+                                                get: { 
+                                                    if let model = selectedAIModel, !model.isEmpty {
+                                                        return model
+                                                    }
+                                                    return aiService.currentModel
+                                                },
+                                                set: { newModelValue in
+                                                    selectedAIModel = newModelValue
+                                                    aiService.selectModel(newModelValue)
+                                                }
+                                            )
+                                            
+                                            let models = provider == .openRouter ? aiService.availableModels : (provider == .ollama ? aiService.availableModels : provider.availableModels)
+                                            
+                                            Picker("", selection: modelBinding) {
+                                                ForEach(models, id: \.self) { model in
+                                                    Text(model).tag(model)
+                                                }
+                                            }
+                                            .labelsHidden()
+                                            
+                                            if provider == .openRouter {
+                                                Button(action: {
+                                                    Task {
+                                                        await aiService.fetchOpenRouterModels()
+                                                    }
+                                                }) {
+                                                    Image(systemName: "arrow.clockwise")
+                                                }
+                                                .buttonStyle(.borderless)
+                                                .help("Refresh models")
+                                            }
+                                            
+                                            Spacer()
+                                        }
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Text(NSLocalizedString("Optional: Override AI provider/model", comment: "Label for advanced AI settings"))
+                                    Spacer()
+                                    Text(showAdvancedAISettings ? "Hide" : "Show")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
                             }
-                        
-                            
+                            .onChange(of: showAdvancedAISettings) { _, expanded in
+                                if !expanded {
+                                    selectedAIProvider = nil
+                                    selectedAIModel = nil
+                                } else {
+                                    if selectedAIProvider == nil {
+                                        selectedAIProvider = aiService.selectedProvider.rawValue
+                                    }
+                                    if selectedAIModel == nil {
+                                        selectedAIModel = aiService.currentModel
+                                    }
+                                }
+                            }
+                            .disabled(!isAIEnhancementEnabled)
+
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("Enhancement Prompt")
                                     .font(.headline)
@@ -605,7 +540,7 @@ struct ConfigurationView: View {
                     .padding(.horizontal)
                     
                     VStack(spacing: 16) {
-                        SectionHeader(title: "Advanced")
+                        SectionHeader(title: NSLocalizedString("Advanced", comment: "Section header"))
 
                         HStack {
                             Toggle("Auto Send", isOn: $isAutoSendEnabled)
@@ -625,7 +560,7 @@ struct ConfigurationView: View {
                     HStack {
                         Spacer()
                         Button(action: saveConfiguration) {
-                            Text(mode.isAdding ? "Add New Smart Scene" : "Save Changes")
+                            Text(mode.isAdding ? NSLocalizedString("Add Smart Scene", comment: "Button label") : NSLocalizedString("Save Changes", comment: "Button label"))
                                 .font(.headline)
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 16)
@@ -660,20 +595,25 @@ struct ConfigurationView: View {
         .powerModeValidationAlert(errors: validationErrors, isPresented: $showValidationAlert)
         .navigationTitle("") // Explicitly set an empty title for this view
         .toolbar(.hidden) // Attempt to hide the navigation bar area
-        .onAppear {
-            // Set AI provider and model for new power modes after environment objects are available
-            if case .add = mode {
-                if selectedAIProvider == nil {
-                    selectedAIProvider = aiService.selectedProvider.rawValue
+            .onAppear {
+                // Set AI provider and model for new power modes after environment objects are available
+                if case .add = mode {
+                    if showAdvancedAISettings {
+                        if selectedAIProvider == nil {
+                            selectedAIProvider = aiService.selectedProvider.rawValue
+                        }
+                        if selectedAIModel == nil || selectedAIModel?.isEmpty == true {
+                            selectedAIModel = aiService.currentModel
+                        }
+                    } else {
+                        selectedAIProvider = nil
+                        selectedAIModel = nil
+                    }
                 }
-                if selectedAIModel == nil || selectedAIModel?.isEmpty == true {
-                    selectedAIModel = aiService.currentModel
-                }
-            }
-            
-            // Select first prompt if AI enhancement is enabled and no prompt is selected
-            if isAIEnhancementEnabled && selectedPromptId == nil {
-                selectedPromptId = enhancementService.activePrompts.first?.id
+                
+                // Select first prompt if AI enhancement is enabled and no prompt is selected
+                if isAIEnhancementEnabled && selectedPromptId == nil {
+                    selectedPromptId = enhancementService.activePrompts.first?.id
             }
         }
     }
@@ -716,7 +656,7 @@ struct ConfigurationView: View {
                     selectedAIProvider: selectedAIProvider,
                     selectedAIModel: selectedAIModel,
                     isAutoSendEnabled: isAutoSendEnabled,
-                    isDefault: isDefault
+                    isDefault: false
                 )
         case .edit(let config):
             var updatedConfig = config
@@ -732,7 +672,7 @@ struct ConfigurationView: View {
             updatedConfig.isAutoSendEnabled = isAutoSendEnabled
             updatedConfig.selectedAIProvider = selectedAIProvider
             updatedConfig.selectedAIModel = selectedAIModel
-            updatedConfig.isDefault = isDefault
+            updatedConfig.isDefault = false
             return updatedConfig
         }
     }
@@ -819,11 +759,6 @@ struct ConfigurationView: View {
             smartScenesManager.addConfiguration(config)
         case .edit:
             smartScenesManager.updateConfiguration(config)
-        }
-        
-        // Handle default flag separately to ensure only one config is default
-        if isDefault {
-            smartScenesManager.setAsDefault(configId: config.id)
         }
         
         presentationMode.wrappedValue.dismiss()

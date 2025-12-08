@@ -14,6 +14,15 @@ struct MenuBarView: View {
     
     var body: some View {
         VStack {
+            Button(LocalizedStringKey("open_hoah_dashboard")) {
+                menuBarManager.openMainWindowAndNavigate(to: "HoAh")
+            }
+            .font(.headline)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 6)
+            
+            Divider()
+            
             Menu {
                 ForEach(whisperState.usableModels, id: \.id) { model in
                     Button {

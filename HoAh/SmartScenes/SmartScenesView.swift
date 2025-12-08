@@ -24,8 +24,8 @@ enum ConfigurationMode: Hashable {
     
     var title: String {
         switch self {
-        case .add: return "Add Smart Scene"
-        case .edit: return "Edit Smart Scene"
+        case .add: return NSLocalizedString("Add Smart Scene", comment: "Title for adding a new smart scene")
+        case .edit: return NSLocalizedString("Edit Smart Scene", comment: "Title for editing a smart scene")
         }
     }
     
@@ -100,7 +100,7 @@ struct SmartScenesView: View {
                                     HStack(spacing: 6) {
                                         Image(systemName: "plus")
                                             .font(.system(size: 12, weight: .medium))
-                                        Text("Add Smart Scene")
+                                            Text(NSLocalizedString("Add Smart Scene", comment: "Button to add a new smart scene"))
                                             .font(.system(size: 13, weight: .medium))
                                     }
                                     .foregroundColor(.white)
@@ -115,7 +115,7 @@ struct SmartScenesView: View {
                                 HStack(spacing: 6) {
                                     Image(systemName: isReorderMode ? "checkmark" : "arrow.up.arrow.down")
                                         .font(.system(size: 12, weight: .medium))
-                                    Text(isReorderMode ? "Done" : "Reorder")
+                                    Text(isReorderMode ? NSLocalizedString("Done", comment: "Finish reordering") : NSLocalizedString("Reorder", comment: "Start reordering"))
                                         .font(.system(size: 13, weight: .medium))
                                 }
                                 .foregroundColor(.primary)
@@ -160,14 +160,6 @@ struct SmartScenesView: View {
                                     Spacer()
 
                                     HStack(spacing: 6) {
-                                        if config.isDefault {
-                                            Text("Default")
-                                                .font(.system(size: 11, weight: .medium))
-                                                .padding(.horizontal, 6)
-                                                .padding(.vertical, 2)
-                                                .background(Capsule().fill(Color.accentColor))
-                                                .foregroundColor(.white)
-                                        }
                                         if !config.isEnabled {
                                             Text("Disabled")
                                                 .font(.system(size: 11, weight: .medium))

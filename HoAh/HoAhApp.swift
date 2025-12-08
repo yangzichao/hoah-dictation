@@ -5,6 +5,7 @@ import OSLog
 import AppIntents
 import FluidAudio
 import KeyboardShortcuts
+import LaunchAtLogin
 
 @main
 struct HoAhApp: App {
@@ -121,7 +122,14 @@ struct HoAhApp: App {
             await whisperState.resetOnLaunch()
         }
         
+        
         AppShortcuts.updateAppShortcutParameters()
+
+        // Enable Launch at Login by default on first install
+        if !UserDefaults.standard.bool(forKey: "HasConfiguredLaunchAtLogin") {
+            LaunchAtLogin.isEnabled = true
+            UserDefaults.standard.set(true, forKey: "HasConfiguredLaunchAtLogin")
+        }
     }
     
     // MARK: - Container Creation Helpers

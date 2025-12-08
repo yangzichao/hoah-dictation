@@ -278,6 +278,10 @@
 "prompt_polish_description" = "增强清晰/简洁，尊重自我纠正，保留语言混排与技术细节。";
 "prompt_formal_title" = "正式";
 "prompt_formal_description" = "正式书面化：礼貌精简，修正同音/ASR 误听，保留英文专有名词等细节。";
+"prompt_professional_title" = "高情商";
+"prompt_professional_description" = "职场高情商沟通：将批评转化为建设性反馈，委婉圆融，注重面子和和谐。";
+"prompt_vibe_coding_title" = "Vibe 写码";
+"prompt_vibe_coding_description" = "将口述编程想法转化为清晰、结构化的 AI 任务描述，包含需求和技术规格。";
 "prompt_summarize_title" = "总结";
 "prompt_summarize_description" = "精炼要点，按上下文纠错，保留关键信息。";
 "prompt_email_title" = "邮件草稿";
@@ -602,3 +606,29 @@
 "provider_status_ready" = "已就绪";
 "provider_status_not_configured" = "未配置";
 "ai_provider_configure_prompt" = "请先配置您的 AI 服务商。";
+
+/* Prompt Editor */
+"New Prompt" = "新建提示词";
+"Edit Prompt" = "编辑提示词";
+"Edit Built-in Prompt" = "编辑内置提示词";
+"If enabled, your instructions are combined with a general-purpose template to improve transcription quality.\n\nDisable for full control over the AI's system prompt (for advanced users)." = "启用后，你的指令将与通用模板组合以提高转录质量。\n\n禁用此选项可完全控制 AI 的系统提示词（高级用户适用）。";
+
+/* Smart Scenes */
+"Reorder" = "排序";
+"Done" = "完成";
+"Delete Smart Scene?" = "删除智能场景？";
+"Are you sure you want to delete the '%@' smart scene? This action cannot be undone." = "确定要删除智能场景“%@”吗？此操作无法撤销。";
+"Name your smart scene" = "为你的智能场景命名";
+"When to Trigger" = "触发条件";
+"Applications" = "应用程序";
+"No applications added" = "未添加应用程序";
+"Websites" = "网站";
+"No websites added" = "未添加网站";
+"Transcription" = "转录";
+"Uses your current transcription settings" = "使用当前的转录设置";
+"Uses current app setting" = "使用当前应用设置";
+"Uses current AI provider/model unless you override below." = "默认使用当前 AI 服务商/模型，除非在下方覆盖。";
+"Optional: Override AI provider/model" = "可选：覆盖 AI 服务商/模型";
+"Advanced" = "高级选项";
+"open_hoah_dashboard" = "打开吼蛙";
+"Save Changes" = "保存更改";

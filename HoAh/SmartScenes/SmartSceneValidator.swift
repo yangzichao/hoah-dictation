@@ -6,6 +6,7 @@ enum PowerModeValidationError: Error, Identifiable {
     case duplicateName(String)
     case duplicateAppTrigger(String, String) // (app name, existing power mode name)
     case duplicateWebsiteTrigger(String, String) // (website, existing power mode name)
+    case missingTrigger
     
     var id: String {
         switch self {
@@ -13,6 +14,7 @@ enum PowerModeValidationError: Error, Identifiable {
         case .duplicateName: return "duplicateName"
         case .duplicateAppTrigger: return "duplicateAppTrigger"
         case .duplicateWebsiteTrigger: return "duplicateWebsiteTrigger"
+        case .missingTrigger: return "missingTrigger"
         }
     }
     
@@ -26,6 +28,8 @@ enum PowerModeValidationError: Error, Identifiable {
             return "The app '\(appName)' is already configured in the '\(smartSceneName)' power mode."
         case .duplicateWebsiteTrigger(let website, let smartSceneName):
             return "The website '\(website)' is already configured in the '\(smartSceneName)' power mode."
+        case .missingTrigger:
+            return "Add at least one trigger (app or website) for this smart scene."
         }
     }
 }
@@ -42,6 +46,12 @@ struct SmartSceneValidator {
         
         if config.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             errors.append(.emptyName)
+        }
+        
+        let hasAppTrigger = !(config.appConfigs?.isEmpty ?? true)
+        let hasURLTrigger = !(config.urlConfigs?.isEmpty ?? true)
+        if !hasAppTrigger && !hasURLTrigger {
+            errors.append(.missingTrigger)
         }
         
         let isDuplicateName = smartScenesManager.configurations.contains { existingConfig in

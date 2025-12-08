@@ -137,6 +137,8 @@ struct ContentView: View {
                     selectedView = .transcribeAudio
                 case "Smart Scenes":
                     selectedView = .smartScenes
+                case "HoAh", "Dashboard":
+                    selectedView = .metrics
                 default:
                     break
                 }

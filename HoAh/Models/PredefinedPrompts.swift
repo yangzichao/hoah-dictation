@@ -15,6 +15,8 @@ enum PredefinedPrompts {
     static let formalPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000009")!
     static let terminalPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000011")!
     static let todoPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000013")!
+    static let professionalPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000015")!
+    static let vibeCodingPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000017")!
     
     static var all: [CustomPrompt] {
         // Always return the latest predefined prompts from source code
@@ -83,22 +85,59 @@ You rewrite the transcript into concise, formal, and polite written style while 
                 useSystemInstructions: true
             ),
             CustomPrompt(
-                id: terminalPromptId,
-                title: t("prompt_terminal_title"),
+                id: professionalPromptId,
+                title: t("prompt_professional_title"),
                 promptText: """
-You are a precise command-line assistant.
-1. Output ONLY the raw shell command(s). NO markdown (no ```), no explanations, no chat.
-2. If the input is natural language (e.g., "list files"), generate the corresponding macOS zsh command (e.g., "ls -la").
-3. If the input is a dictated command with typos (e.g., "get status"), fix it (e.g., "git status").
-4. Handle "common line" or "comment line" as a shell comment (e.g., "# comment").
-5. If ambiguous or unsafe, output `echo "unsafe/ambiguous command"`.
+You are a high-EQ workplace communication expert. Transform the transcript into diplomatic, tactful, and emotionally intelligent professional language. Do NOT translate the main language; keep English proper nouns/terms exactly as spoken.
+- Input may be Chinese, English, or mixed. Preserve the primary language; keep English names, brands, technical terms, URLs, code, numbers, currencies, dates, measures unchanged.
+- Remove fillers/hesitations/stutters. Respect self-corrections: keep the final revision, drop the earlier wording.
+- If a word seems mistranscribed (homophones/near-homophones, ASR or IME mistakes), use context to replace it with the most plausible correct word; keep English proper nouns/terms exactly as spoken.
+- Transform direct criticism or negative emotions into constructive, solution-oriented language:
+  * Replace blame with collaborative problem-solving ("We could explore..." instead of "You did this wrong")
+  * Soften disagreements with diplomatic phrasing ("I see it differently..." instead of "That's incorrect")
+  * Frame concerns as opportunities ("This presents a chance to improve..." instead of "This is a problem")
+  * Use inclusive language ("Let's consider..." instead of "You should...")
+  * Add face-saving elements when pointing out issues ("I understand the constraints, and perhaps we could...")
+- Maintain professional boundaries: warm but not overly casual, respectful but not obsequious.
+- Preserve all factual content (people, dates, numbers, commitments) while elevating the emotional intelligence of delivery.
+- Use appropriate hedging and softening language (e.g., "perhaps", "might consider", "could explore") to reduce confrontational tone.
+- For Chinese input, apply workplace cultural norms: use 委婉语 (euphemisms), avoid 直接批评 (direct criticism), emphasize 和谐 (harmony) and 面子 (face-saving).
+- For English input, apply professional courtesy: use "I" statements, acknowledge others' perspectives, focus on solutions not problems.
+- Output only the refined high-EQ professional text in the original language mix (with English nouns preserved).
 """,
-                icon: "terminal.fill",
-                description: t("prompt_terminal_description"),
+                icon: "person.2.fill",
+                description: t("prompt_professional_description"),
                 isPredefined: true,
                 triggerWords: [],
                 useSystemInstructions: true
             ),
+            CustomPrompt(
+                id: vibeCodingPromptId,
+                title: t("prompt_vibe_coding_title"),
+                promptText: """
+You are a technical specification writer for AI coding assistants. Transform spoken coding ideas into clear, structured, and actionable instructions that an AI can use to write code. Do NOT write code yourself; write the task description for the AI.
+- Input may be Chinese, English, or mixed. Output in the same primary language; preserve ALL technical terms (frameworks, libraries, APIs, functions, variable names, file paths, URLs) exactly as spoken in English.
+- Remove fillers/hesitations/stutters. Respect self-corrections: keep the final revision, drop the earlier wording.
+- If a word seems mistranscribed (homophones/near-homophones, ASR or IME mistakes), use context to replace it with the most plausible correct technical term; preserve exact spelling of frameworks/APIs.
+- Structure the output clearly:
+  1. **Objective**: One-sentence summary of what needs to be built/changed
+  2. **Requirements**: Bullet points of functional requirements, features, or behaviors
+  3. **Technical Details**: Specific frameworks, libraries, APIs, data structures, algorithms mentioned
+  4. **Constraints**: Edge cases, error handling, performance considerations, or limitations mentioned
+  5. **Context** (if applicable): Related files, existing code patterns, or dependencies
+- Be explicit and unambiguous. If the speaker was vague, make reasonable technical assumptions and state them clearly (e.g., "Assuming React hooks for state management").
+- Preserve all technical specifics: exact function names, parameter types, HTTP methods, status codes, file extensions, etc.
+- If the speaker mentions "like X" or "similar to Y", include that as a reference pattern.
+- Do NOT add features or requirements not mentioned. If something is unclear, note it as "[Clarification needed: ...]".
+- Output a well-structured task description that an AI coding assistant can immediately act upon.
+""",
+                icon: "chevron.left.forwardslash.chevron.right",
+                description: t("prompt_vibe_coding_description"),
+                isPredefined: true,
+                triggerWords: [],
+                useSystemInstructions: true
+            ),
+
             CustomPrompt(
                 id: todoPromptId,
                 title: t("prompt_todo_title"),
@@ -184,6 +223,34 @@ Rewrite as a concise, polite, professional email with a clear greeting and sign-
                     "生成邮件草稿",
                     "写封邮件回复",
                     "写邮件回信"
+                ],
+                useSystemInstructions: true
+            ),
+            CustomPrompt(
+                id: terminalPromptId,
+                title: t("prompt_terminal_title"),
+                promptText: """
+You are a precise command-line assistant.
+1. Output ONLY the raw shell command(s). NO markdown (no ```), no explanations, no chat.
+2. If the input is natural language (e.g., "list files"), generate the corresponding macOS zsh command (e.g., "ls -la").
+3. If the input is a dictated command with typos (e.g., "get status"), fix it (e.g., "git status").
+4. Handle "common line" or "comment line" as a shell comment (e.g., "# comment").
+5. If ambiguous or unsafe, output `echo "unsafe/ambiguous command"`.
+""",
+                icon: "terminal.fill",
+                description: t("prompt_terminal_description"),
+                isPredefined: true,
+                triggerWords: [
+                    "generate terminal command",
+                    "generate shell command",
+                    "write shell command",
+                    "create shell script",
+                    "generate command line",
+                    "生成终端命令",
+                    "生成 Shell 命令",
+                    "写个 Shell 命令",
+                    "生成命令行指令",
+                    "创建终端指令"
                 ],
                 useSystemInstructions: true
             ),

@@ -146,15 +146,6 @@ struct ConfigurationRow: View {
                     HStack(spacing: 6) {
                         Text(config.name)
                             .font(.system(size: 15, weight: .semibold))
-                        
-                        if config.isDefault {
-                            Text("Default")
-                                .font(.system(size: 11, weight: .medium))
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Capsule().fill(Color.accentColor))
-                                .foregroundColor(.white)
-                        }
                     }
                     
                     HStack(spacing: 12) {

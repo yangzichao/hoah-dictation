@@ -275,6 +275,10 @@
 "prompt_polish_description" = "Polish for clarity/conciseness; respects corrections, language mix, and technical details.";
 "prompt_formal_title" = "Formal";
 "prompt_formal_description" = "Formal rewrite: polite, concise, fixes homophone/ASR slips, preserves English nouns and details.";
+"prompt_professional_title" = "Professional";
+"prompt_professional_description" = "High-EQ workplace communication: transforms criticism into constructive feedback, diplomatic and tactful.";
+"prompt_vibe_coding_title" = "Vibe Coding";
+"prompt_vibe_coding_description" = "Transform spoken coding ideas into clear, structured AI task descriptions with requirements and technical specs.";
 "prompt_summarize_title" = "Summarize";
 "prompt_summarize_description" = "Concise bullets with context-aware corrections; preserves key facts.";
 "prompt_email_title" = "Email Draft";
@@ -467,6 +471,7 @@
 "Smart Scenes Still Active" = "Smart Scenes Still Active";
 "Smart Scenes can't be disabled while any configuration is still enabled. Disable or remove your smart scenes first." = "Smart Scenes can't be disabled while any configuration is still enabled. Disable or remove your smart scenes first.";
 "After each recording session, revert enhancement and transcription preferences to whatever was configured before the smart scene was activated." = "After each recording session, revert enhancement and transcription preferences to whatever was configured before the smart scene was activated.";
+"open_hoah_dashboard" = "Open HoAh";
 
 /* Permissions View */
 "HoAh requires the following permissions to function properly" = "HoAh requires the following permissions to function properly";

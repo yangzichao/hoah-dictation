@@ -51,17 +51,16 @@ class ActiveWindowService: ObservableObject {
             configToApply = SmartScenesManager.shared.getConfigurationForApp(bundleIdentifier)
         }
 
-        if configToApply == nil {
-            configToApply = SmartScenesManager.shared.getDefaultConfiguration()
-        }
-
         if let config = configToApply {
             await MainActor.run {
                 SmartScenesManager.shared.setActiveConfiguration(config)
             }
             await SmartSceneSessionManager.shared.beginSession(with: config)
         } else {
-            // If no config found, keep the current active configuration (don't clear it)
+            await MainActor.run {
+                SmartScenesManager.shared.setActiveConfiguration(nil)
+            }
+            await SmartSceneSessionManager.shared.endSession()
         }
     }
-} 
+}
