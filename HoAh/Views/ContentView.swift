@@ -8,10 +8,10 @@ enum ViewType: String, CaseIterable, Identifiable {
     case history = "History"
     case models = "AI Models"
     case agentMode = "AI Agents"
+    case powerMode = "Smart Scenes"
     case permissions = "Permissions"
     case audioInput = "Audio Input"
     case transcribeAudio = "Transcribe Audio"
-    case powerMode = "Smart Scenes"
     case settings = "Settings"
 
     var id: String { rawValue }

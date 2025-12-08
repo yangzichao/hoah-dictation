@@ -62,40 +62,55 @@ struct ModelManagementView: View {
             
             // Show recommendation when no model is selected
             if whisperState.currentTranscriptionModel == nil {
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 8) {
                     Divider()
                         .padding(.vertical, 4)
                     Text("Our Recommendations")
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .foregroundColor(.secondary)
-                    HStack(alignment: .top, spacing: 4) {
-                        Text("•")
-                            .foregroundColor(.secondary)
-                        Text("Local Model Recommendation")
-                            .fontWeight(.medium)
-                            .foregroundColor(.primary)
-                        + Text(": ")
-                            .foregroundColor(.secondary)
-                        + Text("Large v3 Turbo")
-                            .fontWeight(.semibold)
-                            .foregroundColor(.accentColor)
-                    }
-                    .font(.caption)
                     
-                    HStack(alignment: .top, spacing: 4) {
-                        Text("•")
-                            .foregroundColor(.secondary)
-                        Text("Cloud Model Recommendation")
-                            .fontWeight(.medium)
-                            .foregroundColor(.primary)
-                        + Text(": ")
-                            .foregroundColor(.secondary)
-                        + Text("Scribe v2 (ElevenLabs)")
-                            .fontWeight(.semibold)
-                            .foregroundColor(.accentColor)
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(alignment: .top, spacing: 4) {
+                            Text("•")
+                                .foregroundColor(.secondary)
+                            VStack(alignment: .leading, spacing: 2) {
+                                (Text("For local processing")
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.primary)
+                                + Text(": ")
+                                    .foregroundColor(.secondary)
+                                + Text("Large v3 Turbo")
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.accentColor))
+                                
+                                Text("Local Model Description")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .font(.caption)
+                        
+                        HStack(alignment: .top, spacing: 4) {
+                            Text("•")
+                                .foregroundColor(.secondary)
+                            VStack(alignment: .leading, spacing: 2) {
+                                (Text("For cloud processing")
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.primary)
+                                + Text(": ")
+                                    .foregroundColor(.secondary)
+                                + Text("Scribe v2 (ElevenLabs)")
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.accentColor))
+                                
+                                Text("Cloud Model Description")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .font(.caption)
                     }
-                    .font(.caption)
                 }
                 .padding(.top, 4)
             }
@@ -259,10 +274,10 @@ struct ModelManagementView: View {
         switch selectedFilter {
         case .recommended:
             return whisperState.allAvailableModels.filter {
-                let recommendedNames = ["ggml-base", "ggml-large-v3-turbo", "whisper-large-v3-turbo", "scribe_v2"]
+                let recommendedNames = ["ggml-large-v3-turbo", "scribe_v2", "ggml-base", "whisper-large-v3-turbo"]
                 return recommendedNames.contains($0.name)
             }.sorted { model1, model2 in
-                let recommendedOrder = ["ggml-base", "ggml-large-v3-turbo", "whisper-large-v3-turbo", "scribe_v2"]
+                let recommendedOrder = ["ggml-large-v3-turbo", "scribe_v2", "ggml-base", "whisper-large-v3-turbo"]
                 let index1 = recommendedOrder.firstIndex(of: model1.name) ?? Int.max
                 let index2 = recommendedOrder.firstIndex(of: model2.name) ?? Int.max
                 return index1 < index2
