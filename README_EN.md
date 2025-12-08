@@ -7,7 +7,7 @@
   ![Platform](https://img.shields.io/badge/platform-macOS%2014.0%2B-brightgreen)
 </div>
 
-[简体中文](README.md) | **English**
+[简体中文](README.md) | **English** | [Website](https://yangzichao.github.io/hoah-dictation/)
 
 ---
 
