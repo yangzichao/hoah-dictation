@@ -5,8 +5,8 @@ struct AudioCleanupSettingsView: View {
     @EnvironmentObject private var whisperState: WhisperState
     
     // Audio cleanup settings
-    @AppStorage("IsTranscriptionCleanupEnabled") private var isTranscriptionCleanupEnabled = false
-    @AppStorage("TranscriptionRetentionMinutes") private var transcriptionRetentionMinutes = 24 * 60
+    @AppStorage("IsTranscriptionCleanupEnabled") private var isTranscriptionCleanupEnabled = true
+    @AppStorage("TranscriptionRetentionMinutes") private var transcriptionRetentionMinutes = 30 * 24 * 60
     @AppStorage("IsAudioCleanupEnabled") private var isAudioCleanupEnabled = false
     @AppStorage("AudioRetentionPeriod") private var audioRetentionPeriod = 7
     @State private var isPerformingCleanup = false
@@ -35,6 +35,7 @@ struct AudioCleanupSettingsView: View {
                         Text("1 day").tag(24 * 60)
                         Text("3 days").tag(3 * 24 * 60)
                         Text("7 days").tag(7 * 24 * 60)
+                        Text("30 days").tag(30 * 24 * 60)
                     }
                     .pickerStyle(.menu)
 
