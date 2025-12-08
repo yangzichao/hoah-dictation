@@ -110,7 +110,7 @@ struct MetricsContent: View {
     // MARK: - Computed Metrics
     
     private var totalWordsTranscribed: Int {
-        filteredTranscriptions.reduce(0) { $0 + $1.text.split(separator: " ").count }
+        filteredTranscriptions.reduce(0) { $0 + $1.text.smartWordCount }
     }
 }
     
