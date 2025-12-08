@@ -1,0 +1,59 @@
+name: Release HoAh
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: macos-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          brew install graphicsmagick imagemagick
+          # Ensure directories exist
+          mkdir -p ~/HoAh-Dependencies
+
+      - name: Build Whisper Framework
+        run: make whisper
+
+      - name: Build Application
+        run: make build
+
+      - name: Package DMG (Unsigned)
+        if: ${{ env.SIGN_IDENTITY == '' }}
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "Packaging DMG for version $VERSION (Unsigned)"
+          make dmg DMG_VERSION=$VERSION
+
+      - name: Package DMG (Signed & Notarized)
+        if: ${{ env.SIGN_IDENTITY != '' }}
+        env:
+          SIGN_IDENTITY: ${{ secrets.SIGN_IDENTITY }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+          NOTARY_PROFILE: ${{ secrets.NOTARY_PROFILE }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "Packaging DMG for version $VERSION (Signed)"
+          make release-dmg DMG_VERSION=$VERSION
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/HoAh-*.dmg
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: false
