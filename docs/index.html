@@ -33,12 +33,11 @@
 
                 <!-- Download Area (Moved Up) -->
                 <div class="download-area" style="margin-bottom: 2.5rem;">
-                    <a href="https://github.com/yangzichao/hoah-dictation/releases" id="download-btn" class="cta-button"
-                        data-i18n="cta.download">Download for macOS</a>
+                    <a href="https://github.com/yangzichao/hoah-dictation/releases/tag/3.0.0" id="download-btn"
+                        class="cta-button">Download v3.0.0</a>
                     <p id="version-text"
                         style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted); opacity: 0.8; margin-bottom: 0;">
-                        Latest
-                        Release</p>
+                        macOS 14.0+</p>
                 </div>
 
                 <!-- Rotating Live Demo -->
@@ -320,6 +319,7 @@
             const btn = document.getElementById('download-btn');
             const versionText = document.getElementById('version-text');
 
+            /*
             fetch(`https://api.github.com/repos/${repo}/releases/latest`)
                 .then(response => response.json())
                 .then(data => {
@@ -333,6 +333,7 @@
                     }
                 })
                 .catch(err => console.error('Error fetching release:', err));
+            */
 
             // Init Everything
             updateLanguage(currentLang);

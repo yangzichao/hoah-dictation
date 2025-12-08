@@ -130,6 +130,11 @@ struct HoAhApp: App {
             LaunchAtLogin.isEnabled = true
             UserDefaults.standard.set(true, forKey: "HasConfiguredLaunchAtLogin")
         }
+        
+        // Register default user preferences
+        UserDefaults.standard.register(defaults: [
+            "preserveTranscriptInClipboard": true
+        ])
     }
     
     // MARK: - Container Creation Helpers

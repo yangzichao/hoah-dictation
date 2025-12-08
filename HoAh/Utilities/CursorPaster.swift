@@ -5,7 +5,8 @@ class CursorPaster {
 
     static func pasteAtCursor(_ text: String) {
         let pasteboard = NSPasteboard.general
-        let preserveTranscript = UserDefaults.standard.bool(forKey: "preserveTranscriptInClipboard")
+        // Default to true if not set, to prevent data loss on paste failure
+        let preserveTranscript = UserDefaults.standard.object(forKey: "preserveTranscriptInClipboard") as? Bool ?? true
 
         var savedContents: [(NSPasteboard.PasteboardType, Data)] = []
 
