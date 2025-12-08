@@ -98,7 +98,7 @@ class PromptDetectionService {
         }
     }
     
-	private func stripLeadingTriggerWord(from text: String, triggerWord: String) -> String? {
+    private func stripLeadingTriggerWord(from text: String, triggerWord: String) -> String? {
         let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
         let lowerText = trimmedText.lowercased()
         let lowerTrigger = triggerWord.lowercased()
@@ -118,24 +118,15 @@ class PromptDetectionService {
             return ""
         }
         
-        var remainingText = String(trimmedText[triggerEndIndex...])
-        
-        remainingText = remainingText.replacingOccurrences(
-            of: "^[,\\.!\\?;:\\s]+",
-            with: "",
-            options: .regularExpression
+        let remainingText = String(trimmedText[triggerEndIndex...])
+        return normalizeRemainingText(
+            remainingText,
+            trimLeadingPunctuation: true,
+            trimTrailingPunctuation: false
         )
-        
-        remainingText = remainingText.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        if !remainingText.isEmpty {
-            remainingText = remainingText.prefix(1).uppercased() + remainingText.dropFirst()
-        }
-        
-        return remainingText
     }
     
-	private func stripTrailingTriggerWord(from text: String, triggerWord: String) -> String? {
+    private func stripTrailingTriggerWord(from text: String, triggerWord: String) -> String? {
         var trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
 
         let punctuationSet = CharacterSet(charactersIn: ",.!?;:")
@@ -156,20 +147,52 @@ class PromptDetectionService {
             }
         }
 
-        var remainingText = String(trimmedText[..<triggerStartIndex])
-
-        remainingText = remainingText.replacingOccurrences(
-            of: "[,\\.!\\?;:\\s]+$",
-            with: "",
-            options: .regularExpression
+        let remainingText = String(trimmedText[..<triggerStartIndex])
+        return normalizeRemainingText(
+            remainingText,
+            trimLeadingPunctuation: false,
+            trimTrailingPunctuation: true
         )
-        remainingText = remainingText.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        if !remainingText.isEmpty {
-            remainingText = remainingText.prefix(1).uppercased() + remainingText.dropFirst()
+    }
+    
+    private func stripTriggerWordAnywhere(from text: String, triggerWord: String) -> String? {
+        let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalizedTrigger = triggerWord.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalizedTrigger.isEmpty else { return nil }
+        
+        guard let range = trimmedText.range(
+            of: normalizedTrigger,
+            options: [.caseInsensitive, .diacriticInsensitive]
+        ) else {
+            return nil
         }
-
-        return remainingText
+        
+        var remainingText = trimmedText
+        remainingText.removeSubrange(range)
+        
+        return normalizeRemainingText(
+            remainingText,
+            trimLeadingPunctuation: true,
+            trimTrailingPunctuation: true
+        )
+    }
+    
+    private func stripTriggerWord(from text: String, triggerWord: String) -> String? {
+        if let afterTrailing = stripTrailingTriggerWord(from: text, triggerWord: triggerWord) {
+            if let afterBoth = stripLeadingTriggerWord(from: afterTrailing, triggerWord: triggerWord) {
+                return afterBoth
+            }
+            return afterTrailing
+        }
+        
+        if let afterLeading = stripLeadingTriggerWord(from: text, triggerWord: triggerWord) {
+            if let afterBoth = stripTrailingTriggerWord(from: afterLeading, triggerWord: triggerWord) {
+                return afterBoth
+            }
+            return afterLeading
+        }
+        
+        return stripTriggerWordAnywhere(from: text, triggerWord: triggerWord)
     }
     
 	private func detectAndStripTriggerWord(from text: String, triggerWords: [String]) -> (String, String)? {
@@ -179,23 +202,50 @@ class PromptDetectionService {
         // Sort by length (longest first) to match the most specific trigger word
         let sortedTriggerWords = trimmedWords.sorted { $0.count > $1.count }
         
-		for triggerWord in sortedTriggerWords {
-			if let afterTrailing = stripTrailingTriggerWord(from: text, triggerWord: triggerWord) {
-				if let afterBoth = stripLeadingTriggerWord(from: afterTrailing, triggerWord: triggerWord) {
-					return (triggerWord, afterBoth)
-				}
-				return (triggerWord, afterTrailing)
-			}
-		}
-		
-		for triggerWord in sortedTriggerWords {
-			if let afterLeading = stripLeadingTriggerWord(from: text, triggerWord: triggerWord) {
-				if let afterBoth = stripTrailingTriggerWord(from: afterLeading, triggerWord: triggerWord) {
-					return (triggerWord, afterBoth)
-				}
-				return (triggerWord, afterLeading)
-			}
-		}
-		return nil
+        for triggerWord in sortedTriggerWords {
+            if let processedText = stripTriggerWord(from: text, triggerWord: triggerWord) {
+                return (triggerWord, processedText)
+            }
+        }
+        
+        return nil
+    }
+    
+    private func normalizeRemainingText(
+        _ text: String,
+        trimLeadingPunctuation: Bool,
+        trimTrailingPunctuation: Bool
+    ) -> String {
+        var cleanedText = text
+        
+        if trimLeadingPunctuation {
+            cleanedText = cleanedText.replacingOccurrences(
+                of: "^[,\\.!\\?;:\\s]+",
+                with: "",
+                options: .regularExpression
+            )
+        }
+        
+        if trimTrailingPunctuation {
+            cleanedText = cleanedText.replacingOccurrences(
+                of: "[,\\.!\\?;:\\s]+$",
+                with: "",
+                options: .regularExpression
+            )
+        }
+        
+        cleanedText = cleanedText.replacingOccurrences(
+            of: "\\s{2,}",
+            with: " ",
+            options: .regularExpression
+        )
+        
+        cleanedText = cleanedText.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        if !cleanedText.isEmpty {
+            cleanedText = cleanedText.prefix(1).uppercased() + cleanedText.dropFirst()
+        }
+        
+        return cleanedText
     }
 }
