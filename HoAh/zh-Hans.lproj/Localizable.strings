@@ -463,3 +463,25 @@
 "Open System Settings" = "打开系统设置";
 "Allow HoAh to paste transcribed text directly at your cursor position" = "允许 HoAh 在光标位置直接粘贴转录文本";
 "HoAh uses Accessibility permissions to paste the transcribed text directly into other applications at your cursor's position. This allows for a seamless dictation experience across your Mac." = "HoAh 使用辅助功能权限将转录文本直接粘贴到其他应用程序的光标位置。这样可以在你的 Mac 上实现无缝的听写体验。";
+
+/* Missing Help Texts */
+"Shortcut for pasting the most recent transcription." = "粘贴最新转录内容的快捷键。";
+"Pastes the enhanced transcript if available, otherwise falls back to the original." = "如果可用则粘贴增强后的转录，否则回退到原始转录。";
+"Re-transcribe the last recorded audio using the current model and copy the result." = "使用当前模型重新转录上次录制的音频并复制结果。";
+"Dismiss Recording" = "取消录音";
+"Shortcut for cancelling the current recording session. Default: double-tap Escape." = "取消当前录音会话的快捷键。默认：双击 Escape。";
+"Middle-Click Toggle" = "中键切换";
+"Use middle mouse button to toggle HoAh recording." = "使用鼠标中键切换吼蛙录音状态。";
+"Permission required for HoAh to function properly" = "吼蛙需要相应权限才能正常工作";
+
+/* Audio Cleanup View */
+"Analyzing..." = "正在分析...";
+"Run Cleanup Now" = "立即运行清理";
+
+"Delete %lld Files" = "删除 %lld 个文件";
+"This will delete %lld audio files older than %lld days." = "这将删除 %2$lld 天前的 %1$lld 个音频文件。";
+"Total size to be freed: %@" = "预计释放空间：%@";
+"No audio files found that are older than %lld days." = "未找到早于 %lld 天的音频文件。";
+"Successfully deleted %lld audio files." = "成功删除了 %lld 个音频文件。";
+"Successfully deleted %lld audio files. Failed to delete %lld files." = "成功删除了 %1$lld 个音频文件。%2$lld 个文件删除失败。";
+

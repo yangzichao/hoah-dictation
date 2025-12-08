@@ -156,11 +156,11 @@ struct AudioCleanupSettingsView: View {
                 } message: {
                     VStack(alignment: .leading, spacing: 8) {
                         if cleanupInfo.fileCount > 0 {
-                            Text("This will delete \(cleanupInfo.fileCount) audio files older than \(audioRetentionPeriod) day\(audioRetentionPeriod > 1 ? "s" : "").")
+                            Text("This will delete \(cleanupInfo.fileCount) audio files older than \(audioRetentionPeriod) days.")
                             Text("Total size to be freed: \(AudioCleanupManager.shared.formatFileSize(cleanupInfo.totalSize))")
                             Text("The text transcripts will be preserved.")
                         } else {
-                            Text("No audio files found that are older than \(audioRetentionPeriod) day\(audioRetentionPeriod > 1 ? "s" : "").")
+                            Text("No audio files found that are older than \(audioRetentionPeriod) days.")
                         }
                     }
                 }
