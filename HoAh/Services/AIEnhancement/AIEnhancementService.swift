@@ -27,6 +27,9 @@ class AIEnhancementService: ObservableObject {
             if isEnhancementEnabled && selectedPromptId == nil {
                 selectedPromptId = activePrompts.first?.id
             }
+            if !isEnhancementEnabled && arePromptTriggersEnabled {
+                arePromptTriggersEnabled = false
+            }
             NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
             NotificationCenter.default.post(name: .enhancementToggleChanged, object: nil)
         }
