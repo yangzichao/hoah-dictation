@@ -44,7 +44,7 @@ BUILD_DIR := $(PWD)/build/DerivedData
 
 build: setup
 	xcodebuild -scheme HoAh -configuration Debug \
-		CODE_SIGN_IDENTITY="" ARCHS=arm64 ONLY_ACTIVE_ARCH=YES SWIFT_DISABLE_EXPLICIT_MODULES=YES \
+		CODE_SIGN_IDENTITY="-" ARCHS=arm64 ONLY_ACTIVE_ARCH=YES SWIFT_DISABLE_EXPLICIT_MODULES=YES \
 		-derivedDataPath $(BUILD_DIR)
 
 # Run application
