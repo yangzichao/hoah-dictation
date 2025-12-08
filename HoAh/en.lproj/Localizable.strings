@@ -48,6 +48,9 @@
 "Delete Model" = "Delete Model";
 "Are you sure you want to delete the model '%@'?" = "Are you sure you want to delete the model '%@'?";
 "Import Local Model…" = "Import Local Model…";
+"Our Recommendations" = "Our Recommendations";
+"Local Model Recommendation" = "Local Model";
+"Cloud Model Recommendation" = "Cloud Model";
 "Import local Whisper models" = "Import local Whisper models";
 "Add a custom fine-tuned whisper model to use with HoAh. Select the downloaded .bin file." = "Add a custom fine-tuned whisper model to use with HoAh. Select the downloaded .bin file.";
 "Read more about custom local models" = "Read more about custom local models";

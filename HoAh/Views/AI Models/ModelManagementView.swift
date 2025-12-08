@@ -59,6 +59,46 @@ struct ModelManagementView: View {
             Text(whisperState.currentTranscriptionModel?.displayName ?? String(localized: "No model selected"))
                 .font(.title2)
                 .fontWeight(.bold)
+            
+            // Show recommendation when no model is selected
+            if whisperState.currentTranscriptionModel == nil {
+                VStack(alignment: .leading, spacing: 6) {
+                    Divider()
+                        .padding(.vertical, 4)
+                    Text("Our Recommendations")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.secondary)
+                    HStack(alignment: .top, spacing: 4) {
+                        Text("•")
+                            .foregroundColor(.secondary)
+                        Text("Local Model Recommendation")
+                            .fontWeight(.medium)
+                            .foregroundColor(.primary)
+                        + Text(": ")
+                            .foregroundColor(.secondary)
+                        + Text("Large v3 Turbo")
+                            .fontWeight(.semibold)
+                            .foregroundColor(.accentColor)
+                    }
+                    .font(.caption)
+                    
+                    HStack(alignment: .top, spacing: 4) {
+                        Text("•")
+                            .foregroundColor(.secondary)
+                        Text("Cloud Model Recommendation")
+                            .fontWeight(.medium)
+                            .foregroundColor(.primary)
+                        + Text(": ")
+                            .foregroundColor(.secondary)
+                        + Text("Scribe v2 (ElevenLabs)")
+                            .fontWeight(.semibold)
+                            .foregroundColor(.accentColor)
+                    }
+                    .font(.caption)
+                }
+                .padding(.top, 4)
+            }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)

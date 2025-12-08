@@ -48,6 +48,9 @@
 "Delete Model" = "删除模型";
 "Are you sure you want to delete the model '%@'?" = "确定要删除模型“%@”吗？";
 "Import Local Model…" = "导入本地模型…";
+"Our Recommendations" = "我们的推荐";
+"Local Model Recommendation" = "本地模型";
+"Cloud Model Recommendation" = "云端模型";
 "Import local Whisper models" = "导入本地 Whisper 模型";
 "Add a custom fine-tuned whisper model to use with HoAh. Select the downloaded .bin file." = "添加自定义微调的 Whisper 模型以在吼蛙中使用。请选择已下载的 .bin 文件。";
 "Read more about custom local models" = "了解更多自定义本地模型信息";
