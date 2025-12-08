@@ -26,6 +26,35 @@ It supports multiple languages, custom agent prompts, and runs fully local by de
 - **Lightweight Focus**: Trimmed extras; core flow is voice → transcript (+ optional AI).
 - **Forever Free**: Fully open-source. No subscriptions, no paywalls.
 
+## Examples
+
+HoAh's core philosophy: **Transcription captures reality; Agents polish it to perfection.** You can speak naturally, stutter and all, and let AI handle the formatting.
+
+### Scenario: Coding (Natural Speech to Code)
+
+**1. Your Voice (Raw Input)**
+> "So, um, basically I want to write a Python function that, uh, takes a list of users, you know, and filters out the ones that are, like, inactive. Yeah, just keep the active ones."
+
+**2. Basic Transcript (Whisper)**
+> *(Faithful metadata)*
+> "So, um, basically I want to write a Python function that, uh, takes a list of users, you know, and filters out the ones that are, like, inactive. Yeah, just keep the active ones."
+
+**3. Agent Enhancement**
+
+*   **Using [Polishing Agent] (Default):**
+    > "I want to write a Python function that takes a list of users and filters out the inactive ones, keeping only the active users."
+    > *(Fluent, concise text)*
+
+*   **Using [Coding Agent]:**
+    ```python
+    def filter_active_users(users):
+        """
+        Filters a list of users to return only those who are active.
+        """
+        return [user for user in users if user.is_active]
+    ```
+    *(Directly executable code)*
+
 ## Requirements
 
 - macOS 14.0 or later

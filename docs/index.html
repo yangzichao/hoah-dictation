@@ -212,26 +212,16 @@
             const scenarios = {
                 en: [
                     {
-                        title: "Bug Report",
-                        raw: "So, um, the API is, uh, timing out? We should probably add a retry logic... just to be safe.",
-                        polished: "<strong>Issue:</strong> API Timeouts.<br><strong>Action:</strong> Add retry logic."
-                    },
-                    {
-                        title: "Quick Email",
-                        raw: "Hey, sorry I'm running late. Like 10 minutes? Start without me... I'll catch up.",
-                        polished: "Running 10 mins late. Please start without me."
+                        title: "Speech to Code",
+                        raw: "So, um, basically I want a Python function that filters out inactive users. Yeah, just keep the active ones.",
+                        polished: "<code>def keep_active(users):<br>&nbsp;&nbsp;return [u for u in users if u.active]</code>"
                     }
                 ],
                 zh: [
                     {
-                        title: "Bug Report",
-                        raw: "那个，API 好像超时了？我们应该加个重试什么的... 保险一点。",
-                        polished: "<strong>问题:</strong> API 超时。<br><strong>行动:</strong> 增加重试逻辑。"
-                    },
-                    {
-                        title: "Quick Email",
-                        raw: "不好意思迟到了。大概10分钟？你们先开始吧... 我到了就加入。",
-                        polished: "迟到 10 分钟。请先开始会议。"
+                        title: "推迟会议 (中英混杂)",
+                        raw: "那个……我觉得就是，嗯，今天下午的那个 meeting 吧，可能得推迟一下，因为那个…… PPT 还没做完，data 还有点问题。",
+                        polished: "<strong>主题:</strong> 推迟今日 Meeting<br><strong>正文:</strong> 因 PPT 未完且 Data 需核实，建议推迟。"
                     }
                 ]
             };
