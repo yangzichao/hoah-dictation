@@ -64,7 +64,7 @@ struct MenuBarView: View {
                 }
             } label: {
                 HStack {
-                    Text("Hotkey: \(hotkeyManager.selectedHotkey1.displayName)")
+                    Text(String(format: NSLocalizedString("Hotkey: %@", comment: ""), hotkeyManager.selectedHotkey1.displayName))
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.system(size: 10))
                 }

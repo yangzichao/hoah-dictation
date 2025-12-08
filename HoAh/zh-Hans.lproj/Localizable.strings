@@ -282,6 +282,8 @@
 "prompt_summarize_description" = "精炼要点，按上下文纠错，保留关键信息。";
 "prompt_email_title" = "邮件草稿";
 "prompt_email_description" = "礼貌简洁的邮件，按上下文纠错，信息原样保留。";
+"prompt_terminal_title" = "终端";
+"prompt_terminal_description" = "从语音生成安全、简洁的英文终端命令。";
 "Download AI Model" = "下载 AI 模型";
 "Downloaded" = "已下载";
 "Edit" = "编辑";
@@ -571,3 +573,9 @@
 "Hotkey: %@" = "快捷键：%@";
 
 
+
+// Settings - Updates
+"Updates" = "更新";
+"Check for Updates…" = "检查更新…";
+"HoAh does not check for updates automatically. Click the button above whenever you want to manually check for a new version." = "HoAh 不会自动检查更新。如需检查新版本，请点击上方按钮。";
+"HoAh Homepage" = "吼蛙主页";

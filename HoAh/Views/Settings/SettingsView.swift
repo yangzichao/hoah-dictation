@@ -327,18 +327,24 @@ struct SettingsView: View {
                         Divider()
 
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Updates")
+                            Text(LocalizedStringKey("Updates"))
                                 .font(.headline)
 
                             Button {
                                 NSApp.sendAction(#selector(AppDelegate.checkForUpdates(_:)), to: nil, from: nil)
                             } label: {
-                                Label("Check for Updates…", systemImage: "arrow.triangle.2.circlepath")
+                                Label(LocalizedStringKey("Check for Updates…"), systemImage: "arrow.triangle.2.circlepath")
                             }
                             .buttonStyle(.bordered)
 
-                            Text("HoAh does not check for updates automatically. Click the button above whenever you want to manually check for a new version.")
+                            Text(LocalizedStringKey("HoAh does not check for updates automatically. Click the button above whenever you want to manually check for a new version."))
                                 .settingsDescription()
+                                
+                            Link(destination: URL(string: "https://yangzichao.github.io/hoah-dictation/")!) {
+                                Label(LocalizedStringKey("HoAh Homepage"), systemImage: "safari")
+                                    .font(.system(size: 11))
+                            }
+                            .padding(.top, 4)
                         }
                     }
                 }

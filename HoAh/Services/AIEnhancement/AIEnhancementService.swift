@@ -140,6 +140,13 @@ class AIEnhancementService: ObservableObject {
         if selectedPromptId == nil {
             selectedPromptId = activePrompts.first?.id
         }
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleLanguageChange),
+            name: .languageDidChange,
+            object: nil
+        )
     }
 
     deinit {
@@ -152,6 +159,13 @@ class AIEnhancementService: ObservableObject {
             if !self.aiService.isAPIKeyValid {
                 self.isEnhancementEnabled = false
             }
+        }
+    }
+
+    @objc private func handleLanguageChange() {
+        DispatchQueue.main.async {
+            self.relocalizePredefinedPromptTitles()
+            self.objectWillChange.send()
         }
     }
 

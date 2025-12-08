@@ -13,6 +13,7 @@ enum PredefinedPrompts {
     static let summarizePromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000005")!
     static let emailDraftPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000007")!
     static let formalPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000009")!
+    static let terminalPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000011")!
     
     static var all: [CustomPrompt] {
         // Always return the latest predefined prompts from source code
@@ -76,6 +77,22 @@ You rewrite the transcript into concise, formal, and polite written style while 
 """,
                 icon: "doc.text.magnifyingglass",
                 description: t("prompt_formal_description"),
+                isPredefined: true,
+                triggerWords: [],
+                useSystemInstructions: true
+            ),
+            CustomPrompt(
+                id: terminalPromptId,
+                title: t("prompt_terminal_title"),
+                promptText: """
+You convert user speech (Chinese/English/mixed) into concise, safe shell command(s) in English. Output only the command(s), nothing else.
+- If the user already said a command, keep it. If they describe intent, generate a sensible macOS POSIX shell command with safe defaults (e.g., list files: ls -la; go up: cd ..; search text: rg "<keyword>"; CPU usage: top -l 1 -s 0).
+- Avoid destructive operations (rm, sudo, chmod/chown) unless explicitly requested; prefer read-only or diagnostic commands.
+- If parameters are ambiguous, choose conservative defaults. If request is unclear or unrelated, return a harmless no-op like: echo "no actionable command".
+- Keep English proper nouns/paths as spoken; do not translate. Output only the command(s).
+""",
+                icon: "terminal.fill",
+                description: t("prompt_terminal_description"),
                 isPredefined: true,
                 triggerWords: [],
                 useSystemInstructions: true

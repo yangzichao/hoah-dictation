@@ -279,6 +279,8 @@
 "prompt_summarize_description" = "Concise bullets with context-aware corrections; preserves key facts.";
 "prompt_email_title" = "Email Draft";
 "prompt_email_description" = "Polite, concise email; context-aware corrections; facts intact.";
+"prompt_terminal_title" = "Terminal";
+"prompt_terminal_description" = "Generate safe, concise English shell commands from user speech.";
 "Download AI Model" = "Download AI Model";
 "Downloaded" = "Downloaded";
 "Edit" = "Edit";
