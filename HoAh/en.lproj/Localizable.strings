@@ -24,6 +24,9 @@
 "Copied!" = "Copied!";
 "Copy System Info" = "Copy System Info";
 
+"Smart Scenes" = "Smart Scenes";
+"Smart Scene" = "Smart Scene";
+
 "Transcription Language" = "Transcription Language";
 "Language: Autodetected" = "Language: Autodetected";
 "Current model: %@" = "Current model: %@";
@@ -56,7 +59,7 @@
 "Cancel Shortcut" = "Cancel Shortcut";
 "Custom Cancel Shortcut" = "Custom Cancel Shortcut";
 "English" = "English";
-"Export your custom prompts, power modes, word replacements, keyboard shortcuts, and app preferences to a backup file. API keys are not included in the export." = "Export your custom prompts, power modes, word replacements, keyboard shortcuts, and app preferences to a backup file. API keys are not included in the export.";
+"Export your custom prompts, power modes, word replacements, keyboard shortcuts, and app preferences to a backup file. API keys are not included in the export." = "Export your custom prompts, smart scenes, word replacements, keyboard shortcuts, and app preferences to a backup file. API keys are not included in the export.";
 "Follow System" = "Follow System";
 "Interface Language" = "Interface Language";
 "Mini Recorder" = "Mini Recorder";
@@ -345,3 +348,29 @@
 "|" = "|";
 "➕" = "➕";
 "简体中文" = "简体中文";
+
+"Add Smart Scene" = "Add Smart Scene";
+"Add New Smart Scene" = "Add New Smart Scene";
+"Edit Smart Scene" = "Edit Smart Scene";
+"No Smart Scenes" = "No Smart Scenes";
+"No Smart Scenes Available" = "No Smart Scenes Available";
+"No Smart Scenes Yet" = "No Smart Scenes Yet";
+"Select Smart Scene" = "Select Smart Scene";
+"Switch Smart Scene" = "Switch Smart Scene";
+"Create first smart scene to automate your HoAh workflow based on apps/website you are using" = "Create first smart scene to automate your HoAh workflow based on apps/website you are using";
+"Add customized smart scenes for different contexts" = "Add customized smart scenes for different contexts";
+"Cannot Save Smart Scene" = "Cannot Save Smart Scene";
+"Name your smart scene" = "Name your smart scene";
+"Set as default smart scene" = "Set as default smart scene";
+"Default Smart Scene" = "Default Smart Scene";
+"Default smart scene is used when no specific app or website matches are found" = "Default smart scene is used when no specific app or website matches are found";
+"Audio Duration" = "Audio Duration";
+"Transcription Model" = "Transcription Model";
+"Enhancement Model" = "Enhancement Model";
+"Prompt Used" = "Prompt Used";
+"Transcription Time" = "Transcription Time";
+"Enhancement Time" = "Enhancement Time";
+"Turn on Smart Scenes to automatically apply custom configurations based on the app or website you are using." = "Turn on Smart Scenes to automatically apply custom configurations based on the app or website you are using.";
+"Smart Scenes Still Active" = "Smart Scenes Still Active";
+"Smart Scenes can't be disabled while any configuration is still enabled. Disable or remove your smart scenes first." = "Smart Scenes can't be disabled while any configuration is still enabled. Disable or remove your smart scenes first.";
+"After each recording session, revert enhancement and transcription preferences to whatever was configured before the smart scene was activated." = "After each recording session, revert enhancement and transcription preferences to whatever was configured before the smart scene was activated.";

@@ -24,7 +24,7 @@ class HoAhCSVExportService {
     }
     
     private func generateCSV(for transcriptions: [Transcription]) -> String {
-        var csvString = "Original Transcript,Enhanced Transcript,Enhancement Model,Prompt Name,Transcription Model,Power Mode,Enhancement Time,Transcription Time,Timestamp,Duration\n"
+        var csvString = "Original Transcript,Enhanced Transcript,Enhancement Model,Prompt Name,Transcription Model,Smart Scene,Enhancement Time,Transcription Time,Timestamp,Duration\n"
 
         for transcription in transcriptions {
             let originalText = escapeCSVString(transcription.text)

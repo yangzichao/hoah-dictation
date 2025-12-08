@@ -24,8 +24,8 @@ enum ConfigurationMode: Hashable {
     
     var title: String {
         switch self {
-        case .add: return "Add Power Mode"
-        case .edit: return "Edit Power Mode"
+        case .add: return "Add Smart Scene"
+        case .edit: return "Edit Smart Scene"
         }
     }
     
@@ -73,12 +73,12 @@ struct PowerModeView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack(spacing: 8) {
-                                Text("Power Modes")
+                                Text("Smart Scenes")
                                     .font(.system(size: 28, weight: .bold, design: .default))
                                     .foregroundColor(.primary)
                                 
                                                                  InfoTip(
-                                     title: "What is Power Mode?",
+                                     title: "What are Smart Scenes?",
                                      message: "Automatically apply custom configurations based on the app/website you are using",
                                      learnMoreURL: "https://www.youtube.com/@tryvoiceink/videos"
                                  )
@@ -100,7 +100,7 @@ struct PowerModeView: View {
                                     HStack(spacing: 6) {
                                         Image(systemName: "plus")
                                             .font(.system(size: 12, weight: .medium))
-                                        Text("Add Power Mode")
+                                        Text("Add Smart Scene")
                                             .font(.system(size: 13, weight: .medium))
                                     }
                                     .foregroundColor(.white)
@@ -213,11 +213,11 @@ struct PowerModeView: View {
                                                 .foregroundColor(.secondary.opacity(0.6))
                                             
                                             VStack(spacing: 8) {
-                                                Text("No Power Modes Yet")
+                                                Text("No Smart Scenes Yet")
                                                     .font(.system(size: 20, weight: .medium))
                                                     .foregroundColor(.primary)
                                                 
-                                                Text("Create first power mode to automate your HoAh workflow based on apps/website you are using")
+                                                Text("Create first smart scene to automate your HoAh workflow based on apps/website you are using")
                                                     .font(.system(size: 14))
                                                     .foregroundColor(.secondary)
                                                     .multilineTextAlignment(.center)

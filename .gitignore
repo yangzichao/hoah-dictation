@@ -103,3 +103,6 @@ Temporary Items
 
 developerID_application.cer
 *.p12
+# Kiro
+ IDE
+.kiro/

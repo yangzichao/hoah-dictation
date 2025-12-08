@@ -24,6 +24,9 @@
 "Copied!" = "已复制！";
 "Copy System Info" = "复制系统信息";
 
+"Smart Scenes" = "智能场景";
+"Smart Scene" = "智能场景";
+
 "Transcription Language" = "转录语言";
 "Language: Autodetected" = "语言：自动检测";
 "Current model: %@" = "当前模型：%@";
@@ -56,7 +59,7 @@
 "Cancel Shortcut" = "取消快捷键";
 "Custom Cancel Shortcut" = "自定义取消快捷键";
 "English" = "英语";
-"Export your custom prompts, power modes, word replacements, keyboard shortcuts, and app preferences to a backup file. API keys are not included in the export." = "将自定义提示词、Power 模式、词语替换、快捷键和应用偏好导出为备份文件。API 密钥不会被导出。";
+"Export your custom prompts, power modes, word replacements, keyboard shortcuts, and app preferences to a backup file. API keys are not included in the export." = "将自定义提示词、智能场景、词语替换、快捷键和应用偏好导出为备份文件。API 密钥不会被导出。";
 "Follow System" = "跟随系统";
 "Interface Language" = "界面语言";
 "Mini Recorder" = "迷你录音窗";
@@ -346,6 +349,32 @@
 "➕" = "➕";
 "简体中文" = "简体中文";
 
+"Add Smart Scene" = "添加智能场景";
+"Add New Smart Scene" = "添加新智能场景";
+"Edit Smart Scene" = "编辑智能场景";
+"No Smart Scenes" = "没有智能场景";
+"No Smart Scenes Available" = "暂无可用智能场景";
+"No Smart Scenes Yet" = "尚未创建智能场景";
+"Select Smart Scene" = "选择智能场景";
+"Switch Smart Scene" = "切换智能场景";
+"Create first smart scene to automate your HoAh workflow based on apps/website you are using" = "创建你的第一个智能场景，根据当前使用的应用/网站自动化吼蛙工作流。";
+"Add customized smart scenes for different contexts" = "为不同场景添加自定义智能场景";
+"Cannot Save Smart Scene" = "无法保存智能场景";
+"Name your smart scene" = "为你的智能场景命名";
+"Set as default smart scene" = "设为默认智能场景";
+"Default Smart Scene" = "默认智能场景";
+"Default smart scene is used when no specific app or website matches are found" = "默认智能场景会在没有匹配到任何特定应用或网站时使用。";
+"Audio Duration" = "音频时长";
+"Transcription Model" = "转录模型";
+"Enhancement Model" = "增强模型";
+"Prompt Used" = "使用的提示词";
+"Transcription Time" = "转录时间";
+"Enhancement Time" = "增强时间";
+"Turn on Smart Scenes to automatically apply custom configurations based on the app or website you are using." = "开启智能场景，根据你使用的应用或网站自动应用自定义配置。";
+"Smart Scenes Still Active" = "智能场景仍在启用中";
+"Smart Scenes can't be disabled while any configuration is still enabled. Disable or remove your smart scenes first." = "在仍有配置启用时无法关闭智能场景。请先禁用或移除所有智能场景。";
+"After each recording session, revert enhancement and transcription preferences to whatever was configured before the smart scene was activated." = "每次录音结束后，将增强和转录偏好恢复为启用智能场景前的设置。";
+
 /* Missing Translations Added */
 
 /* Alerts & Notifications */
@@ -387,3 +416,7 @@
 
 /* Shortcuts */
 "Toggle Recording" = "切换录音状态";
+
+/* Menu Bar Specific */
+"Hide Dock Icon" = "隐藏 Dock 图标";
+"Show Dock Icon" = "显示 Dock 图标";

@@ -206,7 +206,7 @@ struct TranscriptionCard: View {
                             ) {
                                 metadataRow(
                                     icon: "bolt.fill",
-                                    label: "Power Mode",
+                                    label: "Smart Scene",
                                     value: powerModeValue
                                 )
                             }
@@ -297,7 +297,7 @@ struct TranscriptionCard: View {
                 .foregroundColor(.secondary)
                 .frame(width: 20, alignment: .center)
             
-            Text(label)
+            Text(LocalizedStringKey(label))
                 .font(.system(size: 13, weight: .medium))
                 .foregroundColor(.primary)
             Spacer()

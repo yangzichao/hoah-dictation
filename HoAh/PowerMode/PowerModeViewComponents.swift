@@ -31,16 +31,16 @@ struct PowerModeEmptyStateView: View {
                 .font(.system(size: 48))
                 .foregroundColor(.secondary)
             
-            Text("No Power Modes")
+            Text("No Smart Scenes")
                 .font(.title2)
                 .fontWeight(.semibold)
             
-            Text("Add customized power modes for different contexts")
+            Text("Add customized smart scenes for different contexts")
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
             
             HoAhButton(
-                title: "Add New Power Mode",
+                title: "Add New Smart Scene",
                 action: action
             )
             .frame(maxWidth: 250)
@@ -311,7 +311,7 @@ struct ConfigurationRow: View {
     .onTapGesture(count: 2) {
         onEditConfig(config)
     }
-    .contextMenu {
+        .contextMenu {
         Button(action: {
             onEditConfig(config)
         }) {
@@ -319,8 +319,8 @@ struct ConfigurationRow: View {
         }
         Button(role: .destructive, action: {
             let alert = NSAlert()
-            alert.messageText = "Delete Power Mode?"
-            alert.informativeText = "Are you sure you want to delete the '\(config.name)' power mode? This action cannot be undone."
+            alert.messageText = "Delete Smart Scene?"
+            alert.informativeText = "Are you sure you want to delete the '\(config.name)' smart scene? This action cannot be undone."
             alert.alertStyle = .warning
             alert.addButton(withTitle: "Delete")
             alert.addButton(withTitle: "Cancel")

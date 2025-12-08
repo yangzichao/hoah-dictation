@@ -97,7 +97,7 @@ extension View {
         isPresented: Binding<Bool>
     ) -> some View {
         self.alert(
-            "Cannot Save Power Mode", 
+            "Cannot Save Smart Scene", 
             isPresented: isPresented,
             actions: {
                 Button("OK", role: .cancel) {}

@@ -15,16 +15,16 @@ struct PowerModeSettingsSection: View {
                     .frame(width: 24, height: 24)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Power Mode")
+                    Text("Smart Scenes")
                         .font(.headline)
-                    Text("Enable to automatically apply custom configurations based on the app or website you are using.")
+                    Text("Turn on Smart Scenes to automatically apply custom configurations based on the app or website you are using.")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
                 
                 Spacer()
                 
-                Toggle("Enable Power Mode", isOn: toggleBinding)
+                Toggle("Enable Smart Scenes", isOn: toggleBinding)
                     .labelsHidden()
                     .toggleStyle(.switch)
             }
@@ -42,7 +42,7 @@ struct PowerModeSettingsSection: View {
                     
                     InfoTip(
                         title: "Auto-Restore Preferences",
-                        message: "After each recording session, revert enhancement and transcription preferences to whatever was configured before Power Mode was activated."
+                        message: "After each recording session, revert enhancement and transcription preferences to whatever was configured before the smart scene was activated."
                     )
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
@@ -52,10 +52,10 @@ struct PowerModeSettingsSection: View {
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(CardBackground(isSelected: false, useAccentGradientWhenSelected: true))
-        .alert("Power Mode Still Active", isPresented: $showDisableAlert) {
+        .alert("Smart Scenes Still Active", isPresented: $showDisableAlert) {
             Button("Got it", role: .cancel) { }
         } message: {
-            Text("Power Mode can't be disabled while any configuration is still enabled. Disable or remove your Power Modes first.")
+            Text("Smart Scenes can't be disabled while any configuration is still enabled. Disable or remove your smart scenes first.")
         }
     }
     

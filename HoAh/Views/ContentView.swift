@@ -11,7 +11,7 @@ enum ViewType: String, CaseIterable, Identifiable {
     case permissions = "Permissions"
     case audioInput = "Audio Input"
     case transcribeAudio = "Transcribe Audio"
-    case powerMode = "Power Mode"
+    case powerMode = "Smart Scenes"
     case settings = "Settings"
 
     var id: String { rawValue }
@@ -134,7 +134,7 @@ struct ContentView: View {
                     selectedView = .agentMode
                 case "Transcribe Audio":
                     selectedView = .transcribeAudio
-                case "Power Mode":
+                case "Smart Scenes":
                     selectedView = .powerMode
                 default:
                     break

@@ -157,7 +157,7 @@ struct KeyboardShortcutsListView: View {
                     ShortcutCard(
                         icon: "sparkles.square.fill.on.square",
                         iconColor: Color(red: 1.0, green: 0.8, blue: 0.0),
-                        title: "Switch Power Mode",
+                        title: "Switch Smart Scene",
                         subtitle: "Use ⌥1–⌥0 (Option)"
                     ) {
                         StaticKeysBadge(keys: ["⌥", "1–0"])

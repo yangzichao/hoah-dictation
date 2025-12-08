@@ -9,7 +9,7 @@ struct ConfigurationView: View {
     @FocusState private var isNameFieldFocused: Bool
     
     // State for configuration
-    @State private var configName: String = "New Power Mode"
+    @State private var configName: String = "New Smart Scene"
     @State private var selectedEmoji: String = "💼"
     @State private var isShowingEmojiPicker = false
     @State private var isShowingAppPicker = false
@@ -131,8 +131,8 @@ struct ConfigurationView: View {
                 if case .edit(let config) = mode {
                     Button("Delete") {
                         let alert = NSAlert()
-                        alert.messageText = "Delete Power Mode?"
-                        alert.informativeText = "Are you sure you want to delete the '\(config.name)' power mode? This action cannot be undone."
+                        alert.messageText = "Delete Smart Scene?"
+                        alert.informativeText = "Are you sure you want to delete the '\(config.name)' smart scene? This action cannot be undone."
                         alert.alertStyle = .warning
                         alert.addButton(withTitle: "Delete")
                         alert.addButton(withTitle: "Cancel")
@@ -186,7 +186,7 @@ struct ConfigurationView: View {
                                 )
                             }
                             
-                            TextField("Name your power mode", text: $configName)
+                            TextField("Name your smart scene", text: $configName)
                                 .font(.system(size: 18, weight: .bold))
                                 .textFieldStyle(.plain)
                                 .foregroundColor(.primary)
@@ -194,14 +194,14 @@ struct ConfigurationView: View {
                                 .focused($isNameFieldFocused)
                         }
                         
-                        // Default Power Mode Toggle
+                        // Default Smart Scene Toggle
                         HStack {
-                            Toggle("Set as default power mode", isOn: $isDefault)
+                            Toggle("Set as default smart scene", isOn: $isDefault)
                                 .font(.system(size: 14))
                             
                             InfoTip(
-                                title: "Default Power Mode",
-                                message: "Default power mode is used when no specific app or website matches are found"
+                                title: "Default Smart Scene",
+                                message: "Default smart scene is used when no specific app or website matches are found"
                             )
                             
                             Spacer()
@@ -629,7 +629,7 @@ struct ConfigurationView: View {
                     HStack {
                         Spacer()
                         Button(action: saveConfiguration) {
-                            Text(mode.isAdding ? "Add New Power Mode" : "Save Changes")
+                            Text(mode.isAdding ? "Add New Smart Scene" : "Save Changes")
                                 .font(.headline)
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 16)
