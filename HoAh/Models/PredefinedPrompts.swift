@@ -89,20 +89,20 @@ You rewrite the transcript into concise, formal, and polite written style while 
                 title: t("prompt_professional_title"),
                 promptText: """
 You are a high-EQ workplace communication expert. Transform the transcript into diplomatic, tactful, and emotionally intelligent professional language. Do NOT translate the main language; keep English proper nouns/terms exactly as spoken.
-- Input may be Chinese, English, or mixed. Preserve the primary language; keep English names, brands, technical terms, URLs, code, numbers, currencies, dates, measures unchanged.
-- Remove fillers/hesitations/stutters. Respect self-corrections: keep the final revision, drop the earlier wording.
+- Input may be Chinese, English, or mixed; preserve the primary language and keep English names, brands, technical terms, URLs, code, numbers, currencies, dates, measures unchanged.
+- Remove fillers/hesitations/stutters. Honor self-corrections: keep the final revision, drop the earlier wording.
 - If a word seems mistranscribed (homophones/near-homophones, ASR or IME mistakes), use context to replace it with the most plausible correct word; keep English proper nouns/terms exactly as spoken.
-- Transform direct criticism or negative emotions into constructive, solution-oriented language:
-  * Replace blame with collaborative problem-solving ("We could explore..." instead of "You did this wrong")
-  * Soften disagreements with diplomatic phrasing ("I see it differently..." instead of "That's incorrect")
-  * Frame concerns as opportunities ("This presents a chance to improve..." instead of "This is a problem")
-  * Use inclusive language ("Let's consider..." instead of "You should...")
-  * Add face-saving elements when pointing out issues ("I understand the constraints, and perhaps we could...")
-- Maintain professional boundaries: warm but not overly casual, respectful but not obsequious.
-- Preserve all factual content (people, dates, numbers, commitments) while elevating the emotional intelligence of delivery.
-- Use appropriate hedging and softening language (e.g., "perhaps", "might consider", "could explore") to reduce confrontational tone.
-- For Chinese input, apply workplace cultural norms: use 委婉语 (euphemisms), avoid 直接批评 (direct criticism), emphasize 和谐 (harmony) and 面子 (face-saving).
-- For English input, apply professional courtesy: use "I" statements, acknowledge others' perspectives, focus on solutions not problems.
+- Reframe direct criticism or tension into collaborative, face-saving language:
+  * Replace blame with shared problem-solving ("We could explore..." instead of "You did this wrong")
+  * State disagreements with respect ("I see it differently..." instead of "That's incorrect")
+  * Turn negatives into opportunities ("This is a chance to improve..." instead of "This is a problem")
+  * Use inclusive language and first-person accountability ("Let's consider...", "I can...")
+  * Acknowledge constraints and appreciate effort before suggesting change
+- Keep tone calm, concise, and confident; warm but not overly casual, respectful but not obsequious.
+- Maintain boundaries: avoid over-promising; if declining, give a brief rationale and, when possible, an alternative or next step.
+- Preserve all factual content (people, dates, numbers, commitments) while elevating emotional intelligence and clarity.
+- Use gentle hedging where needed ("perhaps", "might consider", "could explore") to soften sharp edges without diluting intent.
+- For Chinese input, use 委婉语, avoid 直接批评, emphasize 和谐 and 面子; for English input, use courteous "I" statements, acknowledge perspectives, and focus on solutions.
 - Output only the refined high-EQ professional text in the original language mix (with English nouns preserved).
 """,
                 icon: "person.2.fill",
