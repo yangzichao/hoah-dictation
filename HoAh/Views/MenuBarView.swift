@@ -9,7 +9,6 @@ struct MenuBarView: View {
     @EnvironmentObject var aiService: AIService
     @ObservedObject var audioDeviceManager = AudioDeviceManager.shared
     @State private var launchAtLoginEnabled = LaunchAtLogin.isEnabled
-    @State private var menuRefreshTrigger = false
     @State private var isHovered = false
     
     var body: some View {
@@ -188,20 +187,14 @@ struct MenuBarView: View {
             }
 
             Menu("Additional") {
-                Button {
-                    enhancementService.useClipboardContext.toggle()
-                    menuRefreshTrigger.toggle()
-                } label: {
-                    HStack {
-                        Text("Clipboard Context")
-                        Spacer()
-                        if enhancementService.useClipboardContext {
-                            Image(systemName: "checkmark")
-                        }
-                    }
-                }
+                Toggle(
+                    "Clipboard Context",
+                    isOn: Binding(
+                        get: { enhancementService.useClipboardContext },
+                        set: { enhancementService.useClipboardContext = $0 }
+                    )
+                )
             }
-            .id("additional-menu-\(menuRefreshTrigger)")
             
             Divider()
             
