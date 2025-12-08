@@ -13,6 +13,7 @@ class NativeAppleTranscriptionService: TranscriptionService {
     
     /// Maps simple language codes to Apple's BCP-47 locale format
     private func mapToAppleLocale(_ simpleCode: String) -> String {
+        // These are intentionally simple, model-agnostic codes.
         let mapping = [
             "en": "en-US",
             "es": "es-ES", 
@@ -27,6 +28,37 @@ class NativeAppleTranscriptionService: TranscriptionService {
             "zh": "zh-CN"
         ]
         return mapping[simpleCode] ?? "en-US"
+    }
+    
+    /// Resolves the effective language code to use for Apple Speech
+    /// given the app's SelectedLanguage setting. When the user chooses
+    /// `auto`, we infer Chinese vs English from the app interface
+    /// language or, if that is set to "system", from the system locale.
+    private func resolveEffectiveLanguageCode(selectedLanguage: String) -> String {
+        // If the user explicitly chose a language, honour it.
+        guard selectedLanguage == "auto" else {
+            return selectedLanguage
+        }
+        
+        // App interface language: "system", "en", "zh-Hans"
+        let interfaceCode = UserDefaults.standard.string(forKey: "AppInterfaceLanguage") ?? "system"
+        let appLanguage = AppLanguage(code: interfaceCode)
+        
+        switch appLanguage {
+        case .simplifiedChinese:
+            return "zh"
+        case .english:
+            return "en"
+        case .system:
+            // Fall back to system preferred languages – treat any zh*
+            // as Chinese, otherwise default to English.
+            let preferred = Locale.preferredLanguages.first ?? Locale.current.identifier
+            if preferred.lowercased().hasPrefix("zh") {
+                return "zh"
+            } else {
+                return "en"
+            }
+        }
     }
     
     enum ServiceError: Error, LocalizedError {
@@ -71,7 +103,8 @@ class NativeAppleTranscriptionService: TranscriptionService {
         
         // Get the user's selected language in simple format and convert to BCP-47 format
         let selectedLanguage = UserDefaults.standard.string(forKey: "SelectedLanguage") ?? "auto"
-        let appleLocale = mapToAppleLocale(selectedLanguage)
+        let effectiveLanguage = resolveEffectiveLanguageCode(selectedLanguage: selectedLanguage)
+        let appleLocale = mapToAppleLocale(effectiveLanguage)
         let locale = Locale(identifier: appleLocale)
 
         // Check for locale support and asset installation status using proper BCP-47 format
