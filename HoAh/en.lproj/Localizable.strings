@@ -289,6 +289,11 @@
 "prompt_todo_description" = "Turn speech into actionable bullet-point tasks; skip cancelled items.";
 "ai_enhancement_auto_prompt_hint" = "Only one mode is active at a time. It auto-applies after each transcription while AI enhancement is on. Current:";
 "user_profile_placeholder" = "Name: John Doe\nRole: Software Engineer\nIndustry: Technology\nTech Stack: Swift, Python, JavaScript\nCommunication Style: Direct and concise\nLanguages: English, Chinese";
+"User Profile" = "User Profile";
+"Provide optional context about yourself to help AI better tailor responses. This information will be included in all enhancement requests." = "Provide optional context about yourself to help AI better tailor responses. This information will be included in all enhancement requests.";
+"Configured" = "Configured";
+"Clear" = "Clear";
+"Optional: Add context about yourself (name, role, industry, tech stack, etc.) to help AI provide more relevant responses." = "Optional: Add context about yourself (name, role, industry, tech stack, etc.) to help AI provide more relevant responses.";
 "Download AI Model" = "Download AI Model";
 "Downloaded" = "Downloaded";
 "Edit" = "Edit";

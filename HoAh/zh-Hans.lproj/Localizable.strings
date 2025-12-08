@@ -292,6 +292,11 @@
 "prompt_todo_description" = "把语音转成可执行的任务要点；取消的内容不要列出。";
 "ai_enhancement_auto_prompt_hint" = "同一时间仅有一个模式生效；开启 AI 增强后会自动应用到每次转录。当前：";
 "user_profile_placeholder" = "姓名：张三\n职位：软件工程师\n行业：科技\n技术栈：Swift、Python、JavaScript\n沟通风格：简洁直接\n语言：中文、英语";
+"User Profile" = "用户画像";
+"Provide optional context about yourself to help AI better tailor responses. This information will be included in all enhancement requests." = "提供关于您自己的可选信息，帮助 AI 更好地定制回复。此信息将包含在所有增强请求中。";
+"Configured" = "已配置";
+"Clear" = "清除";
+"Optional: Add context about yourself (name, role, industry, tech stack, etc.) to help AI provide more relevant responses." = "可选：添加关于您自己的信息（姓名、职位、行业、技术栈等），帮助 AI 提供更相关的回复。";
 "Download AI Model" = "下载 AI 模型";
 "Downloaded" = "已下载";
 "Edit" = "编辑";

@@ -222,7 +222,7 @@ struct EnhancementSettingsView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Divider()
                             
-                            Text("Provide optional context about yourself to help AI better tailor responses. This information will be included in all enhancement requests.")
+                            Text(NSLocalizedString("Provide optional context about yourself to help AI better tailor responses. This information will be included in all enhancement requests.", comment: ""))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -256,7 +256,7 @@ struct EnhancementSettingsView: View {
                                 Spacer()
                                 
                                 if !enhancementService.userProfileContext.isEmpty {
-                                    Button("Clear") {
+                                    Button(NSLocalizedString("Clear", comment: "")) {
                                         enhancementService.userProfileContext = ""
                                     }
                                     .buttonStyle(.plain)
@@ -267,18 +267,18 @@ struct EnhancementSettingsView: View {
                         }
                     } label: {
                         HStack {
-                            Text("User Profile")
+                            Text(NSLocalizedString("User Profile", comment: ""))
                                 .font(.headline)
                             
                             InfoTip(
-                                title: "User Profile",
-                                message: "Optional: Add context about yourself (name, role, industry, tech stack, etc.) to help AI provide more relevant responses."
+                                title: NSLocalizedString("User Profile", comment: ""),
+                                message: NSLocalizedString("Optional: Add context about yourself (name, role, industry, tech stack, etc.) to help AI provide more relevant responses.", comment: "")
                             )
                             
                             Spacer()
                             
                             if !enhancementService.userProfileContext.isEmpty {
-                                Text("Configured")
+                                Text(NSLocalizedString("Configured", comment: ""))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                     .padding(.horizontal, 8)
