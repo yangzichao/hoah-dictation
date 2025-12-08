@@ -7,6 +7,8 @@
   ![Platform](https://img.shields.io/badge/platform-macOS%2014.0%2B-brightgreen)
 </div>
 
+**English** | [简体中文](README_CN.md)
+
 ---
 
 **HoAh** is a refined speech-to-text tool for macOS. The workflow is simple but powerful:
