@@ -10,6 +10,7 @@ struct SettingsView: View {
     @EnvironmentObject private var whisperState: WhisperState
     @EnvironmentObject private var enhancementService: AIEnhancementService
     @AppStorage("AppInterfaceLanguage") private var appInterfaceLanguage: String = "system"
+    @AppStorage("preserveTranscriptInClipboard") private var preserveTranscriptInClipboard = true
     @StateObject private var deviceManager = AudioDeviceManager.shared
     @ObservedObject private var soundManager = SoundManager.shared
     @ObservedObject private var mediaController = MediaController.shared
@@ -254,10 +255,7 @@ struct SettingsView: View {
                         .toggleStyle(.switch)
                         .help("Automatically mute system audio when recording starts and restore when recording stops")
 
-                        Toggle(isOn: Binding(
-                            get: { UserDefaults.standard.bool(forKey: "preserveTranscriptInClipboard") },
-                            set: { UserDefaults.standard.set($0, forKey: "preserveTranscriptInClipboard") }
-                        )) {
+                        Toggle(isOn: $preserveTranscriptInClipboard) {
                             Text("Preserve transcript in clipboard")
                         }
                         .toggleStyle(.switch)
