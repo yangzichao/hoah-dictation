@@ -1,9 +1,16 @@
 import Cocoa
 import SwiftUI
 import UniformTypeIdentifiers
+import Sparkle
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     weak var menuBarManager: MenuBarManager?
+    
+    private let updaterController = SPUStandardUpdaterController(
+        startingUpdater: false,
+        updaterDelegate: nil,
+        userDriverDelegate: nil
+    )
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         menuBarManager?.applyActivationPolicy()
@@ -20,6 +27,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
+    }
+    
+    @objc func checkForUpdates(_ sender: Any?) {
+        updaterController.checkForUpdates(sender)
     }
 
     // Stash URL when app cold-starts to avoid spawning a new window/tab

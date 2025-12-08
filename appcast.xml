@@ -3,22 +3,23 @@
     <channel>
         <title>HoAh Releases</title>
         <item>
-            <title>2.1.1</title>
+            <title>3.0.0</title>
             <pubDate>Thu, 09 Jan 2025 00:00:00 +0000</pubDate>
-            <sparkle:version>211</sparkle:version>
-            <sparkle:shortVersionString>2.1.1</sparkle:shortVersionString>
+            <sparkle:version>300</sparkle:version>
+            <sparkle:shortVersionString>3.0.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <description><![CDATA[
 
-                <h3>What's New in Version 2.1.1</h3>
+                <h3>What's New in Version 3.0.0</h3>
                 <ul>
-                    <li>Safer trigger phrases for summaries and email drafts; removed action-item auto triggers.</li>
-                    <li>Refined Default and Polish prompts for better multilingual cleanup and polishing.</li>
-                    <li>General prompt management improvements and stability tweaks.</li>
+                    <li>New onboarding flow with language selection, model setup, and improved permissions guidance.</li>
+                    <li>Dashboard and Smart Scenes redesign for a simpler, more focused experience.</li>
+                    <li>AI enhancement and local Whisper integration improvements.</li>
                 </ul>
 
             ]]></description>
-            <enclosure url="https://example.com/HoAh-2.1.1.dmg" length="0" type="application/octet-stream" sparkle:edSignature=""/>
+            <!-- Update this URL and the ED signature for each new release -->
+            <enclosure url="https://github.com/yangzichao/hoah-dictation/releases/download/v3.0.0/HoAh-3.0.0.dmg" length="0" type="application/octet-stream" sparkle:edSignature=""/>
         </item>
     </channel>
 </rss>

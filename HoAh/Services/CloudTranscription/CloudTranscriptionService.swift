@@ -37,7 +37,6 @@ class CloudTranscriptionService: TranscriptionService {
     
     private lazy var groqService = GroqTranscriptionService()
     private lazy var elevenLabsService = ElevenLabsTranscriptionService()
-    private lazy var deepgramService = DeepgramTranscriptionService()
     private lazy var mistralService = MistralTranscriptionService()
     private lazy var geminiService = GeminiTranscriptionService()
     private lazy var openAICompatibleService = OpenAICompatibleTranscriptionService()
@@ -106,8 +105,6 @@ class CloudTranscriptionService: TranscriptionService {
             return try await groqService.transcribe(audioURL: audioURL, model: model)
         case .elevenLabs:
             return try await elevenLabsService.transcribe(audioURL: audioURL, model: model)
-        case .deepgram:
-            return try await deepgramService.transcribe(audioURL: audioURL, model: model)
         case .mistral:
             return try await mistralService.transcribe(audioURL: audioURL, model: model)
         case .gemini:
@@ -130,8 +127,6 @@ class CloudTranscriptionService: TranscriptionService {
             return "GROQ"
         case .elevenLabs:
             return "ElevenLabs"
-        case .deepgram:
-            return "Deepgram"
         case .mistral:
             return "Mistral"
         case .gemini:
@@ -145,7 +140,7 @@ class CloudTranscriptionService: TranscriptionService {
     
     private func usesManagedAPIKeys(for provider: ModelProvider) -> Bool {
         switch provider {
-        case .groq, .elevenLabs, .deepgram, .mistral, .gemini, .soniox:
+        case .groq, .elevenLabs, .mistral, .gemini, .soniox:
             return true
         default:
             return false

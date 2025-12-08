@@ -18,9 +18,6 @@ extension WhisperState {
             case .elevenLabs:
                 let key = UserDefaults.standard.string(forKey: "ElevenLabsAPIKey")
                 return key != nil && !key!.isEmpty
-            case .deepgram:
-                let key = UserDefaults.standard.string(forKey: "DeepgramAPIKey")
-                return key != nil && !key!.isEmpty
             case .mistral:
                 let key = UserDefaults.standard.string(forKey: "MistralAPIKey")
                 return key != nil && !key!.isEmpty

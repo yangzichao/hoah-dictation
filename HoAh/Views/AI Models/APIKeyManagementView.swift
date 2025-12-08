@@ -19,7 +19,7 @@ struct APIKeyManagementView: View {
             // Provider Selection
             HStack {
                 Picker("AI Provider", selection: $aiService.selectedProvider) {
-                    ForEach(AIProvider.allCases.filter { $0 != .elevenLabs && $0 != .deepgram && $0 != .soniox }, id: \.self) { provider in
+                    ForEach(AIProvider.allCases.filter { $0 != .elevenLabs && $0 != .soniox }, id: \.self) { provider in
                         Text(provider.rawValue).tag(provider)
                     }
                 }
@@ -490,8 +490,6 @@ struct APIKeyManagementView: View {
                                     URL(string: "https://console.mistral.ai/api-keys")!
                                 case .elevenLabs:
                                     URL(string: "https://elevenlabs.io/speech-synthesis")!
-                                case .deepgram:
-                                    URL(string: "https://console.deepgram.com/api-keys")!
                                 case .soniox:
                                     URL(string: "https://console.soniox.com/")!
                                 case .ollama, .custom:

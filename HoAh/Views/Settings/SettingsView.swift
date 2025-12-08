@@ -294,7 +294,7 @@ struct SettingsView: View {
                     title: "General",
                     subtitle: "Appearance, startup, and updates"
                 ) {
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 16) {
                         Toggle("Hide Dock Icon (Menu Bar Only)", isOn: $menuBarManager.isMenuBarOnly)
                             .toggleStyle(.switch)
                         
@@ -323,11 +323,23 @@ struct SettingsView: View {
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
-                        
-                        // Announcements removed in this fork to keep the app lightweight.
-                        
-                        Text("Updates are managed manually for this fork. Grab new builds from your own distribution channel when you're ready.")
-                            .settingsDescription()
+
+                        Divider()
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Updates")
+                                .font(.headline)
+
+                            Button {
+                                NSApp.sendAction(#selector(AppDelegate.checkForUpdates(_:)), to: nil, from: nil)
+                            } label: {
+                                Label("Check for Updates…", systemImage: "arrow.triangle.2.circlepath")
+                            }
+                            .buttonStyle(.bordered)
+
+                            Text("HoAh does not check for updates automatically. Click the button above whenever you want to manually check for a new version.")
+                                .settingsDescription()
+                        }
                     }
                 }
                 

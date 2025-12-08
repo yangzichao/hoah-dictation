@@ -32,8 +32,6 @@ struct CloudModelCardView: View {
             return "GROQ"
         case .elevenLabs:
             return "ElevenLabs"
-        case .deepgram:
-            return "Deepgram"
         case .mistral:
             return "Mistral"
         case .gemini:
@@ -391,8 +389,6 @@ struct CloudModelCardView: View {
             aiService.selectedProvider = .groq
         case .elevenLabs:
             aiService.selectedProvider = .elevenLabs
-        case .deepgram:
-            aiService.selectedProvider = .deepgram
         case .mistral:
             aiService.selectedProvider = .mistral
         case .gemini:

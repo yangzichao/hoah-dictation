@@ -263,6 +263,14 @@ struct HoAhApp: App {
         .windowStyle(.hiddenTitleBar)
         .commands {
             CommandGroup(replacing: .newItem) { }
+            
+            CommandGroup(after: .appInfo) {
+                Button {
+                    appDelegate.checkForUpdates(nil)
+                } label: {
+                    Text(LocalizedStringKey("menu_check_for_updates"))
+                }
+            }
         }
         
         MenuBarExtra(isInserted: $showMenuBarIcon) {

@@ -9,7 +9,6 @@ enum AIProvider: String, CaseIterable {
     case openRouter = "OpenRouter"
     case mistral = "Mistral"
     case elevenLabs = "ElevenLabs"
-    case deepgram = "Deepgram"
     case soniox = "Soniox"
     case ollama = "Ollama"
     case custom = "Custom"
@@ -34,8 +33,6 @@ enum AIProvider: String, CaseIterable {
             return "https://api.mistral.ai/v1/chat/completions"
         case .elevenLabs:
             return "https://api.elevenlabs.io/v1/speech-to-text"
-        case .deepgram:
-            return "https://api.deepgram.com/v1/listen"
         case .soniox:
             return "https://api.soniox.com/v1"
         case .ollama:
@@ -64,8 +61,6 @@ enum AIProvider: String, CaseIterable {
             return "mistral-large-latest"
         case .elevenLabs:
             return "scribe_v2"
-        case .deepgram:
-            return "whisper-1"
         case .soniox:
             return "stt-async-v3"
         case .ollama:
@@ -130,8 +125,6 @@ enum AIProvider: String, CaseIterable {
             ]
         case .elevenLabs:
             return ["scribe_v2", "scribe_v1_experimental"]
-        case .deepgram:
-            return ["whisper-1"]
         case .soniox:
             return ["stt-async-v3"]
         case .ollama:
@@ -360,8 +353,6 @@ class AIService: ObservableObject {
             verifyAnthropicAPIKey(key, completion: completion)
         case .elevenLabs:
             verifyElevenLabsAPIKey(key, completion: completion)
-        case .deepgram:
-            verifyDeepgramAPIKey(key, completion: completion)
         case .mistral:
             verifyMistralAPIKey(key, completion: completion)
         case .soniox:
@@ -538,34 +529,6 @@ class AIService: ObservableObject {
         }.resume()
     }
 
-    private func verifyDeepgramAPIKey(_ key: String, completion: @escaping (Bool, String?) -> Void) {
-        let url = URL(string: "https://api.deepgram.com/v1/auth/token")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.addValue("Token \(key)", forHTTPHeaderField: "Authorization")
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                completion(false, error.localizedDescription)
-                return
-            }
-            
-            if let httpResponse = response as? HTTPURLResponse {
-                if httpResponse.statusCode == 200 {
-                    completion(true, nil)
-                } else {
-                    if let data = data, let responseString = String(data: data, encoding: .utf8) {
-                        completion(false, responseString)
-                    } else {
-                        completion(false, nil)
-                    }
-                }
-            } else {
-                completion(false, nil)
-            }
-        }.resume()
-    }
-    
     private func verifySonioxAPIKey(_ key: String, completion: @escaping (Bool, String?) -> Void) {
         guard let url = URL(string: "https://api.soniox.com/v1/files") else {
             completion(false, nil)
