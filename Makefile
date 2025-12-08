@@ -4,6 +4,7 @@ WHISPER_CPP_DIR := $(DEPS_DIR)/whisper.cpp
 FRAMEWORK_PATH := $(WHISPER_CPP_DIR)/build-apple/whisper.xcframework
 
 .PHONY: all clean whisper setup build check healthcheck help dev run reset-onboarding
+DMG_VERSION ?= 3.0.0
 
 # Default target
 all: check build
@@ -70,6 +71,10 @@ reset-onboarding:
 	@echo "Resetting onboarding state for HoAh (bundle id: com.yangzichao.hoah)..."
 	@defaults delete com.yangzichao.hoah HasCompletedOnboarding || echo "No existing onboarding flag to delete."
 	@echo "Next launch will show the full onboarding flow again."
+
+# Build signed DMG with Applications link (uses Release build)
+dmg:
+	@bash scripts/packaging/build_dmg.sh $(DMG_VERSION)
 
 # Help
 help:
