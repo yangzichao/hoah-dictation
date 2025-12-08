@@ -119,14 +119,30 @@ struct EnhancementSettingsView: View {
                                 Text("Prompt Triggers")
                                     .font(.headline)
                                 Spacer()
-                                Toggle("Enable Prompt Triggers", isOn: $enhancementService.arePromptTriggersEnabled)
-                                    .toggleStyle(.switch)
-                                    .disabled(!enhancementService.isEnhancementEnabled)
+                                Toggle(
+                                    "Enable Prompt Triggers",
+                                    isOn: Binding(
+                                        get: { enhancementService.arePromptTriggersEnabled },
+                                        set: { newValue in
+                                            enhancementService.arePromptTriggersEnabled = newValue
+                                            if newValue && !enhancementService.isEnhancementEnabled {
+                                                enhancementService.isEnhancementEnabled = true
+                                            }
+                                        }
+                                    )
+                                )
+                                .toggleStyle(.switch)
                             }
                             
                             Text("When enabled, these prompts auto-activate if their trigger words are present in your text.")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
+
+                            if !enhancementService.isEnhancementEnabled {
+                                Text("Auto enhancement is off, so triggers are inactive until you turn it on.")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
                         }
                         
                         ReorderablePromptGrid(
