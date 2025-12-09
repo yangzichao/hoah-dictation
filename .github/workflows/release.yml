@@ -30,15 +30,22 @@ jobs:
       - name: Build Application
         run: make build
 
+      - name: Import Signing Certificate
+        if: ${{ secrets.CERTIFICATE_P12 != '' }}
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.CERTIFICATE_P12 }}
+          p12-password: ${{ secrets.CERTIFICATE_PASSWORD }}
+
       - name: Package DMG (Unsigned)
-        if: ${{ env.SIGN_IDENTITY == '' }}
+        if: ${{ secrets.CERTIFICATE_P12 == '' }}
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
           echo "Packaging DMG for version $VERSION (Unsigned)"
           make dmg DMG_VERSION=$VERSION
 
       - name: Package DMG (Signed & Notarized)
-        if: ${{ env.SIGN_IDENTITY != '' }}
+        if: ${{ secrets.CERTIFICATE_P12 != '' }}
         env:
           SIGN_IDENTITY: ${{ secrets.SIGN_IDENTITY }}
           TEAM_ID: ${{ secrets.TEAM_ID }}
