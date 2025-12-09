@@ -260,8 +260,6 @@ You are a precise command-line assistant.
                 ],
                 useSystemInstructions: true
             ),
-
-            // Assistant remains available for freeform Q&A (manual)
         ]
     }
 }

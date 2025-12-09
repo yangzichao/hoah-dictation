@@ -5,7 +5,6 @@ import os
 
 enum EnhancementPrompt {
     case transcriptionEnhancement
-    case aiAssistant
 }
 
 enum PromptKind {
