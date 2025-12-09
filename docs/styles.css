@@ -407,7 +407,41 @@ footer a:hover {
   }
 }
 
-/* --- Language Toggle --- */
+/* --- Header Actions (Top Right) --- */
+.header-actions {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.github-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.github-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
 .lang-toggle {
   text-decoration: none;
   color: var(--text-muted);
@@ -423,14 +457,9 @@ footer a:hover {
   cursor: pointer;
   font-family: var(--font-main);
   letter-spacing: 0.5px;
-
-  /* Fixed positioning */
-  position: fixed;
-  top: 24px;
-  right: 24px;
-  z-index: 1000;
-
-  /* Subtle glow on idle */
+  
+  /* Reset fixed positioning since parent handles it */
+  position: static; 
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
