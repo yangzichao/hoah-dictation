@@ -5,6 +5,7 @@ import Sparkle
 
 class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
     weak var menuBarManager: MenuBarManager?
+    weak var appSettings: AppSettingsStore?
     
     private lazy var updaterControllerString: SPUStandardUpdaterController = {
         return SPUStandardUpdaterController(
@@ -19,12 +20,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
     }
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        menuBarManager?.applyActivationPolicy()
+        // Activation policy is now handled by SettingsCoordinator
         performAutomaticUpdateCheck()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        if !flag, let menuBarManager = menuBarManager, !menuBarManager.isMenuBarOnly {
+        if !flag, let appSettings = appSettings, !appSettings.isMenuBarOnly {
             if WindowManager.shared.showMainWindow() != nil {
                 return false
             }

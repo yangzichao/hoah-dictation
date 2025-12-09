@@ -16,6 +16,7 @@ struct SmartSceneSession: Codable {
     var originalState: ApplicationState
 }
 
+// Smart Scene uses session methods to override settings without modifying user preferences
 @MainActor
 class SmartSceneSessionManager {
     static let shared = SmartSceneSessionManager()
@@ -24,14 +25,16 @@ class SmartSceneSessionManager {
 
     private var whisperState: WhisperState?
     private var enhancementService: AIEnhancementService?
+    private var appSettings: AppSettingsStore?
 
     private init() {
         recoverSession()
     }
 
-    func configure(whisperState: WhisperState, enhancementService: AIEnhancementService) {
+    func configure(whisperState: WhisperState, enhancementService: AIEnhancementService, appSettings: AppSettingsStore? = nil) {
         self.whisperState = whisperState
         self.enhancementService = enhancementService
+        self.appSettings = appSettings
     }
 
     func beginSession(with config: SmartSceneConfig) async {
@@ -56,6 +59,9 @@ class SmartSceneSessionManager {
         )
         saveSession(newSession)
         
+        // Notify AppSettingsStore that Smart Scene is active
+        appSettings?.beginSmartSceneSession(sceneId: config.id.uuidString)
+        
         NotificationCenter.default.addObserver(self, selector: #selector(updateSessionSnapshot), name: .AppSettingsDidChange, object: nil)
 
         isApplyingSmartSceneConfig = true
@@ -69,6 +75,9 @@ class SmartSceneSessionManager {
         isApplyingSmartSceneConfig = true
         await restoreState(session.originalState)
         isApplyingSmartSceneConfig = false
+        
+        // Notify AppSettingsStore that Smart Scene is no longer active
+        appSettings?.endSmartSceneSession()
         
         NotificationCenter.default.removeObserver(self, name: .AppSettingsDidChange, object: nil)
 

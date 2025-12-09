@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 enum AIProvider: String, CaseIterable {
     case awsBedrock = "AWS Bedrock"
@@ -141,37 +142,133 @@ enum AIProvider: String, CaseIterable {
     }
 }
 
+// AI Provider settings are managed by AppSettingsStore.
+// Runtime state (apiKey, isAPIKeyValid) remains here.
+@MainActor
 class AIService: ObservableObject {
     @Published private(set) var apiKey: String = ""
     @Published var isAPIKeyValid: Bool = false
     
-    // AWS Bedrock credentials/config
+    // Reference to centralized settings store
+    private weak var appSettings: AppSettingsStore?
+    private var cancellables = Set<AnyCancellable>()
+    
+    // AWS Bedrock credentials/config - runtime state
     @Published var bedrockApiKey: String = ""
-    @Published var bedrockRegion: String = UserDefaults.standard.string(forKey: "AWSBedrockRegion") ?? "us-east-1" {
-        didSet { userDefaults.set(bedrockRegion, forKey: "AWSBedrockRegion") }
-    }
-    @Published var bedrockModelId: String = UserDefaults.standard.string(forKey: "AWSBedrockModelId") ?? "us.anthropic.claude-sonnet-4-5-20250929-v1:0" {
-        didSet { userDefaults.set(bedrockModelId, forKey: "AWSBedrockModelId") }
-    }
-    @Published var customBaseURL: String = UserDefaults.standard.string(forKey: "customProviderBaseURL") ?? "" {
-        didSet {
-            userDefaults.set(customBaseURL, forKey: "customProviderBaseURL")
+    
+    // Legacy storage for backward compatibility during migration
+    private var legacyBedrockRegion: String = UserDefaults.standard.string(forKey: "AWSBedrockRegion") ?? "us-east-1"
+    private var legacyBedrockModelId: String = UserDefaults.standard.string(forKey: "AWSBedrockModelId") ?? "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+    private var legacyCustomBaseURL: String = UserDefaults.standard.string(forKey: "customProviderBaseURL") ?? ""
+    private var legacyCustomModel: String = UserDefaults.standard.string(forKey: "customProviderModel") ?? ""
+    private var legacySelectedProvider: AIProvider
+    private var legacySelectedModels: [AIProvider: String] = [:]
+    
+    /// AWS Bedrock region - reads from AppSettingsStore if available
+    var bedrockRegion: String {
+        get { appSettings?.bedrockRegion ?? legacyBedrockRegion }
+        set {
+            objectWillChange.send()
+            if let appSettings = appSettings {
+                appSettings.bedrockRegion = newValue
+            } else {
+                legacyBedrockRegion = newValue
+                userDefaults.set(newValue, forKey: "AWSBedrockRegion")
+            }
         }
     }
-    @Published var customModel: String = UserDefaults.standard.string(forKey: "customProviderModel") ?? "" {
-        didSet {
-            userDefaults.set(customModel, forKey: "customProviderModel")
+    
+    /// AWS Bedrock model ID - reads from AppSettingsStore if available
+    var bedrockModelId: String {
+        get { appSettings?.bedrockModelId ?? legacyBedrockModelId }
+        set {
+            objectWillChange.send()
+            if let appSettings = appSettings {
+                appSettings.bedrockModelId = newValue
+            } else {
+                legacyBedrockModelId = newValue
+                userDefaults.set(newValue, forKey: "AWSBedrockModelId")
+            }
         }
     }
-    @Published var selectedProvider: AIProvider {
-        didSet {
-            userDefaults.set(selectedProvider.rawValue, forKey: "selectedAIProvider")
+    
+    /// Custom provider base URL - reads from AppSettingsStore if available
+    var customBaseURL: String {
+        get { appSettings?.customProviderBaseURL ?? legacyCustomBaseURL }
+        set {
+            objectWillChange.send()
+            if let appSettings = appSettings {
+                appSettings.customProviderBaseURL = newValue
+            } else {
+                legacyCustomBaseURL = newValue
+                userDefaults.set(newValue, forKey: "customProviderBaseURL")
+            }
+        }
+    }
+    
+    /// Custom provider model - reads from AppSettingsStore if available
+    var customModel: String {
+        get { appSettings?.customProviderModel ?? legacyCustomModel }
+        set {
+            objectWillChange.send()
+            if let appSettings = appSettings {
+                appSettings.customProviderModel = newValue
+            } else {
+                legacyCustomModel = newValue
+                userDefaults.set(newValue, forKey: "customProviderModel")
+            }
+        }
+    }
+    
+    /// Selected AI provider - reads from AppSettingsStore if available
+    var selectedProvider: AIProvider {
+        get {
+            if let appSettings = appSettings {
+                return AIProvider(rawValue: appSettings.selectedAIProvider) ?? .gemini
+            }
+            return legacySelectedProvider
+        }
+        set {
+            objectWillChange.send()
+            if let appSettings = appSettings {
+                appSettings.selectedAIProvider = newValue.rawValue
+            } else {
+                legacySelectedProvider = newValue
+                userDefaults.set(newValue.rawValue, forKey: "selectedAIProvider")
+            }
             refreshAPIKeyState()
             NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
         }
     }
     
-    @Published private var selectedModels: [AIProvider: String] = [:]
+    /// Selected models per provider - reads from AppSettingsStore if available
+    private var selectedModels: [AIProvider: String] {
+        get {
+            if let appSettings = appSettings {
+                var result: [AIProvider: String] = [:]
+                for (key, value) in appSettings.selectedModels {
+                    if let provider = AIProvider(rawValue: key) {
+                        result[provider] = value
+                    }
+                }
+                return result
+            }
+            return legacySelectedModels
+        }
+        set {
+            objectWillChange.send()
+            if let appSettings = appSettings {
+                var stringDict: [String: String] = [:]
+                for (provider, model) in newValue {
+                    stringDict[provider.rawValue] = model
+                }
+                appSettings.selectedModels = stringDict
+            } else {
+                legacySelectedModels = newValue
+            }
+        }
+    }
+    
     private let userDefaults = UserDefaults.standard
     private let keyManager = CloudAPIKeyManager.shared
     
@@ -210,11 +307,12 @@ class AIService: ObservableObject {
     }
     
     init() {
+        // Initialize legacy provider from UserDefaults
         if let savedProvider = userDefaults.string(forKey: "selectedAIProvider"),
            let provider = AIProvider(rawValue: savedProvider) {
-            self.selectedProvider = provider
+            self.legacySelectedProvider = provider
         } else {
-            self.selectedProvider = .gemini
+            self.legacySelectedProvider = .gemini
         }
         
         refreshAPIKeyState()
@@ -223,11 +321,57 @@ class AIService: ObservableObject {
         loadSavedOpenRouterModels()
     }
     
+    /// Configure with AppSettingsStore for centralized state management
+    func configure(with appSettings: AppSettingsStore) {
+        self.appSettings = appSettings
+        
+        // Subscribe to settings changes
+        appSettings.$selectedAIProvider
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+                self?.refreshAPIKeyState()
+            }
+            .store(in: &cancellables)
+        
+        appSettings.$bedrockRegion
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        appSettings.$bedrockModelId
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        appSettings.$customProviderBaseURL
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        appSettings.$customProviderModel
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        appSettings.$selectedModels
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        // Refresh API key state with new settings
+        refreshAPIKeyState()
+    }
+    
     private func loadSavedModelSelections() {
         for provider in AIProvider.allCases {
             let key = "\(provider.rawValue)SelectedModel"
             if let savedModel = userDefaults.string(forKey: key), !savedModel.isEmpty {
-                selectedModels[provider] = savedModel
+                legacySelectedModels[provider] = savedModel
             }
         }
     }
@@ -274,9 +418,17 @@ class AIService: ObservableObject {
     func selectModel(_ model: String) {
         guard !model.isEmpty else { return }
         
-        selectedModels[selectedProvider] = model
-        let key = "\(selectedProvider.rawValue)SelectedModel"
-        userDefaults.set(model, forKey: key)
+        if let appSettings = appSettings {
+            // Update through AppSettingsStore
+            var models = appSettings.selectedModels
+            models[selectedProvider.rawValue] = model
+            appSettings.selectedModels = models
+        } else {
+            // Legacy path
+            legacySelectedModels[selectedProvider] = model
+            let key = "\(selectedProvider.rawValue)SelectedModel"
+            userDefaults.set(model, forKey: key)
+        }
         
         objectWillChange.send()
         NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)

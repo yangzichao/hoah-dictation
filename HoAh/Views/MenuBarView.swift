@@ -7,6 +7,7 @@ struct MenuBarView: View {
     @EnvironmentObject var menuBarManager: MenuBarManager
     @EnvironmentObject var enhancementService: AIEnhancementService
     @EnvironmentObject var aiService: AIService
+    @EnvironmentObject var appSettings: AppSettingsStore
     @ObservedObject var audioDeviceManager = AudioDeviceManager.shared
     @State private var launchAtLoginEnabled = LaunchAtLogin.isEnabled
     @State private var isHovered = false
@@ -80,7 +81,7 @@ struct MenuBarView: View {
             
             Divider()
             
-            Toggle("AI Enhancement", isOn: $enhancementService.isEnhancementEnabled)
+            Toggle("AI Enhancement", isOn: $appSettings.isAIEnhancementEnabled)
             
             Menu {
                 ForEach(enhancementService.activePrompts) { prompt in
@@ -189,10 +190,7 @@ struct MenuBarView: View {
             Menu("Additional") {
                 Toggle(
                     "Clipboard Context",
-                    isOn: Binding(
-                        get: { enhancementService.useClipboardContext },
-                        set: { enhancementService.useClipboardContext = $0 }
-                    )
+                    isOn: $appSettings.useClipboardContext
                 )
             }
             
@@ -212,8 +210,8 @@ struct MenuBarView: View {
             }
             .keyboardShortcut("h", modifiers: [.command, .shift])
             
-            Button(menuBarManager.isMenuBarOnly ? "Show Dock Icon" : "Hide Dock Icon") {
-                menuBarManager.toggleMenuBarOnly()
+            Button(appSettings.isMenuBarOnly ? "Show Dock Icon" : "Hide Dock Icon") {
+                appSettings.isMenuBarOnly.toggle()
             }
             .keyboardShortcut("d", modifiers: [.command, .shift])
             

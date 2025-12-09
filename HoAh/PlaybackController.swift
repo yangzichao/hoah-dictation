@@ -3,6 +3,9 @@ import Combine
 import Foundation
 import SwiftUI
 import MediaRemoteAdapter
+
+// Audio settings are managed by AppSettingsStore
+@MainActor
 class PlaybackController: ObservableObject {
     static let shared = PlaybackController()
     private var mediaController: MediaRemoteAdapter.MediaController
@@ -10,13 +13,28 @@ class PlaybackController: ObservableObject {
     private var isMediaPlaying = false
     private var lastKnownTrackInfo: TrackInfo?
     private var originalMediaAppBundleId: String?
-
     
-    @Published var isPauseMediaEnabled: Bool = UserDefaults.standard.bool(forKey: "isPauseMediaEnabled") {
-        didSet {
-            UserDefaults.standard.set(isPauseMediaEnabled, forKey: "isPauseMediaEnabled")
+    // Reference to centralized settings store
+    private weak var appSettings: AppSettingsStore?
+    private var cancellables = Set<AnyCancellable>()
+    
+    // DEPRECATED: Use AppSettingsStore instead
+    // Keeping for backward compatibility during migration
+    private var legacyPauseMediaEnabled: Bool = UserDefaults.standard.bool(forKey: "isPauseMediaEnabled")
+    
+    /// Whether pause media is enabled - reads from AppSettingsStore if available
+    var isPauseMediaEnabled: Bool {
+        get { appSettings?.isPauseMediaEnabled ?? legacyPauseMediaEnabled }
+        set {
+            objectWillChange.send()
+            if let appSettings = appSettings {
+                appSettings.isPauseMediaEnabled = newValue
+            } else {
+                legacyPauseMediaEnabled = newValue
+                UserDefaults.standard.set(newValue, forKey: "isPauseMediaEnabled")
+            }
             
-            if isPauseMediaEnabled {
+            if newValue {
                 startMediaTracking()
             } else {
                 stopMediaTracking()
@@ -36,6 +54,23 @@ class PlaybackController: ObservableObject {
         if isPauseMediaEnabled {
             startMediaTracking()
         }
+    }
+    
+    /// Configure with AppSettingsStore for centralized state management
+    func configure(with appSettings: AppSettingsStore) {
+        self.appSettings = appSettings
+        
+        // Subscribe to settings changes
+        appSettings.$isPauseMediaEnabled
+            .sink { [weak self] newValue in
+                self?.objectWillChange.send()
+                if newValue {
+                    self?.startMediaTracking()
+                } else {
+                    self?.stopMediaTracking()
+                }
+            }
+            .store(in: &cancellables)
     }
     
     private func setupMediaControllerCallbacks() {

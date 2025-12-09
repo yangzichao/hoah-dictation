@@ -1,9 +1,10 @@
 import SwiftUI
 
 struct OnboardingLanguageSelectionView: View {
-    @AppStorage("AppInterfaceLanguage") private var appInterfaceLanguage: String = "system"
-    @AppStorage("SelectedLanguage") private var selectedLanguage: String = "auto"
+    @EnvironmentObject private var appSettings: AppSettingsStore
     @EnvironmentObject private var localizationManager: LocalizationManager
+    // DEPRECATED: Use AppSettingsStore instead of @AppStorage
+    @AppStorage("SelectedLanguage") private var selectedLanguage: String = "auto"
     
     let onContinue: () -> Void
     
@@ -115,18 +116,18 @@ struct OnboardingLanguageSelectionView: View {
     private func applySelectionAndContinue() {
         switch selectedOption {
         case .system:
-            appInterfaceLanguage = "system"
+            appSettings.appInterfaceLanguage = "system"
             selectedLanguage = "auto"
         case .simplifiedChinese:
-            appInterfaceLanguage = "zh-Hans"
+            appSettings.appInterfaceLanguage = "zh-Hans"
             selectedLanguage = "zh"
         case .english:
-            appInterfaceLanguage = "en"
+            appSettings.appInterfaceLanguage = "en"
             selectedLanguage = "en"
         }
         
         // Apply language immediately so subsequent onboarding steps update
-        localizationManager.apply(languageCode: appInterfaceLanguage)
+        localizationManager.apply(languageCode: appSettings.appInterfaceLanguage)
         onContinue()
     }
     

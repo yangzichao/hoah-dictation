@@ -9,9 +9,8 @@ struct SettingsView: View {
     @EnvironmentObject private var hotkeyManager: HotkeyManager
     @EnvironmentObject private var whisperState: WhisperState
     @EnvironmentObject private var enhancementService: AIEnhancementService
-    @AppStorage("AppInterfaceLanguage") private var appInterfaceLanguage: String = "system"
-    @AppStorage("preserveTranscriptInClipboard") private var preserveTranscriptInClipboard = true
-    @AppStorage("isTranscribeAudioEnabled") private var isTranscribeAudioEnabled = false
+    @EnvironmentObject private var appSettings: AppSettingsStore
+    // DEPRECATED: Use AppSettingsStore instead of @AppStorage
     @StateObject private var deviceManager = AudioDeviceManager.shared
     @ObservedObject private var soundManager = SoundManager.shared
     @ObservedObject private var mediaController = MediaController.shared
@@ -222,7 +221,7 @@ struct SettingsView: View {
                             Text("Select how you want the recorder to appear on your screen.")
                                 .settingsDescription()
                             
-                            Picker("Recorder Style", selection: $whisperState.recorderType) {
+                            Picker("Recorder Style", selection: $appSettings.recorderType) {
                                 Text("Notch Recorder").tag("notch")
                                 Text("Mini Recorder").tag("mini")
                             }
@@ -233,12 +232,12 @@ struct SettingsView: View {
                         Divider()
 
                         HStack {
-                            Toggle(isOn: $soundManager.isEnabled) {
+                            Toggle(isOn: $appSettings.isSoundFeedbackEnabled) {
                                 Text("Sound feedback")
                             }
                             .toggleStyle(.switch)
 
-                            if soundManager.isEnabled {
+                            if appSettings.isSoundFeedbackEnabled {
                                 Spacer()
 
                                 Image(systemName: "chevron.right")
@@ -250,14 +249,14 @@ struct SettingsView: View {
                         }
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            if soundManager.isEnabled {
+                            if appSettings.isSoundFeedbackEnabled {
                                 withAnimation(.easeInOut(duration: 0.2)) {
                                     isCustomSoundsExpanded.toggle()
                                 }
                             }
                         }
 
-                        if soundManager.isEnabled && isCustomSoundsExpanded {
+                        if appSettings.isSoundFeedbackEnabled && isCustomSoundsExpanded {
                             CustomSoundSettingsView()
                                 .transition(.opacity.combined(with: .move(edge: .top)))
                                 .padding(.top, 4)
@@ -265,19 +264,19 @@ struct SettingsView: View {
 
                         Divider()
 
-                        Toggle(isOn: $mediaController.isSystemMuteEnabled) {
+                        Toggle(isOn: $appSettings.isSystemMuteEnabled) {
                             Text("Mute system audio during recording")
                         }
                         .toggleStyle(.switch)
                         .help("Automatically mute system audio when recording starts and restore when recording stops")
                         
-                        Toggle(isOn: $playbackController.isPauseMediaEnabled) {
+                        Toggle(isOn: $appSettings.isPauseMediaEnabled) {
                             Text("Pause Media during recording")
                         }
                         .toggleStyle(.switch)
                         .help("Automatically pause active media playback during recordings and resume afterward.")
 
-                        Toggle(isOn: $preserveTranscriptInClipboard) {
+                        Toggle(isOn: $appSettings.preserveTranscriptInClipboard) {
                             Text("Preserve transcript in clipboard")
                         }
                         .toggleStyle(.switch)
@@ -296,10 +295,10 @@ struct SettingsView: View {
                     subtitle: "Appearance, startup, and updates"
                 ) {
                     VStack(alignment: .leading, spacing: 16) {
-                        Toggle("Hide Dock Icon (Menu Bar Only)", isOn: $menuBarManager.isMenuBarOnly)
+                        Toggle("Hide Dock Icon (Menu Bar Only)", isOn: $appSettings.isMenuBarOnly)
                             .toggleStyle(.switch)
                         
-                        Toggle("Show Audio Transcription Tool", isOn: $isTranscribeAudioEnabled)
+                        Toggle("Show Audio Transcription Tool", isOn: $appSettings.isTranscribeAudioEnabled)
                             .toggleStyle(.switch)
                         
                         Toggle(isOn: Binding(
@@ -314,13 +313,13 @@ struct SettingsView: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Interface Language")
                                 .font(.headline)
-                            Picker("", selection: $appInterfaceLanguage) {
+                            Picker("", selection: $appSettings.appInterfaceLanguage) {
                                 Text("Follow System").tag("system")
                                 Text("English").tag("en")
                                 Text("简体中文").tag("zh-Hans")
                             }
                             .pickerStyle(SegmentedPickerStyle())
-                            .onChange(of: appInterfaceLanguage) { _, _ in
+                            .onChange(of: appSettings.appInterfaceLanguage) { _, _ in
                                 NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
                                 NotificationCenter.default.post(name: .languageDidChange, object: nil)
                             }
@@ -381,7 +380,8 @@ struct SettingsView: View {
                                     mediaController: MediaController.shared, 
                                     playbackController: PlaybackController.shared,
                                     soundManager: SoundManager.shared,
-                                    whisperState: whisperState
+                                    whisperState: whisperState,
+                                    appSettings: appSettings
                                 )
                             } label: {
                                 Label("Import Settings...", systemImage: "arrow.down.doc")
@@ -398,7 +398,8 @@ struct SettingsView: View {
                                     mediaController: MediaController.shared, 
                                     playbackController: PlaybackController.shared,
                                     soundManager: SoundManager.shared,
-                                    whisperState: whisperState
+                                    whisperState: whisperState,
+                                    appSettings: appSettings
                                 )
                             } label: {
                                 Label("Export Settings...", systemImage: "arrow.up.doc")

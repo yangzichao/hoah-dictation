@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 struct EnhancementSettingsView: View {
     @EnvironmentObject private var enhancementService: AIEnhancementService
     @EnvironmentObject private var aiService: AIService
+    @EnvironmentObject private var appSettings: AppSettingsStore
     @State private var isEditingPrompt = false
     @State private var isSettingsExpanded = true
     @State private var isProviderExpanded = false
@@ -50,18 +51,18 @@ struct EnhancementSettingsView: View {
                             Spacer()
                             
                             Toggle("", isOn: Binding(
-                                get: { enhancementService.isEnhancementEnabled },
+                                get: { appSettings.isAIEnhancementEnabled },
                                 set: { newValue in
                                     if newValue {
                                         if aiService.isAPIKeyValid {
-                                            enhancementService.isEnhancementEnabled = true
+                                            appSettings.isAIEnhancementEnabled = true
                                         } else {
                                             // User tries to enable but no provider configured
                                             isProviderExpanded = true
                                             showProviderAlert = true
                                         }
                                     } else {
-                                        enhancementService.isEnhancementEnabled = false
+                                        appSettings.isAIEnhancementEnabled = false
                                     }
                                 }
                             ))
@@ -76,12 +77,12 @@ struct EnhancementSettingsView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 4) {
-                            Toggle("Clipboard Context", isOn: $enhancementService.useClipboardContext)
+                            Toggle("Clipboard Context", isOn: $appSettings.useClipboardContext)
                                 .toggleStyle(.switch)
-                                .disabled(!enhancementService.isEnhancementEnabled)
+                                .disabled(!appSettings.isAIEnhancementEnabled)
                             Text("Use text from clipboard to understand the context")
                                 .font(.caption)
-                                .foregroundColor(enhancementService.isEnhancementEnabled ? .secondary : .secondary.opacity(0.5))
+                                .foregroundColor(appSettings.isAIEnhancementEnabled ? .secondary : .secondary.opacity(0.5))
                         }
                     }
                     .padding()
@@ -174,11 +175,11 @@ struct EnhancementSettingsView: View {
                                 Toggle(
                                     "Enable Prompt Triggers",
                                     isOn: Binding(
-                                        get: { enhancementService.arePromptTriggersEnabled },
+                                        get: { appSettings.arePromptTriggersEnabled },
                                         set: { newValue in
-                                            enhancementService.arePromptTriggersEnabled = newValue
-                                            if newValue && !enhancementService.isEnhancementEnabled {
-                                                enhancementService.isEnhancementEnabled = true
+                                            appSettings.arePromptTriggersEnabled = newValue
+                                            if newValue && !appSettings.isAIEnhancementEnabled {
+                                                appSettings.isAIEnhancementEnabled = true
                                             }
                                         }
                                     )
@@ -190,7 +191,7 @@ struct EnhancementSettingsView: View {
                                 .font(.caption)
                                 .foregroundColor(.secondary)
 
-                            if !enhancementService.isEnhancementEnabled {
+                            if !appSettings.isAIEnhancementEnabled {
                                 Text("Auto enhancement is off, so triggers are inactive until you turn it on.")
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
@@ -211,7 +212,7 @@ struct EnhancementSettingsView: View {
                                 pendingPromptKind = .trigger
                                 isEditingPrompt = true
                             },
-                            isEnabled: enhancementService.isEnhancementEnabled && enhancementService.arePromptTriggersEnabled,
+                            isEnabled: appSettings.isAIEnhancementEnabled && appSettings.arePromptTriggersEnabled,
                             isPromptEnabled: { $0.isActive },
                             onTogglePromptEnabled: { prompt, isOn in
                                 if let idx = enhancementService.triggerPrompts.firstIndex(where: { $0.id == prompt.id }) {
@@ -234,7 +235,7 @@ struct EnhancementSettingsView: View {
                                 .fixedSize(horizontal: false, vertical: true)
                             
                             ZStack(alignment: .topLeading) {
-                                if enhancementService.userProfileContext.isEmpty {
+                                if appSettings.userProfileContext.isEmpty {
                                     Text(NSLocalizedString("user_profile_placeholder", comment: ""))
                                         .font(.system(size: 13))
                                         .foregroundColor(.secondary.opacity(0.5))
@@ -242,7 +243,7 @@ struct EnhancementSettingsView: View {
                                         .padding(.vertical, 8)
                                 }
                                 
-                                TextEditor(text: $enhancementService.userProfileContext)
+                                TextEditor(text: $appSettings.userProfileContext)
                                     .font(.system(size: 13))
                                     .frame(minHeight: 100, maxHeight: 150)
                                     .scrollContentBackground(.hidden)
@@ -255,15 +256,15 @@ struct EnhancementSettingsView: View {
                             }
                             
                             HStack {
-                                Text("\(enhancementService.userProfileContext.count) / 500")
+                                Text("\(appSettings.userProfileContext.count) / 500")
                                     .font(.caption2)
-                                    .foregroundColor(enhancementService.userProfileContext.count > 500 ? .red : .secondary)
+                                    .foregroundColor(appSettings.userProfileContext.count > 500 ? .red : .secondary)
                                 
                                 Spacer()
                                 
-                                if !enhancementService.userProfileContext.isEmpty {
+                                if !appSettings.userProfileContext.isEmpty {
                                     Button(NSLocalizedString("Clear", comment: "")) {
-                                        enhancementService.userProfileContext = ""
+                                        appSettings.userProfileContext = ""
                                     }
                                     .buttonStyle(.plain)
                                     .font(.caption)
@@ -283,7 +284,7 @@ struct EnhancementSettingsView: View {
                             
                             Spacer()
                             
-                            if !enhancementService.userProfileContext.isEmpty {
+                            if !appSettings.userProfileContext.isEmpty {
                                 Text(NSLocalizedString("Configured", comment: ""))
                                     .font(.caption)
                                     .foregroundColor(.secondary)

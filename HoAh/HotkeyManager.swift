@@ -2,6 +2,7 @@ import Foundation
 import KeyboardShortcuts
 import Carbon
 import AppKit
+import Combine
 
 extension KeyboardShortcuts.Name {
     static let toggleMiniRecorder = Self("toggleMiniRecorder")
@@ -11,36 +12,44 @@ extension KeyboardShortcuts.Name {
     static let retryLastTranscription = Self("retryLastTranscription")
 }
 
+// Hotkey configuration is managed by AppSettingsStore. Read settings from appSettings parameter.
 @MainActor
 class HotkeyManager: ObservableObject {
-    @Published var selectedHotkey1: HotkeyOption {
-        didSet {
-            UserDefaults.standard.set(selectedHotkey1.rawValue, forKey: "selectedHotkey1")
-            setupHotkeyMonitoring()
-        }
+    // MARK: - Computed Properties (read from AppSettingsStore)
+    
+    /// Primary hotkey option - reads from AppSettingsStore
+    var selectedHotkey1: HotkeyOption {
+        get { HotkeyOption(rawValue: appSettings.selectedHotkey1) ?? .rightOption }
+        set { appSettings.selectedHotkey1 = newValue.rawValue }
     }
-    @Published var selectedHotkey2: HotkeyOption {
-        didSet {
-            if selectedHotkey2 == .none {
+    
+    /// Secondary hotkey option - reads from AppSettingsStore
+    var selectedHotkey2: HotkeyOption {
+        get { HotkeyOption(rawValue: appSettings.selectedHotkey2) ?? .none }
+        set { 
+            if newValue == .none {
                 KeyboardShortcuts.setShortcut(nil, for: .toggleMiniRecorder2)
             }
-            UserDefaults.standard.set(selectedHotkey2.rawValue, forKey: "selectedHotkey2")
-            setupHotkeyMonitoring()
-        }
-    }
-    @Published var isMiddleClickToggleEnabled: Bool {
-        didSet {
-            UserDefaults.standard.set(isMiddleClickToggleEnabled, forKey: "isMiddleClickToggleEnabled")
-            setupHotkeyMonitoring()
-        }
-    }
-    @Published var middleClickActivationDelay: Int {
-        didSet {
-            UserDefaults.standard.set(middleClickActivationDelay, forKey: "middleClickActivationDelay")
+            appSettings.selectedHotkey2 = newValue.rawValue 
         }
     }
     
+    /// Whether middle-click toggle is enabled - reads from AppSettingsStore
+    var isMiddleClickToggleEnabled: Bool {
+        get { appSettings.isMiddleClickToggleEnabled }
+        set { appSettings.isMiddleClickToggleEnabled = newValue }
+    }
+    
+    /// Middle-click activation delay - reads from AppSettingsStore
+    var middleClickActivationDelay: Int {
+        get { appSettings.middleClickActivationDelay }
+        set { appSettings.middleClickActivationDelay = newValue }
+    }
+    
+    // MARK: - Dependencies
     private var whisperState: WhisperState
+    private var appSettings: AppSettingsStore
+    private var cancellables = Set<AnyCancellable>()
     private var miniRecorderShortcutManager: MiniRecorderShortcutManager
     
     // MARK: - Helper Properties
@@ -116,15 +125,9 @@ class HotkeyManager: ObservableObject {
         }
     }
     
-    init(whisperState: WhisperState) {
-        self.selectedHotkey1 = HotkeyOption(rawValue: UserDefaults.standard.string(forKey: "selectedHotkey1") ?? "") ?? .rightOption
-        self.selectedHotkey2 = HotkeyOption(rawValue: UserDefaults.standard.string(forKey: "selectedHotkey2") ?? "") ?? .none
-        
-        self.isMiddleClickToggleEnabled = UserDefaults.standard.bool(forKey: "isMiddleClickToggleEnabled")
-        let storedDelay = UserDefaults.standard.integer(forKey: "middleClickActivationDelay")
-        self.middleClickActivationDelay = storedDelay > 0 ? storedDelay : 200
-        
+    init(whisperState: WhisperState, appSettings: AppSettingsStore) {
         self.whisperState = whisperState
+        self.appSettings = appSettings
         self.miniRecorderShortcutManager = MiniRecorderShortcutManager(whisperState: whisperState)
 
         KeyboardShortcuts.onKeyUp(for: .pasteLastTranscription) { [weak self] in
@@ -148,10 +151,55 @@ class HotkeyManager: ObservableObject {
             }
         }
         
+        // Subscribe to hotkey settings changes from AppSettingsStore
+        setupSettingsObservers()
+        
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 100_000_000)
             self.setupHotkeyMonitoring()
         }
+    }
+    
+    // MARK: - Settings Observers
+    
+    private func setupSettingsObservers() {
+        // Observe hotkey1 changes
+        appSettings.$selectedHotkey1
+            .dropFirst() // Skip initial value
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+                self?.setupHotkeyMonitoring()
+            }
+            .store(in: &cancellables)
+        
+        // Observe hotkey2 changes
+        appSettings.$selectedHotkey2
+            .dropFirst()
+            .sink { [weak self] newValue in
+                self?.objectWillChange.send()
+                if newValue == "none" {
+                    KeyboardShortcuts.setShortcut(nil, for: .toggleMiniRecorder2)
+                }
+                self?.setupHotkeyMonitoring()
+            }
+            .store(in: &cancellables)
+        
+        // Observe middle-click toggle changes
+        appSettings.$isMiddleClickToggleEnabled
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+                self?.setupHotkeyMonitoring()
+            }
+            .store(in: &cancellables)
+        
+        // Observe middle-click delay changes
+        appSettings.$middleClickActivationDelay
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
     }
     
     private func setupHotkeyMonitoring() {

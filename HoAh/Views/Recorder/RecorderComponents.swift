@@ -151,6 +151,7 @@ struct ProgressAnimation: View {
 // MARK: - Prompt Button Component
 struct RecorderPromptButton: View {
     @EnvironmentObject private var enhancementService: AIEnhancementService
+    @EnvironmentObject private var appSettings: AppSettingsStore
     @Binding var activePopover: ActivePopoverState
     let buttonSize: CGFloat
     let padding: EdgeInsets
@@ -166,15 +167,15 @@ struct RecorderPromptButton: View {
     
     var body: some View {
         RecorderToggleButton(
-            isEnabled: enhancementService.isEnhancementEnabled,
+            isEnabled: appSettings.isAIEnhancementEnabled,
             icon: enhancementService.activePrompt?.icon ?? enhancementService.activePrompts.first(where: { $0.id == PredefinedPrompts.defaultPromptId })?.icon ?? "checkmark.seal.fill",
             color: .blue,
             disabled: false
         ) {
-            if enhancementService.isEnhancementEnabled {
+            if appSettings.isAIEnhancementEnabled {
                 activePopover = activePopover == .enhancement ? .none : .enhancement
             } else {
-                enhancementService.isEnhancementEnabled = true
+                appSettings.isAIEnhancementEnabled = true
             }
         }
         .frame(width: buttonSize)
@@ -186,6 +187,7 @@ struct RecorderPromptButton: View {
         .popover(isPresented: .constant(activePopover == .enhancement), arrowEdge: .bottom) {
             EnhancementPromptPopover()
                 .environmentObject(enhancementService)
+                .environmentObject(appSettings)
                 .onHover {
                     isHoveringEnhancementPopover = $0
                     syncEnhancementPopoverVisibility()

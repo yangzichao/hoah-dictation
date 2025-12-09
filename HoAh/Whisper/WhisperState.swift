@@ -28,25 +28,15 @@ class WhisperState: NSObject, ObservableObject {
     @Published var miniRecorderError: String?
     @Published var shouldCancelRecording = false
 
-
-    @Published var recorderType: String = UserDefaults.standard.string(forKey: "RecorderType") ?? "mini" {
-        didSet {
-            if isMiniRecorderVisible {
-                if oldValue == "notch" {
-                    notchWindowManager?.hide()
-                    notchWindowManager = nil
-                } else {
-                    miniWindowManager?.hide()
-                    miniWindowManager = nil
-                }
-                Task { @MainActor in
-                    try? await Task.sleep(nanoseconds: 50_000_000)
-                    showRecorderPanel()
-                }
-            }
-            UserDefaults.standard.set(recorderType, forKey: "RecorderType")
-        }
+    // Recorder type is managed by AppSettingsStore
+    // This computed property provides read access for compatibility
+    var recorderType: String {
+        // Will be injected via appSettings reference
+        return appSettings?.recorderType ?? "mini"
     }
+    
+    // Reference to AppSettingsStore (injected)
+    weak var appSettings: AppSettingsStore?
     
     @Published var isMiniRecorderVisible = false {
         didSet {
@@ -94,15 +84,10 @@ class WhisperState: NSObject, ObservableObject {
         self.enhancementService = enhancementService
         
         super.init()
-
-        // Normalize persisted value: default to mini if missing or unknown
-        if recorderType != "mini" && recorderType != "notch" {
-            recorderType = "mini"
-        }
         
         // Configure the session manager
         if let enhancementService = enhancementService {
-            SmartSceneSessionManager.shared.configure(whisperState: self, enhancementService: enhancementService)
+            SmartSceneSessionManager.shared.configure(whisperState: self, enhancementService: enhancementService, appSettings: appSettings)
         }
         
         // Set the whisperState reference after super.init()

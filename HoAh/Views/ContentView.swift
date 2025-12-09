@@ -53,8 +53,9 @@ struct ContentView: View {
     @EnvironmentObject private var whisperState: WhisperState
     @EnvironmentObject private var hotkeyManager: HotkeyManager
     @EnvironmentObject private var enhancementService: AIEnhancementService
+    @EnvironmentObject private var appSettings: AppSettingsStore
     @State private var selectedView: ViewType? = .metrics
-    @AppStorage("isTranscribeAudioEnabled") private var isTranscribeAudioEnabled = false
+    // DEPRECATED: Use AppSettingsStore instead of @AppStorage
     let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
 
     private var visibleViewTypes: [ViewType] {
@@ -63,7 +64,7 @@ struct ContentView: View {
                 return enhancementService.isEnhancementEnabled
             }
             if view == .transcribeAudio {
-                return isTranscribeAudioEnabled
+                return appSettings.isTranscribeAudioEnabled
             }
             return true
         }
@@ -144,7 +145,7 @@ struct ContentView: View {
                 case "AI Agents":
                     selectedView = .agentMode
                 case "Transcribe Audio":
-                    isTranscribeAudioEnabled = true
+                    appSettings.isTranscribeAudioEnabled = true
                     selectedView = .transcribeAudio
                 case "Smart Scenes":
                     if enhancementService.isEnhancementEnabled {
@@ -164,7 +165,7 @@ struct ContentView: View {
                 selectedView = .metrics
             }
         }
-        .onChange(of: isTranscribeAudioEnabled) { _, isEnabled in
+        .onChange(of: appSettings.isTranscribeAudioEnabled) { _, isEnabled in
             if !isEnabled, selectedView == .transcribeAudio {
                 selectedView = .metrics
             }

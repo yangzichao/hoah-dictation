@@ -3,12 +3,13 @@ import SwiftUI
 // Enhancement Prompt Popover for recorder views
 struct EnhancementPromptPopover: View {
     @EnvironmentObject var enhancementService: AIEnhancementService
+    @EnvironmentObject var appSettings: AppSettingsStore
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Enhancement Toggle at the top
             HStack(spacing: 8) {
-                Toggle("Enhancement Prompt", isOn: $enhancementService.isEnhancementEnabled)
+                Toggle("Enhancement Prompt", isOn: $appSettings.isAIEnhancementEnabled)
                     .foregroundColor(.white.opacity(0.9))
                     .font(.headline)
                     .lineLimit(1)
@@ -28,11 +29,11 @@ struct EnhancementPromptPopover: View {
                         EnhancementPromptRow(
                             prompt: prompt,
                             isSelected: enhancementService.selectedPromptId == prompt.id,
-                            isDisabled: !enhancementService.isEnhancementEnabled,
+                            isDisabled: !appSettings.isAIEnhancementEnabled,
                             action: {
                                 // If enhancement is disabled, enable it first
-                                if !enhancementService.isEnhancementEnabled {
-                                    enhancementService.isEnhancementEnabled = true
+                                if !appSettings.isAIEnhancementEnabled {
+                                    appSettings.isAIEnhancementEnabled = true
                                 }
                                 enhancementService.setActivePrompt(prompt)
                             }

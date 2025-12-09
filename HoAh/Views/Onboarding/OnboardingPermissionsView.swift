@@ -30,8 +30,9 @@ struct OnboardingPermission: Identifiable {
 struct OnboardingPermissionsView: View {
     @Binding var hasCompletedOnboarding: Bool
     @EnvironmentObject private var hotkeyManager: HotkeyManager
+    @EnvironmentObject private var appSettings: AppSettingsStore
     @ObservedObject private var audioDeviceManager = AudioDeviceManager.shared
-    @AppStorage("AppInterfaceLanguage") private var appInterfaceLanguage: String = "system"
+    // DEPRECATED: Use AppSettingsStore instead of @AppStorage
     @State private var currentPermissionIndex = 0
     @State private var permissionStates: [Bool] = [false, false, false, false]
     @State private var showAnimation = false
@@ -67,7 +68,7 @@ struct OnboardingPermissionsView: View {
     ]
     
     private var isChineseInterface: Bool {
-        AppLanguage(code: appInterfaceLanguage) == .simplifiedChinese
+        AppLanguage(code: appSettings.appInterfaceLanguage) == .simplifiedChinese
     }
     
     var body: some View {

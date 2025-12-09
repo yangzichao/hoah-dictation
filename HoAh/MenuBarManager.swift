@@ -1,30 +1,20 @@
 import SwiftUI
 import AppKit
 
+// Menu bar mode is managed by AppSettingsStore
 class MenuBarManager: ObservableObject {
-    @Published var isMenuBarOnly: Bool {
-        didSet {
-            UserDefaults.standard.set(isMenuBarOnly, forKey: "IsMenuBarOnly")
-            updateAppActivationPolicy()
-        }
-    }
-    
+    // isMenuBarOnly has been moved to AppSettingsStore
+    // This class now only handles the side effects of menu bar mode changes
     
     init() {
-        self.isMenuBarOnly = UserDefaults.standard.bool(forKey: "IsMenuBarOnly")
-        updateAppActivationPolicy()
+        // Initialization logic moved to SettingsCoordinator
     }
     
-    func toggleMenuBarOnly() {
-        isMenuBarOnly.toggle()
-    }
-    
-    func applyActivationPolicy() {
-        updateAppActivationPolicy()
+    func applyActivationPolicy(isMenuBarOnly: Bool) {
+        updateAppActivationPolicy(isMenuBarOnly: isMenuBarOnly)
     }
     
     func focusMainWindow() {
-        applyActivationPolicy()
         DispatchQueue.main.async {
             if WindowManager.shared.showMainWindow() == nil {
                 print("MenuBarManager: Unable to locate main window to focus")
@@ -32,11 +22,10 @@ class MenuBarManager: ObservableObject {
         }
     }
     
-    private func updateAppActivationPolicy() {
-        let applyPolicy = { [weak self] in
-            guard let self else { return }
+    func updateAppActivationPolicy(isMenuBarOnly: Bool) {
+        let applyPolicy = {
             let application = NSApplication.shared
-            if self.isMenuBarOnly {
+            if isMenuBarOnly {
                 application.setActivationPolicy(.accessory)
                 WindowManager.shared.hideMainWindow()
             } else {
@@ -55,11 +44,7 @@ class MenuBarManager: ObservableObject {
     func openMainWindowAndNavigate(to destination: String) {
         print("MenuBarManager: Navigating to \(destination)")
         
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            
-            self.applyActivationPolicy()
-            
+        DispatchQueue.main.async {
             guard WindowManager.shared.showMainWindow() != nil else {
                 print("MenuBarManager: Unable to show main window for navigation")
                 return

@@ -61,7 +61,7 @@ class ImportExportService {
     }
 
     @MainActor
-    func exportSettings(enhancementService: AIEnhancementService, whisperPrompt: WhisperPrompt, hotkeyManager: HotkeyManager, menuBarManager: MenuBarManager, mediaController: MediaController, playbackController: PlaybackController, soundManager: SoundManager, whisperState: WhisperState) {
+    func exportSettings(enhancementService: AIEnhancementService, whisperPrompt: WhisperPrompt, hotkeyManager: HotkeyManager, menuBarManager: MenuBarManager, mediaController: MediaController, playbackController: PlaybackController, soundManager: SoundManager, whisperState: WhisperState, appSettings: AppSettingsStore) {
         let smartScenesManager = SmartScenesManager.shared
         let emojiManager = EmojiManager.shared
 
@@ -79,9 +79,9 @@ class ImportExportService {
             selectedHotkey1RawValue: hotkeyManager.selectedHotkey1.rawValue,
             selectedHotkey2RawValue: hotkeyManager.selectedHotkey2.rawValue,
             launchAtLoginEnabled: LaunchAtLogin.isEnabled,
-            isMenuBarOnly: menuBarManager.isMenuBarOnly,
+            isMenuBarOnly: appSettings.isMenuBarOnly,
 
-            recorderType: whisperState.recorderType,
+            recorderType: appSettings.recorderType,
             isTranscriptionCleanupEnabled: UserDefaults.standard.bool(forKey: keyIsTranscriptionCleanupEnabled),
             transcriptionRetentionMinutes: UserDefaults.standard.integer(forKey: keyTranscriptionRetentionMinutes),
             isAudioCleanupEnabled: UserDefaults.standard.bool(forKey: keyIsAudioCleanupEnabled),
@@ -135,7 +135,7 @@ class ImportExportService {
     }
 
     @MainActor
-    func importSettings(enhancementService: AIEnhancementService, whisperPrompt: WhisperPrompt, hotkeyManager: HotkeyManager, menuBarManager: MenuBarManager, mediaController: MediaController, playbackController: PlaybackController, soundManager: SoundManager, whisperState: WhisperState) {
+    func importSettings(enhancementService: AIEnhancementService, whisperPrompt: WhisperPrompt, hotkeyManager: HotkeyManager, menuBarManager: MenuBarManager, mediaController: MediaController, playbackController: PlaybackController, soundManager: SoundManager, whisperState: WhisperState, appSettings: AppSettingsStore) {
         let openPanel = NSOpenPanel()
         openPanel.allowedContentTypes = [UTType.json]
         openPanel.canChooseFiles = true
@@ -213,11 +213,11 @@ class ImportExportService {
                             LaunchAtLogin.isEnabled = launch
                         }
                         if let menuOnly = general.isMenuBarOnly {
-                            menuBarManager.isMenuBarOnly = menuOnly
+                            appSettings.isMenuBarOnly = menuOnly
                         }
 
                         if let recType = general.recorderType {
-                            whisperState.recorderType = recType
+                            appSettings.recorderType = recType
                         }
                         
                         if let transcriptionCleanup = general.isTranscriptionCleanupEnabled {

@@ -7,6 +7,10 @@ import FluidAudio
 import KeyboardShortcuts
 import LaunchAtLogin
 
+// State Management: All user settings are managed by AppSettingsStore.
+// To modify settings, update AppSettingsStore properties.
+// Do not use @AppStorage or direct UserDefaults access elsewhere in the app.
+
 @main
 struct HoAhApp: App {
     private static let appSupportIdentifier = "com.yangzichao.hoah"
@@ -14,6 +18,10 @@ struct HoAhApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     let container: ModelContainer
     let containerInitializationFailed: Bool
+    
+    // Centralized State Management
+    @StateObject private var appSettings: AppSettingsStore
+    @StateObject private var settingsCoordinator: SettingsCoordinator
     
     @StateObject private var whisperState: WhisperState
     @StateObject private var hotkeyManager: HotkeyManager
@@ -23,8 +31,6 @@ struct HoAhApp: App {
     @StateObject private var localizationManager = LocalizationManager()
     @StateObject private var activeWindowService = ActiveWindowService.shared
     @State private var showMenuBarIcon = true
-    @AppStorage("HasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
-    @AppStorage("AppInterfaceLanguage") private var appInterfaceLanguage: String = "system"
     
     // Audio cleanup manager for automatic deletion of old audio files
     private let audioCleanupManager = AudioCleanupManager.shared
@@ -47,6 +53,13 @@ struct HoAhApp: App {
         }
 
         let logger = Logger(subsystem: "com.yangzichao.hoah", category: "Initialization")
+        
+        // Initialize centralized state management
+        let appSettings = AppSettingsStore()
+        _appSettings = StateObject(wrappedValue: appSettings)
+        
+        let settingsCoordinator = SettingsCoordinator(store: appSettings)
+        _settingsCoordinator = StateObject(wrappedValue: settingsCoordinator)
         
         let schema = Schema([Transcription.self])
         var initializationFailed = false
@@ -103,14 +116,18 @@ struct HoAhApp: App {
         _enhancementService = StateObject(wrappedValue: enhancementService)
         
         let whisperState = WhisperState(modelContext: container.mainContext, enhancementService: enhancementService)
+        whisperState.appSettings = appSettings
+        // Reconfigure SmartSceneSessionManager with appSettings now that it's available
+        SmartSceneSessionManager.shared.configure(whisperState: whisperState, enhancementService: enhancementService, appSettings: appSettings)
         _whisperState = StateObject(wrappedValue: whisperState)
         
-        let hotkeyManager = HotkeyManager(whisperState: whisperState)
+        let hotkeyManager = HotkeyManager(whisperState: whisperState, appSettings: appSettings)
         _hotkeyManager = StateObject(wrappedValue: hotkeyManager)
         
         let menuBarManager = MenuBarManager()
         _menuBarManager = StateObject(wrappedValue: menuBarManager)
         appDelegate.menuBarManager = menuBarManager
+        appDelegate.appSettings = appSettings
         
         let activeWindowService = ActiveWindowService.shared
         activeWindowService.configure(with: enhancementService)
@@ -130,11 +147,6 @@ struct HoAhApp: App {
             LaunchAtLogin.isEnabled = true
             UserDefaults.standard.set(true, forKey: "HasConfiguredLaunchAtLogin")
         }
-        
-        // Register default user preferences
-        UserDefaults.standard.register(defaults: [
-            "preserveTranscriptInClipboard": true
-        ])
     }
     
     // MARK: - Container Creation Helpers
@@ -218,11 +230,13 @@ struct HoAhApp: App {
             ZStack {
                 ContentView()
                 
-                if !hasCompletedOnboarding {
-                    OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+                if !appSettings.hasCompletedOnboarding {
+                    OnboardingView(hasCompletedOnboarding: $appSettings.hasCompletedOnboarding)
                         .transition(.opacity)
                 }
             }
+            .environmentObject(appSettings)
+            .environmentObject(settingsCoordinator)
             .environmentObject(whisperState)
             .environmentObject(hotkeyManager)
             .environmentObject(menuBarManager)
@@ -232,7 +246,29 @@ struct HoAhApp: App {
             .environment(\.locale, localizationManager.locale)
             .modelContainer(container)
             .onAppear {
-                localizationManager.apply(languageCode: appInterfaceLanguage)
+                // Configure audio services with centralized settings
+                SoundManager.shared.configure(with: appSettings)
+                MediaController.shared.configure(with: appSettings)
+                PlaybackController.shared.configure(with: appSettings)
+                
+                // Configure AI services with centralized settings
+                aiService.configure(with: appSettings)
+                enhancementService.configure(appSettings: appSettings)
+                
+                // Configure coordinator with service references
+                settingsCoordinator.configure(
+                    menuBarManager: menuBarManager,
+                    hotkeyManager: hotkeyManager,
+                    whisperState: whisperState,
+                    soundManager: SoundManager.shared,
+                    mediaController: MediaController.shared,
+                    playbackController: PlaybackController.shared,
+                    aiEnhancementService: enhancementService,
+                    aiService: aiService,
+                    localizationManager: localizationManager
+                )
+                
+                localizationManager.apply(languageCode: appSettings.appInterfaceLanguage)
 
                 // Check if container initialization failed
                 if containerInitializationFailed {
@@ -275,7 +311,7 @@ struct HoAhApp: App {
                 // Stop the automatic audio cleanup process
                 audioCleanupManager.stopAutomaticCleanup()
             }
-            .onChange(of: appInterfaceLanguage) { _, newValue in
+            .onChange(of: appSettings.appInterfaceLanguage) { _, newValue in
                 localizationManager.apply(languageCode: newValue)
                 NotificationCenter.default.post(name: .languageDidChange, object: nil)
             }
@@ -295,6 +331,7 @@ struct HoAhApp: App {
         
         MenuBarExtra(isInserted: $showMenuBarIcon) {
             MenuBarView()
+                .environmentObject(appSettings)
                 .environmentObject(whisperState)
                 .environmentObject(hotkeyManager)
                 .environmentObject(menuBarManager)
@@ -316,7 +353,7 @@ struct HoAhApp: App {
         #if DEBUG
         WindowGroup("Debug") {
             Button("Toggle Menu Bar Only") {
-                menuBarManager.isMenuBarOnly.toggle()
+                appSettings.isMenuBarOnly.toggle()
             }
         }
         #endif

@@ -4,16 +4,34 @@ import Foundation
 import SwiftUI
 import CoreAudio
 
+// Audio settings are managed by AppSettingsStore
 /// Controls system audio management during recording
+@MainActor
 class MediaController: ObservableObject {
     static let shared = MediaController()
     private var didMuteAudio = false
     private var wasAudioMutedBeforeRecording = false
     private var currentMuteTask: Task<Bool, Never>?
     
-    @Published var isSystemMuteEnabled: Bool = UserDefaults.standard.bool(forKey: "isSystemMuteEnabled") {
-        didSet {
-            UserDefaults.standard.set(isSystemMuteEnabled, forKey: "isSystemMuteEnabled")
+    // Reference to centralized settings store
+    private weak var appSettings: AppSettingsStore?
+    private var cancellables = Set<AnyCancellable>()
+    
+    // DEPRECATED: Use AppSettingsStore instead
+    // Keeping for backward compatibility during migration
+    private var legacySystemMuteEnabled: Bool = UserDefaults.standard.bool(forKey: "isSystemMuteEnabled")
+    
+    /// Whether system mute is enabled - reads from AppSettingsStore if available
+    var isSystemMuteEnabled: Bool {
+        get { appSettings?.isSystemMuteEnabled ?? legacySystemMuteEnabled }
+        set {
+            objectWillChange.send()
+            if let appSettings = appSettings {
+                appSettings.isSystemMuteEnabled = newValue
+            } else {
+                legacySystemMuteEnabled = newValue
+                UserDefaults.standard.set(newValue, forKey: "isSystemMuteEnabled")
+            }
         }
     }
     
@@ -22,6 +40,18 @@ class MediaController: ObservableObject {
         if !UserDefaults.standard.contains(key: "isSystemMuteEnabled") {
             UserDefaults.standard.set(true, forKey: "isSystemMuteEnabled")
         }
+    }
+    
+    /// Configure with AppSettingsStore for centralized state management
+    func configure(with appSettings: AppSettingsStore) {
+        self.appSettings = appSettings
+        
+        // Subscribe to settings changes
+        appSettings.$isSystemMuteEnabled
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
     }
     
     /// Checks if the system audio is currently muted using AppleScript

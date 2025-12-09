@@ -2,6 +2,7 @@ import Foundation
 import SwiftData
 import AppKit
 import os
+import Combine
 
 enum EnhancementPrompt {
     case transcriptionEnhancement
@@ -12,6 +13,9 @@ enum PromptKind {
     case trigger
 }
 
+// AI Enhancement settings are managed by AppSettingsStore.
+// Runtime state (lastSystemMessageSent, lastCapturedClipboard, etc.) remains here.
+// Prompts (activePrompts, triggerPrompts) are managed locally as they are complex objects.
 @MainActor
 class AIEnhancementService: ObservableObject {
     private let logger = Logger(subsystem: "com.yangzichao.hoah", category: "AIEnhancementService")
@@ -20,39 +24,60 @@ class AIEnhancementService: ObservableObject {
     private let triggerPromptsKey = "triggerPrompts"
     private let legacyPromptsKey = "customPrompts"
 
-    @Published var isEnhancementEnabled: Bool {
-        didSet {
-            UserDefaults.standard.set(isEnhancementEnabled, forKey: "isAIEnhancementEnabled")
-            if isEnhancementEnabled && selectedPromptId == nil {
+    // MARK: - Settings (read from AppSettingsStore)
+    
+    /// Reference to centralized settings store
+    private weak var appSettings: AppSettingsStore?
+    private var cancellables = Set<AnyCancellable>()
+    
+    /// Whether AI enhancement is enabled (computed from AppSettingsStore)
+    var isEnhancementEnabled: Bool {
+        get { appSettings?.isAIEnhancementEnabled ?? false }
+        set {
+            appSettings?.isAIEnhancementEnabled = newValue
+            if newValue && selectedPromptId == nil {
                 selectedPromptId = activePrompts.first?.id
             }
-            if !isEnhancementEnabled && arePromptTriggersEnabled {
-                arePromptTriggersEnabled = false
-            }
-            NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
-            NotificationCenter.default.post(name: .enhancementToggleChanged, object: nil)
         }
     }
-
-    @Published var useClipboardContext: Bool {
-        didSet {
-            UserDefaults.standard.set(useClipboardContext, forKey: "useClipboardContext")
+    
+    /// Whether to use clipboard context (computed from AppSettingsStore)
+    var useClipboardContext: Bool {
+        get { appSettings?.useClipboardContext ?? false }
+        set { appSettings?.useClipboardContext = newValue }
+    }
+    
+    /// Whether to use screen capture context (computed from AppSettingsStore)
+    var useScreenCaptureContext: Bool {
+        get { appSettings?.useScreenCaptureContext ?? false }
+        set { appSettings?.useScreenCaptureContext = newValue }
+    }
+    
+    /// User profile context (computed from AppSettingsStore)
+    var userProfileContext: String {
+        get { appSettings?.userProfileContext ?? "" }
+        set { appSettings?.userProfileContext = newValue }
+    }
+    
+    /// Selected prompt ID (computed from AppSettingsStore)
+    var selectedPromptId: UUID? {
+        get {
+            guard let idString = appSettings?.selectedPromptId else { return nil }
+            return UUID(uuidString: idString)
+        }
+        set {
+            appSettings?.selectedPromptId = newValue?.uuidString
         }
     }
-
-    @Published var useScreenCaptureContext: Bool {
-        didSet {
-            UserDefaults.standard.set(useScreenCaptureContext, forKey: "useScreenCaptureContext")
-            NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
-        }
+    
+    /// Whether prompt triggers are enabled (computed from AppSettingsStore)
+    var arePromptTriggersEnabled: Bool {
+        get { appSettings?.arePromptTriggersEnabled ?? true }
+        set { appSettings?.arePromptTriggersEnabled = newValue }
     }
 
-    @Published var userProfileContext: String {
-        didSet {
-            UserDefaults.standard.set(userProfileContext, forKey: "userProfileContext")
-        }
-    }
-
+    // MARK: - Prompts (managed locally as complex objects)
+    
     @Published var activePrompts: [CustomPrompt] {
         didSet { persistPrompts() }
     }
@@ -61,22 +86,11 @@ class AIEnhancementService: ObservableObject {
         didSet { persistPrompts() }
     }
 
-    @Published var selectedPromptId: UUID? {
-        didSet {
-            UserDefaults.standard.set(selectedPromptId?.uuidString, forKey: "selectedPromptId")
-            NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
-            NotificationCenter.default.post(name: .promptSelectionChanged, object: nil)
-        }
-    }
-
-    @Published var arePromptTriggersEnabled: Bool {
-        didSet {
-            UserDefaults.standard.set(arePromptTriggersEnabled, forKey: "arePromptTriggersEnabled")
-        }
-    }
-
+    // MARK: - Runtime State (kept here)
+    
     @Published var lastSystemMessageSent: String?
     @Published var lastUserMessageSent: String?
+    @Published var lastCapturedClipboard: String?
 
     var activePrompt: CustomPrompt? {
         allPrompts.first { $0.id == selectedPromptId }
@@ -91,8 +105,6 @@ class AIEnhancementService: ObservableObject {
     private var lastRequestTime: Date?
     private let modelContext: ModelContext
     
-    @Published var lastCapturedClipboard: String?
-    
     private func persistPrompts() {
         if let encoded = try? JSONEncoder().encode(activePrompts) {
             UserDefaults.standard.set(encoded, forKey: activePromptsKey)
@@ -102,17 +114,12 @@ class AIEnhancementService: ObservableObject {
         }
     }
 
-    init(aiService: AIService = AIService(), modelContext: ModelContext) {
+    init(aiService: AIService, modelContext: ModelContext) {
         self.aiService = aiService
         self.modelContext = modelContext
         self.screenCaptureService = ScreenCaptureService()
 
-        self.isEnhancementEnabled = UserDefaults.standard.bool(forKey: "isAIEnhancementEnabled")
-        self.useClipboardContext = UserDefaults.standard.bool(forKey: "useClipboardContext")
-        self.useScreenCaptureContext = UserDefaults.standard.bool(forKey: "useScreenCaptureContext")
-        self.arePromptTriggersEnabled = UserDefaults.standard.object(forKey: "arePromptTriggersEnabled") as? Bool ?? true
-        self.userProfileContext = UserDefaults.standard.string(forKey: "userProfileContext") ?? ""
-
+        // Load prompts from UserDefaults (complex objects not in AppSettingsStore)
         let decodedActive = UserDefaults.standard.data(forKey: activePromptsKey).flatMap { try? JSONDecoder().decode([CustomPrompt].self, from: $0) }
         let decodedTrigger = UserDefaults.standard.data(forKey: triggerPromptsKey).flatMap { try? JSONDecoder().decode([CustomPrompt].self, from: $0) }
         if let decodedActive, let decodedTrigger {
@@ -130,14 +137,6 @@ class AIEnhancementService: ObservableObject {
         
         normalizeTriggerActivityDefaults()
 
-        if let savedPromptId = UserDefaults.standard.string(forKey: "selectedPromptId") {
-            self.selectedPromptId = UUID(uuidString: savedPromptId)
-        }
-
-        if isEnhancementEnabled && (selectedPromptId == nil || !activePrompts.contains(where: { $0.id == selectedPromptId })) {
-            self.selectedPromptId = activePrompts.first?.id
-        }
-
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleAPIKeyChange),
@@ -147,10 +146,6 @@ class AIEnhancementService: ObservableObject {
 
         initializePredefinedPrompts()
         relocalizePredefinedPromptTitles()
-        
-        if selectedPromptId == nil {
-            selectedPromptId = activePrompts.first?.id
-        }
 
         NotificationCenter.default.addObserver(
             self,
@@ -158,6 +153,60 @@ class AIEnhancementService: ObservableObject {
             name: .languageDidChange,
             object: nil
         )
+    }
+    
+    /// Configure with AppSettingsStore for centralized settings management
+    /// - Parameter appSettings: The centralized settings store
+    func configure(appSettings: AppSettingsStore) {
+        self.appSettings = appSettings
+        
+        // Subscribe to settings changes to trigger objectWillChange
+        appSettings.$isAIEnhancementEnabled
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        appSettings.$selectedPromptId
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        appSettings.$useClipboardContext
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        appSettings.$useScreenCaptureContext
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        appSettings.$userProfileContext
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        appSettings.$arePromptTriggersEnabled
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        // Initialize selected prompt if needed
+        if isEnhancementEnabled && (selectedPromptId == nil || !activePrompts.contains(where: { $0.id == selectedPromptId })) {
+            selectedPromptId = activePrompts.first?.id
+        }
+        
+        if selectedPromptId == nil {
+            selectedPromptId = activePrompts.first?.id
+        }
+        
+        logger.info("AIEnhancementService configured with AppSettingsStore")
     }
 
     deinit {

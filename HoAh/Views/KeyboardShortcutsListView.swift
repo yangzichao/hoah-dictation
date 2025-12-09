@@ -462,6 +462,8 @@ private struct NotSetBadge: View {
 }
 
 #Preview {
-    KeyboardShortcutsListView()
-        .environmentObject(HotkeyManager(whisperState: WhisperState(modelContext: try! ModelContext(ModelContainer(for: Transcription.self)))))
+    let appSettings = AppSettingsStore()
+    let whisperState = WhisperState(modelContext: try! ModelContext(ModelContainer(for: Transcription.self)))
+    return KeyboardShortcutsListView()
+        .environmentObject(HotkeyManager(whisperState: whisperState, appSettings: appSettings))
 }

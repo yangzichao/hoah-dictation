@@ -1,7 +1,9 @@
 import Foundation
 import AVFoundation
 import SwiftUI
+import Combine
 
+// Audio settings are managed by AppSettingsStore
 @MainActor
 class SoundManager: ObservableObject {
     static let shared = SoundManager()
@@ -11,8 +13,14 @@ class SoundManager: ObservableObject {
     private var escSound: AVAudioPlayer?
     private var customStartSound: AVAudioPlayer?
     private var customStopSound: AVAudioPlayer?
-
-    @AppStorage("isSoundFeedbackEnabled") private var isSoundFeedbackEnabled = true
+    
+    // DEPRECATED: Use AppSettingsStore instead of @AppStorage
+    // Keeping for backward compatibility during migration
+    @AppStorage("isSoundFeedbackEnabled") private var legacySoundFeedbackEnabled = true
+    
+    // Reference to centralized settings store
+    private weak var appSettings: AppSettingsStore?
+    private var cancellables = Set<AnyCancellable>()
 
     private init() {
         Task(priority: .background) {
@@ -25,6 +33,23 @@ class SoundManager: ObservableObject {
             name: NSNotification.Name("CustomSoundsChanged"),
             object: nil
         )
+    }
+    
+    /// Configure with AppSettingsStore for centralized state management
+    func configure(with appSettings: AppSettingsStore) {
+        self.appSettings = appSettings
+        
+        // Subscribe to settings changes
+        appSettings.$isSoundFeedbackEnabled
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+    }
+    
+    /// Whether sound feedback is enabled - reads from AppSettingsStore if available
+    private var isSoundFeedbackEnabled: Bool {
+        appSettings?.isSoundFeedbackEnabled ?? legacySoundFeedbackEnabled
     }
 
     func setupSounds() async {
@@ -112,10 +137,14 @@ class SoundManager: ObservableObject {
     }
     
     var isEnabled: Bool {
-        get { isSoundFeedbackEnabled }
+        get { appSettings?.isSoundFeedbackEnabled ?? legacySoundFeedbackEnabled }
         set {
             objectWillChange.send()
-            isSoundFeedbackEnabled = newValue
+            if let appSettings = appSettings {
+                appSettings.isSoundFeedbackEnabled = newValue
+            } else {
+                legacySoundFeedbackEnabled = newValue
+            }
         }
     }
 } 
