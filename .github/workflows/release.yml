@@ -12,6 +12,9 @@ jobs:
     permissions:
       contents: write
 
+    env:
+      SECRET_P12_BASE64: ${{ secrets.CERTIFICATE_P12 }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -31,21 +34,21 @@ jobs:
         run: make build
 
       - name: Import Signing Certificate
-        if: ${{ secrets.CERTIFICATE_P12 != '' }}
+        if: env.SECRET_P12_BASE64 != ''
         uses: apple-actions/import-codesign-certs@v3
         with:
           p12-file-base64: ${{ secrets.CERTIFICATE_P12 }}
           p12-password: ${{ secrets.CERTIFICATE_PASSWORD }}
 
       - name: Package DMG (Unsigned)
-        if: ${{ secrets.CERTIFICATE_P12 == '' }}
+        if: env.SECRET_P12_BASE64 == ''
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
           echo "Packaging DMG for version $VERSION (Unsigned)"
           make dmg DMG_VERSION=$VERSION
 
       - name: Package DMG (Signed & Notarized)
-        if: ${{ secrets.CERTIFICATE_P12 != '' }}
+        if: env.SECRET_P12_BASE64 != ''
         env:
           SIGN_IDENTITY: ${{ secrets.SIGN_IDENTITY }}
           TEAM_ID: ${{ secrets.TEAM_ID }}
