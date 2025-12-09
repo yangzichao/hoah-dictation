@@ -205,11 +205,10 @@ struct APIKeyManagementView: View {
                 ]
 
                 let presetModels = [
-                    "anthropic.claude-sonnet-4-5-20250929-v1:0",
-                    "anthropic.claude-opus-4-5-20251101-v1:0",
+                    "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                    "us.anthropic.claude-opus-4-20250514-v1:0",
                     "openai.gpt-oss-safeguard-120b",
-                    "amazon.nova-pro-v1:0",
-                    "custom"
+                    "us.amazon.nova-pro-v1:0"
                 ]
 
                 VStack(alignment: .leading, spacing: 16) {
@@ -217,7 +216,7 @@ struct APIKeyManagementView: View {
                         .font(.headline)
                     
                     VStack(alignment: .leading, spacing: 8) {
-                        SecureField("API Key (bedrock-api-key-...)", text: $aiService.bedrockApiKey)
+                        SecureField("API Key (ABSKQmVkcm9ja0FQSUtleS1...)", text: $aiService.bedrockApiKey)
                             .textFieldStyle(.roundedBorder)
                         
                         HStack {
@@ -240,60 +239,66 @@ struct APIKeyManagementView: View {
                             }
                         }
                         
-                        HStack {
-                            Picker("Model", selection: $bedrockModelSelection) {
-                                ForEach(presetModels, id: \.self) { model in
-                                    Text(model == "custom" ? "Custom…" : model).tag(model)
-                                }
+                        Picker("Model", selection: $bedrockModelSelection) {
+                            ForEach(presetModels, id: \.self) { model in
+                                Text(model).tag(model)
                             }
-                            .pickerStyle(.menu)
-                            .onChange(of: bedrockModelSelection) { _, newValue in
-                                if newValue != "custom" {
-                                    aiService.bedrockModelId = newValue
-                                }
-                            }
-                            
-                            if bedrockModelSelection == "custom" {
-                                TextField("Enter model ID", text: $aiService.bedrockModelId)
-                                    .textFieldStyle(.roundedBorder)
-                                    .frame(maxWidth: 320)
-                            }
+                        }
+                        .pickerStyle(.menu)
+                        .onChange(of: bedrockModelSelection) { _, newValue in
+                            aiService.bedrockModelId = newValue
                         }
                     }
                     
-                        HStack {
-                            Button(action: {
-                                aiService.saveBedrockConfig(
-                                    apiKey: aiService.bedrockApiKey,
-                                    region: aiService.bedrockRegion,
-                                    modelId: aiService.bedrockModelId
-                                )
-                                aiService.bedrockApiKey = ""
-                            }) {
-                                Label("Save", systemImage: "checkmark.circle.fill")
-                            }
-                            .disabled(aiService.bedrockApiKey.isEmpty || aiService.bedrockRegion.isEmpty || aiService.bedrockModelId.isEmpty)
-                            
-                            Button {
-                                aiService.verifyBedrockConnection { success, message in
-                                    alertMessage = success ? "Connection looks valid." : (message ?? "Missing configuration.")
-                                    showAlert = true
+                    HStack {
+                        Button(action: {
+                            isVerifying = true
+                            aiService.verifyBedrockConnection(
+                                apiKey: aiService.bedrockApiKey,
+                                region: aiService.bedrockRegion,
+                                modelId: aiService.bedrockModelId
+                            ) { success, message in
+                                isVerifying = false
+                                if success {
+                                    // Save configuration after successful test
+                                    aiService.saveBedrockConfig(
+                                        apiKey: aiService.bedrockApiKey,
+                                        region: aiService.bedrockRegion,
+                                        modelId: aiService.bedrockModelId
+                                    )
+                                    aiService.bedrockApiKey = ""
+                                    alertMessage = "✅ Connection successful! Configuration saved."
+                                } else {
+                                    alertMessage = "❌ " + (message ?? "Connection failed.")
                                 }
-                            } label: {
-                                Label("Test Connection", systemImage: "bolt.horizontal.circle")
+                                showAlert = true
                             }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
+                        }) {
+                            HStack {
+                                if isVerifying {
+                                    ProgressView()
+                                        .scaleEffect(0.7)
+                                        .frame(width: 16, height: 16)
+                                } else {
+                                    Image(systemName: "bolt.horizontal.circle.fill")
+                                }
+                                Text(isVerifying ? "Testing..." : "Test & Save")
+                            }
+                        }
+                        .disabled(aiService.bedrockApiKey.isEmpty || aiService.bedrockRegion.isEmpty || aiService.bedrockModelId.isEmpty || isVerifying)
+                        .buttonStyle(.borderedProminent)
                         
                         Spacer()
                         
-                        Button(role: .destructive) {
-                            aiService.clearAPIKey()
-                        } label: {
-                            Label("Clear", systemImage: "trash")
-                                .foregroundColor(.red)
+                        if aiService.isAPIKeyValid && aiService.selectedProvider == .awsBedrock {
+                            Button(role: .destructive) {
+                                aiService.clearAPIKey()
+                            } label: {
+                                Label("Clear", systemImage: "trash")
+                                    .foregroundColor(.red)
+                            }
+                            .buttonStyle(.borderless)
                         }
-                        .buttonStyle(.borderless)
                     }
                 }
                 .padding()
@@ -512,15 +517,17 @@ struct APIKeyManagementView: View {
 
     private func syncBedrockModelSelection() {
         let presets = [
-            "anthropic.claude-sonnet-4-5-20250929-v1:0",
-            "anthropic.claude-opus-4-5-20251101-v1:0",
+            "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "us.anthropic.claude-opus-4-20250514-v1:0",
             "openai.gpt-oss-safeguard-120b",
-            "amazon.nova-pro-v1:0"
+            "us.amazon.nova-pro-v1:0"
         ]
         if presets.contains(aiService.bedrockModelId) {
             bedrockModelSelection = aiService.bedrockModelId
         } else {
-            bedrockModelSelection = "custom"
+            // Default to first preset if current model is not in the list
+            bedrockModelSelection = presets.first ?? "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+            aiService.bedrockModelId = bedrockModelSelection
         }
     }
     

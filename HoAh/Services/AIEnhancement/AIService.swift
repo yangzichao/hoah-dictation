@@ -65,7 +65,7 @@ enum AIProvider: String, CaseIterable {
         case .openRouter:
             return "openai/gpt-oss-120b"
         case .awsBedrock:
-            return UserDefaults.standard.string(forKey: "AWSBedrockModelId") ?? "anthropic.claude-3-5-sonnet-20240620-v1:0"
+            return UserDefaults.standard.string(forKey: "AWSBedrockModelId") ?? "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
         }
     }
     
@@ -150,7 +150,7 @@ class AIService: ObservableObject {
     @Published var bedrockRegion: String = UserDefaults.standard.string(forKey: "AWSBedrockRegion") ?? "us-east-1" {
         didSet { userDefaults.set(bedrockRegion, forKey: "AWSBedrockRegion") }
     }
-    @Published var bedrockModelId: String = UserDefaults.standard.string(forKey: "AWSBedrockModelId") ?? "anthropic.claude-3-5-sonnet-20240620-v1:0" {
+    @Published var bedrockModelId: String = UserDefaults.standard.string(forKey: "AWSBedrockModelId") ?? "us.anthropic.claude-sonnet-4-5-20250929-v1:0" {
         didSet { userDefaults.set(bedrockModelId, forKey: "AWSBedrockModelId") }
     }
     @Published var customBaseURL: String = UserDefaults.standard.string(forKey: "customProviderBaseURL") ?? "" {
@@ -181,7 +181,8 @@ class AIService: ObservableObject {
         AIProvider.allCases.filter { provider in
             if provider.requiresAPIKey {
                 if provider == .awsBedrock {
-                    return !bedrockApiKey.isEmpty && !bedrockRegion.isEmpty && !bedrockModelId.isEmpty
+                    let hasKey = keyManager.activeKey(for: AIProvider.awsBedrock.rawValue) != nil
+                    return hasKey && !bedrockRegion.isEmpty && !bedrockModelId.isEmpty
                 }
                 return userDefaults.string(forKey: "\(provider.rawValue)APIKey") != nil
             }
@@ -510,12 +511,86 @@ class AIService: ObservableObject {
         }.resume()
     }
 
-    func verifyBedrockConnection(completion: @escaping (Bool, String?) -> Void) {
-        let hasKey = keyManager.activeKey(for: AIProvider.awsBedrock.rawValue) != nil
-        let hasRegion = !bedrockRegion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        let hasModel = !bedrockModelId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        let valid = hasKey && hasRegion && hasModel
-        completion(valid, valid ? nil : "Provide API key, region, and model before testing.")
+    func verifyBedrockConnection(apiKey: String, region: String, modelId: String, completion: @escaping (Bool, String?) -> Void) {
+        guard !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              !region.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              !modelId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            completion(false, "Please provide API key, region, and model.")
+            return
+        }
+        
+        // Build test request
+        let messages: [[String: Any]] = [
+            [
+                "role": "user",
+                "content": [
+                    ["text": "Hello"]
+                ]
+            ]
+        ]
+        
+        let payload: [String: Any] = [
+            "messages": messages,
+            "inferenceConfig": [
+                "maxTokens": 10,
+                "temperature": 0.3
+            ]
+        ]
+        
+        guard let payloadData = try? JSONSerialization.data(withJSONObject: payload) else {
+            completion(false, "Failed to create test request.")
+            return
+        }
+        
+        let host = "bedrock-runtime.\(region).amazonaws.com"
+        guard let url = URL(string: "https://\(host)/model/\(modelId)/converse") else {
+            completion(false, "Invalid endpoint URL.")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = payloadData
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = 30
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(false, "Connection failed: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                completion(false, "Invalid response from server.")
+                return
+            }
+            
+            guard let data = data else {
+                completion(false, "No data received from server.")
+                return
+            }
+            
+            if httpResponse.statusCode == 200 {
+                // Try to parse response to ensure it's valid
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let output = json["output"] as? [String: Any],
+                   let message = output["message"] as? [String: Any],
+                   let content = message["content"] as? [[String: Any]],
+                   !content.isEmpty {
+                    completion(true, nil)
+                } else {
+                    completion(false, "Received unexpected response format.")
+                }
+            } else if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
+                completion(false, "Authentication failed. Please check your API key.")
+            } else if httpResponse.statusCode == 404 {
+                completion(false, "Model not found. Please check the model ID.")
+            } else {
+                let errorString = String(data: data, encoding: .utf8) ?? "Unknown error"
+                completion(false, "HTTP \(httpResponse.statusCode): \(errorString)")
+            }
+        }.resume()
     }
 
     private func verifySonioxAPIKey(_ key: String, completion: @escaping (Bool, String?) -> Void) {
