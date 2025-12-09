@@ -613,7 +613,7 @@
 "Press Shortcut" = "按下快捷键";
 "provider_status_ready" = "已就绪";
 "provider_status_not_configured" = "未配置";
-"ai_provider_configure_prompt" = "请先配置您的 AI 服务商。";
+"ai_provider_configure_prompt" = "无法开启：请先在下方“AI 服务提供商”中配置有效的 API 密钥。";
 
 /* Prompt Editor */
 "New Prompt" = "新建提示词";
