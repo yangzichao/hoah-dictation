@@ -21,6 +21,11 @@ VERSION="${1:-$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "
 DERIVED_DIR="$ROOT_DIR/build/DerivedData"
 DMG_PATH="$ROOT_DIR/build/HoAh-$VERSION.dmg"
 
+# Load local environment variables if present
+if [ -f "$(dirname "$0")/.env" ]; then
+  source "$(dirname "$0")/.env"
+fi
+
 SIGN_IDENTITY="${SIGN_IDENTITY:-}"
 TEAM_ID="${TEAM_ID:-}"
 NOTARY_PROFILE="${NOTARY_PROFILE:-}"
@@ -36,6 +41,7 @@ echo "==> Building & signing app (Release)..."
 xcodebuild -scheme HoAh -configuration Release \
   CODE_SIGN_IDENTITY="$SIGN_IDENTITY" DEVELOPMENT_TEAM="$TEAM_ID" \
   ARCHS=arm64 ONLY_ACTIVE_ARCH=YES SWIFT_DISABLE_EXPLICIT_MODULES=YES \
+  SWIFT_ACTIVE_COMPILATION_CONDITIONS="" \
   -derivedDataPath "$DERIVED_DIR"
 
 echo "==> Packaging DMG (signed app)..."
