@@ -375,7 +375,6 @@
 "Not Set" = "未设置";
 "Note: Selecting a device here will override your Mac\'s system-wide default microphone." = "注意：在此选择设备会覆盖你 Mac 的系统级默认麦克风。";
 "Older transcripts will be deleted automatically based on your selection." = "旧的转录会根据你选择的策略自动删除。";
-"Ollama Configuration" = "Ollama 配置";
 "On-Device" = "本机";
 "Only OpenAI-compatible transcription APIs are supported" = "仅支持与 OpenAI 兼容的转录 API";
 "OpenAI Compatible" = "兼容 OpenAI";

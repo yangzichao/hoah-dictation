@@ -6,11 +6,6 @@ struct APIKeyManagementView: View {
     @State private var showAlert = false
     @State private var alertMessage = ""
     @State private var isVerifying = false
-    @State private var ollamaBaseURL: String = UserDefaults.standard.string(forKey: "ollamaBaseURL") ?? "http://localhost:11434"
-    @State private var ollamaModels: [OllamaService.OllamaModel] = []
-    @State private var selectedOllamaModel: String = UserDefaults.standard.string(forKey: "ollamaSelectedModel") ?? "mistral"
-    @State private var isCheckingOllama = false
-    @State private var isEditingURL = false
     @State private var keyEntries: [CloudAPIKeyEntry] = []
     @State private var activeKeyId: UUID?
     
@@ -26,7 +21,7 @@ struct APIKeyManagementView: View {
                 
                 Spacer()
                 
-                if aiService.isAPIKeyValid && aiService.selectedProvider != .ollama {
+                if aiService.isAPIKeyValid {
                     HStack(spacing: 6) {
                         Circle()
                             .fill(Color.green)
@@ -45,9 +40,6 @@ struct APIKeyManagementView: View {
             }
             
             .onChange(of: aiService.selectedProvider) { oldValue, newValue in
-                if aiService.selectedProvider == .ollama {
-                    checkOllamaConnection()
-                }
                 reloadKeys()
             }
             
@@ -80,8 +72,7 @@ struct APIKeyManagementView: View {
                     .buttonStyle(.borderless)
                     .help("Refresh models")
                 }
-            } else if !aiService.availableModels.isEmpty && 
-                        aiService.selectedProvider != .ollama && 
+            } else if !aiService.availableModels.isEmpty &&
                         aiService.selectedProvider != .custom {
                 HStack {
                     Picker("Model", selection: Binding(
@@ -95,116 +86,7 @@ struct APIKeyManagementView: View {
                 }
             }
             
-            if aiService.selectedProvider == .ollama {
-                VStack(alignment: .leading, spacing: 16) {
-                    // Header with status
-                    HStack {
-                        Label("Ollama Configuration", systemImage: "server.rack")
-                            .font(.headline)
-                        
-                        Spacer()
-                        
-                        HStack(spacing: 6) {
-                            Circle()
-                                .fill(isCheckingOllama ? Color.orange : (ollamaModels.isEmpty ? Color.red : Color.green))
-                                .frame(width: 8, height: 8)
-                            Text(isCheckingOllama ? "Checking..." : (ollamaModels.isEmpty ? "Disconnected" : "Connected"))
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.secondary.opacity(0.1))
-                        .cornerRadius(6)
-                    }
-                    
-                    // Server URL
-                    HStack {
-                        Label("Server URL", systemImage: "link")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        
-                        Spacer()
-                        
-                        if isEditingURL {
-                            TextField("Base URL", text: $ollamaBaseURL)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .frame(maxWidth: 200)
-                            
-                            Button("Save") {
-                                aiService.updateOllamaBaseURL(ollamaBaseURL)
-                                checkOllamaConnection()
-                                isEditingURL = false
-                            }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
-                        } else {
-                            Text(ollamaBaseURL)
-                                .font(.system(.body, design: .monospaced))
-                                .foregroundColor(.primary)
-                            
-                            Button(action: { isEditingURL = true }) {
-                                Image(systemName: "pencil")
-                            }
-                            .buttonStyle(.borderless)
-                            .controlSize(.small)
-                            
-                            Button(action: {
-                                ollamaBaseURL = "http://localhost:11434"
-                                aiService.updateOllamaBaseURL(ollamaBaseURL)
-                                checkOllamaConnection()
-                            }) {
-                                Image(systemName: "arrow.counterclockwise")
-                            }
-                            .buttonStyle(.borderless)
-                            .foregroundColor(.secondary)
-                            .controlSize(.small)
-                        }
-                    }
-                    
-                    // Model selection and refresh
-                    HStack {
-                        Label("Model", systemImage: "cpu")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        
-                        Spacer()
-                        
-                        if ollamaModels.isEmpty {
-                            HStack(spacing: 8) {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .foregroundColor(.orange)
-                                Text("No models available")
-                                    .foregroundColor(.secondary)
-                                    .italic()
-                            }
-                        } else {
-                            Picker("", selection: $selectedOllamaModel) {
-                                ForEach(ollamaModels) { model in
-                                    Text(model.name).tag(model.name)
-                                }
-                            }
-                            .onChange(of: selectedOllamaModel) { oldValue, newValue in
-                                aiService.updateSelectedOllamaModel(newValue)
-                            }
-                            .labelsHidden()
-                            .frame(maxWidth: 150)
-                        }
-                        
-                        Button(action: { checkOllamaConnection() }) {
-                            Label(isCheckingOllama ? "Refreshing..." : "Refresh", systemImage: isCheckingOllama ? "arrow.triangle.2.circlepath" : "arrow.clockwise")
-                                .font(.caption)
-                        }
-                        .disabled(isCheckingOllama)
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-                    }
-                }
-                .padding()
-                .background(Color.secondary.opacity(0.03))
-                .cornerRadius(12)
-
-            } else if aiService.selectedProvider == .custom {
+            if aiService.selectedProvider == .custom {
                 VStack(alignment: .leading, spacing: 16) {
                     // Header
                     VStack(alignment: .leading, spacing: 4) {
@@ -475,7 +357,7 @@ struct APIKeyManagementView: View {
                             .background(Color.secondary.opacity(0.1))
                             .cornerRadius(4)
                         
-                        if aiService.selectedProvider != .ollama && aiService.selectedProvider != .custom {
+                        if aiService.selectedProvider != .custom {
                             Button {
                                 let url = switch aiService.selectedProvider {
                                 case .groq:
@@ -492,7 +374,7 @@ struct APIKeyManagementView: View {
                                     URL(string: "https://elevenlabs.io/speech-synthesis")!
                                 case .soniox:
                                     URL(string: "https://console.soniox.com/")!
-                                case .ollama, .custom:
+                                case .custom:
                                     URL(string: "")! // not used
                                 case .openRouter:
                                     URL(string: "https://openrouter.ai/keys")!
@@ -523,27 +405,7 @@ struct APIKeyManagementView: View {
             Text(alertMessage)
         }
         .onAppear {
-            if aiService.selectedProvider == .ollama {
-                checkOllamaConnection()
-            }
             reloadKeys()
-        }
-    }
-    
-    private func checkOllamaConnection() {
-        isCheckingOllama = true
-        aiService.checkOllamaConnection { connected in
-            if connected {
-                Task {
-                    ollamaModels = await aiService.fetchOllamaModels()
-                    isCheckingOllama = false
-                }
-            } else {
-                ollamaModels = []
-                isCheckingOllama = false
-                alertMessage = "Could not connect to Ollama. Please check if Ollama is running and the base URL is correct."
-                showAlert = true
-            }
         }
     }
     

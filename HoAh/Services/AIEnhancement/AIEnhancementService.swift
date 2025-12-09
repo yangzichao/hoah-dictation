@@ -291,27 +291,12 @@ class AIEnhancementService: ObservableObject {
         logger.notice("AI Enhancement - System Message: \(systemMessage, privacy: .public)")
         logger.notice("AI Enhancement - User Message: \(formattedText, privacy: .public)")
 
-        if aiService.selectedProvider == .ollama {
-            do {
-                let result = try await aiService.enhanceWithOllama(text: formattedText, systemPrompt: systemMessage)
-                let filteredResult = AIEnhancementOutputFilter.filter(result)
-                return filteredResult
-            } catch {
-                if let localError = error as? LocalAIError {
-                    throw EnhancementError.customError(localError.errorDescription ?? "An unknown Ollama error occurred.")
-                } else {
-                    throw EnhancementError.customError(error.localizedDescription)
-                }
-            }
-        }
-
         try await waitForRateLimit()
 
         let providerKey = aiService.selectedProvider.rawValue
         let keyManager = CloudAPIKeyManager.shared
         let usesManagedKeys = aiService.selectedProvider.requiresAPIKey &&
             aiService.selectedProvider != .awsBedrock &&
-            aiService.selectedProvider != .ollama &&
             aiService.selectedProvider != .custom
         var triedKeyIds = Set<UUID>()
 

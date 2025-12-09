@@ -371,7 +371,6 @@
 "Not Set" = "Not Set";
 "Note: Selecting a device here will override your Mac\'s system-wide default microphone." = "Note: Selecting a device here will override your Mac\'s system-wide default microphone.";
 "Older transcripts will be deleted automatically based on your selection." = "Older transcripts will be deleted automatically based on your selection.";
-"Ollama Configuration" = "Ollama Configuration";
 "On-Device" = "On-Device";
 "Only OpenAI-compatible transcription APIs are supported" = "Only OpenAI-compatible transcription APIs are supported";
 "OpenAI Compatible" = "OpenAI Compatible";

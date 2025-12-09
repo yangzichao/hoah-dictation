@@ -439,7 +439,7 @@ struct ConfigurationView: View {
                                                 }
                                             )
                                             
-                                            let models = provider == .openRouter ? aiService.availableModels : (provider == .ollama ? aiService.availableModels : provider.availableModels)
+                                            let models = provider == .openRouter ? aiService.availableModels : provider.availableModels
                                             
                                             Picker("", selection: modelBinding) {
                                                 ForEach(models, id: \ .self) { model in

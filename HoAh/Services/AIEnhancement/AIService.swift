@@ -10,7 +10,6 @@ enum AIProvider: String, CaseIterable {
     case mistral = "Mistral"
     case elevenLabs = "ElevenLabs"
     case soniox = "Soniox"
-    case ollama = "Ollama"
     case custom = "Custom"
     case awsBedrock = "AWS Bedrock"
     
@@ -35,8 +34,6 @@ enum AIProvider: String, CaseIterable {
             return "https://api.elevenlabs.io/v1/speech-to-text"
         case .soniox:
             return "https://api.soniox.com/v1"
-        case .ollama:
-            return UserDefaults.standard.string(forKey: "ollamaBaseURL") ?? "http://localhost:11434"
         case .custom:
             return UserDefaults.standard.string(forKey: "customProviderBaseURL") ?? ""
         case .awsBedrock:
@@ -63,8 +60,6 @@ enum AIProvider: String, CaseIterable {
             return "scribe_v2"
         case .soniox:
             return "stt-async-v3"
-        case .ollama:
-            return UserDefaults.standard.string(forKey: "ollamaSelectedModel") ?? "mistral"
         case .custom:
             return UserDefaults.standard.string(forKey: "customProviderModel") ?? ""
         case .openRouter:
@@ -127,8 +122,6 @@ enum AIProvider: String, CaseIterable {
             return ["scribe_v2", "scribe_v1_experimental"]
         case .soniox:
             return ["stt-async-v3"]
-        case .ollama:
-            return []
         case .custom:
             return []
         case .openRouter:
@@ -140,8 +133,6 @@ enum AIProvider: String, CaseIterable {
     
     var requiresAPIKey: Bool {
         switch self {
-        case .ollama:
-            return false
         case .awsBedrock:
             return true
         default:
@@ -184,16 +175,13 @@ class AIService: ObservableObject {
     
     @Published private var selectedModels: [AIProvider: String] = [:]
     private let userDefaults = UserDefaults.standard
-    private lazy var ollamaService = OllamaService()
     private let keyManager = CloudAPIKeyManager.shared
     
     @Published private var openRouterModels: [String] = []
     
     var connectedProviders: [AIProvider] {
         AIProvider.allCases.filter { provider in
-            if provider == .ollama {
-                return ollamaService.isConnected
-            } else if provider.requiresAPIKey {
+            if provider.requiresAPIKey {
                 if provider == .awsBedrock {
                     return !bedrockApiKey.isEmpty && !bedrockRegion.isEmpty && !bedrockModelId.isEmpty
                 }
@@ -209,16 +197,14 @@ class AIService: ObservableObject {
         }
         if let selectedModel = selectedModels[selectedProvider],
            !selectedModel.isEmpty,
-           (selectedProvider == .ollama && !selectedModel.isEmpty) || availableModels.contains(selectedModel) {
+           availableModels.contains(selectedModel) {
             return selectedModel
         }
         return selectedProvider.defaultModel
     }
     
     var availableModels: [String] {
-        if selectedProvider == .ollama {
-            return ollamaService.availableModels.map { $0.name }
-        } else if selectedProvider == .openRouter {
+        if selectedProvider == .openRouter {
             return openRouterModels
         }
         return selectedProvider.availableModels
@@ -276,12 +262,6 @@ class AIService: ObservableObject {
         } else {
             self.apiKey = ""
             self.isAPIKeyValid = true
-            if selectedProvider == .ollama {
-                Task {
-                    await ollamaService.checkConnection()
-                    await ollamaService.refreshModels()
-                }
-            }
         }
     }
     
@@ -295,10 +275,6 @@ class AIService: ObservableObject {
         selectedModels[selectedProvider] = model
         let key = "\(selectedProvider.rawValue)SelectedModel"
         userDefaults.set(model, forKey: key)
-        
-        if selectedProvider == .ollama {
-            updateSelectedOllamaModel(model)
-        }
         
         objectWillChange.send()
         NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
@@ -559,40 +535,6 @@ class AIService: ObservableObject {
                 completion(false, nil)
             }
         }.resume()
-    }
-    
-    func checkOllamaConnection(completion: @escaping (Bool) -> Void) {
-        Task { [weak self] in
-            guard let self = self else { return }
-            await self.ollamaService.checkConnection()
-            DispatchQueue.main.async {
-                completion(self.ollamaService.isConnected)
-            }
-        }
-    }
-    
-    func fetchOllamaModels() async -> [OllamaService.OllamaModel] {
-        await ollamaService.refreshModels()
-        return ollamaService.availableModels
-    }
-    
-    func enhanceWithOllama(text: String, systemPrompt: String) async throws -> String {
-        do {
-            let result = try await ollamaService.enhance(text, withSystemPrompt: systemPrompt)
-            return result
-        } catch {
-            throw error
-        }
-    }
-    
-    func updateOllamaBaseURL(_ newURL: String) {
-        ollamaService.baseURL = newURL
-        userDefaults.set(newURL, forKey: "ollamaBaseURL")
-    }
-    
-    func updateSelectedOllamaModel(_ modelName: String) {
-        ollamaService.selectedModel = modelName
-        userDefaults.set(modelName, forKey: "ollamaSelectedModel")
     }
     
     func fetchOpenRouterModels() async {
