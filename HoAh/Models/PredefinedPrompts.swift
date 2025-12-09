@@ -23,6 +23,44 @@ enum PredefinedPrompts {
         createDefaultPrompts()
     }
     
+    /// Returns the initial set of predefined prompts.
+    ///
+    /// # Guide for Future AI: Defining Trigger Words
+    ///
+    /// Triggers determine when a specific prompt is automatically selected based on the user's dictated text.
+    /// You can define triggers in two ways:
+    ///
+    /// 1. **Simple String Match**:
+    ///    - "phrase" -> Matches if the text *starts with*, *ends with*, or *is exactly* this phrase.
+    ///    - Case-insensitive matching logic applies, but it is less flexible than Regex.
+    ///    - Example: "summarize this"
+    ///
+    /// 2. **Regex Match** (Recommended for robustness):
+    ///    - Syntax: `/pattern/flags`
+    ///    - Wrap the pattern in forward slashes `/.../`.
+    ///    - Append flags after the closing slash.
+    ///    - Flags Supported:
+    ///      - `i`: Case Insensitive (Most used). Matches "todo", "ToDo", "TODO".
+    ///      - `m`: Multiline mode (`^` and `$` match start/end of lines).
+    ///      - `s`: Dot matches newlines.
+    ///
+    /// # Best Practices for Regex Triggers
+    ///
+    /// * **Be Flexible with Spacing**: Use `\s*` or `[\s-]*` for optional spaces/hyphens.
+    ///   - Bad: `/to do/i` (Misses "to-do", "todo")
+    ///   - Good: `/(to[\s-]*do|task)\s*list/i`
+    ///
+    /// * **Make Verbs Optional**: Users often drop the verb.
+    ///   - Bad: `/generate todo list/i` (Misses just "todo list")
+    ///   - Good: `/(generate|create|make)?.*todo list/i`
+    ///
+    /// * **Avoid Over-Matching**: Don't use `.*` too liberally at the start/end if it risks matching common sentences.
+    ///   - Bad: `/.*email.*/i` (Matches "I will email you later")
+    ///   - Good: `/(draft|write|compose).*(email|reply)/i` (Matches "Draft an email", "Compose reply")
+    ///
+    /// * **Capture Variants**: Use groupings `(a|b)` for synonyms.
+    ///   - English: `/(summarize|summary|brief)/i`
+    ///   - Chinese: `/(总结|摘要|概括)/`
     static func createDefaultPrompts() -> [CustomPrompt] {
         [
             // Manual presets (no trigger words; user selects explicitly)
@@ -154,22 +192,8 @@ Turn the transcript into a detailed, actionable TODO list (not just one-liners).
                 description: t("prompt_todo_description"),
                 isPredefined: true,
                 triggerWords: [
-                    "generate to do list",
-                    "generate todo list",
-                    "create a to do list",
-                    "make a task list",
-                    "create a task list",
-                    "生成待办事项",
-                    "生成待办清单",
-                    "创建待办清单",
-                    "生成待办",
-                    "创建任务列表",
-                    "生成代办清单",
-                    "生成代办事项",
-                    "创建代办清单",
-                    "创建代办事项",
-                    "代办清单",
-                    "代办事项"
+                    "/(generate|create|make|write)?.*(to[\\s-]*do|task)\\s*list/i",
+                    "/.*(生成|创建|写).*(待办|任务|代办)(清单|列表|事项)?/"
                 ],
                 useSystemInstructions: true
             ),
@@ -188,17 +212,8 @@ Create a crisp summary in 3–5 bullet points.
                 description: t("prompt_summarize_description"),
                 isPredefined: true,
                 triggerWords: [
-                    "summarize this transcript",
-                    "summarize the above",
-                    "give me a summary of this conversation",
-                    "write a brief summary",
-                    "please summarize",
-                    "帮我总结一下",
-                    "生成总结",
-                    "写一个摘要",
-                    "请写摘要",
-                    "总结一下上面的内容",
-                    "给我一个总结"
+                    "/(please)?\\s*(summarize|give.*summary).*/i",
+                    "/.*(总结|摘要).*/"
                 ],
                 useSystemInstructions: true
             ),
@@ -216,19 +231,8 @@ Rewrite as a concise, polite, professional email with a clear greeting and sign-
                 description: t("prompt_email_description"),
                 isPredefined: true,
                 triggerWords: [
-                    "draft an email reply",
-                    "compose an email reply",
-                    "write an email response",
-                    "write a reply email",
-                    "generate an email reply",
-                    "write an email draft",
-                    "draft a reply email",
-                    "帮我写一封邮件",
-                    "写一封回复邮件",
-                    "生成回复邮件",
-                    "生成邮件草稿",
-                    "写封邮件回复",
-                    "写邮件回信"
+                    "/(draft|write|compose|generate).*(email|reply)/i",
+                    "/.*(写|生成|草拟|回复).*(邮件|信).*/"
                 ],
                 useSystemInstructions: true
             ),
@@ -247,16 +251,8 @@ You are a precise command-line assistant.
                 description: t("prompt_terminal_description"),
                 isPredefined: true,
                 triggerWords: [
-                    "generate terminal command",
-                    "generate shell command",
-                    "write shell command",
-                    "create shell script",
-                    "generate command line",
-                    "生成终端命令",
-                    "生成 Shell 命令",
-                    "写个 Shell 命令",
-                    "生成命令行指令",
-                    "创建终端指令"
+                    "/(generate|create|write).*(terminal|shell|command\\s*line|script)/i",
+                    "/.*(生成|写|创建).*(终端|命令|shell|脚本).*/i"
                 ],
                 useSystemInstructions: true
             ),

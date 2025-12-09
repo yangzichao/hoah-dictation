@@ -195,7 +195,51 @@ class PromptDetectionService {
         return stripTriggerWordAnywhere(from: text, triggerWord: triggerWord)
     }
     
-	private func detectAndStripTriggerWord(from text: String, triggerWords: [String]) -> (String, String)? {
+    private func parseRegexTrigger(_ trigger: String) -> (pattern: String, options: NSRegularExpression.Options)? {
+        let trimmed = trigger.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.hasPrefix("/"), trimmed.count > 2 else { return nil }
+        
+        guard let lastSlashIndex = trimmed.lastIndex(of: "/") else { return nil }
+        if lastSlashIndex == trimmed.startIndex { return nil }
+        
+        let pattern = String(trimmed[trimmed.index(after: trimmed.startIndex)..<lastSlashIndex])
+        let flagsString = String(trimmed[trimmed.index(after: lastSlashIndex)...])
+        
+        var options: NSRegularExpression.Options = []
+        if flagsString.contains("i") { options.insert(.caseInsensitive) }
+        if flagsString.contains("m") { options.insert(.anchorsMatchLines) }
+        if flagsString.contains("s") { options.insert(.dotMatchesLineSeparators) }
+        
+        return (pattern, options)
+    }
+
+    private func stripRegexTrigger(from text: String, regexPattern: String, options: NSRegularExpression.Options) -> String? {
+        do {
+            let regex = try NSRegularExpression(pattern: regexPattern, options: options)
+            let range = NSRange(text.startIndex..., in: text)
+            
+            guard let match = regex.firstMatch(in: text, options: [], range: range) else {
+                return nil
+            }
+            
+            let nsRange = match.range
+            guard let rangeToRemove = Range(nsRange, in: text) else { return nil }
+            
+            var remainingText = text
+            remainingText.removeSubrange(rangeToRemove)
+            
+            return normalizeRemainingText(
+                remainingText,
+                trimLeadingPunctuation: true,
+                trimTrailingPunctuation: true
+            )
+        } catch {
+            logger.error("Failed to execute regex trigger: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    private func detectAndStripTriggerWord(from text: String, triggerWords: [String]) -> (String, String)? {
         let trimmedWords = triggerWords.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
         
@@ -203,7 +247,11 @@ class PromptDetectionService {
         let sortedTriggerWords = trimmedWords.sorted { $0.count > $1.count }
         
         for triggerWord in sortedTriggerWords {
-            if let processedText = stripTriggerWord(from: text, triggerWord: triggerWord) {
+            if let (pattern, options) = parseRegexTrigger(triggerWord) {
+                if let processedText = stripRegexTrigger(from: text, regexPattern: pattern, options: options) {
+                    return (triggerWord, processedText)
+                }
+            } else if let processedText = stripTriggerWord(from: text, triggerWord: triggerWord) {
                 return (triggerWord, processedText)
             }
         }

@@ -146,9 +146,7 @@ class AIService: ObservableObject {
     @Published var isAPIKeyValid: Bool = false
     
     // AWS Bedrock credentials/config
-    @Published var bedrockApiKey: String = UserDefaults.standard.string(forKey: "AWSBedrockAPIKey") ?? "" {
-        didSet { userDefaults.set(bedrockApiKey, forKey: "AWSBedrockAPIKey") }
-    }
+    @Published var bedrockApiKey: String = ""
     @Published var bedrockRegion: String = UserDefaults.standard.string(forKey: "AWSBedrockRegion") ?? "us-east-1" {
         didSet { userDefaults.set(bedrockRegion, forKey: "AWSBedrockRegion") }
     }
@@ -241,23 +239,26 @@ class AIService: ObservableObject {
     
     private func refreshAPIKeyState() {
         if selectedProvider.requiresAPIKey {
-            if selectedProvider == .awsBedrock {
-                self.apiKey = ""
-                self.isAPIKeyValid = !bedrockApiKey.isEmpty && !bedrockRegion.isEmpty && !bedrockModelId.isEmpty
-            } else {
-                if let active = keyManager.activeKey(for: selectedProvider.rawValue) {
-                    self.apiKey = active.value
-                    self.isAPIKeyValid = true
-                } else if let legacy = userDefaults.string(forKey: "\(selectedProvider.rawValue)APIKey"), !legacy.isEmpty {
-                    // migrate legacy single key into manager
-                    let entry = keyManager.addKey(legacy, for: selectedProvider.rawValue)
-                    keyManager.selectKey(id: entry.id, for: selectedProvider.rawValue)
-                    self.apiKey = entry.value
-                    self.isAPIKeyValid = true
+            if let active = keyManager.activeKey(for: selectedProvider.rawValue) {
+                self.apiKey = active.value
+                if selectedProvider == .awsBedrock {
+                    self.isAPIKeyValid = !bedrockRegion.isEmpty && !bedrockModelId.isEmpty
                 } else {
-                    self.apiKey = ""
-                    self.isAPIKeyValid = false
+                    self.isAPIKeyValid = true
                 }
+            } else if let legacy = userDefaults.string(forKey: "\(selectedProvider.rawValue)APIKey"), !legacy.isEmpty {
+                // migrate legacy single key into manager
+                let entry = keyManager.addKey(legacy, for: selectedProvider.rawValue)
+                keyManager.selectKey(id: entry.id, for: selectedProvider.rawValue)
+                self.apiKey = entry.value
+                if selectedProvider == .awsBedrock {
+                    self.isAPIKeyValid = !bedrockRegion.isEmpty && !bedrockModelId.isEmpty
+                } else {
+                    self.isAPIKeyValid = true
+                }
+            } else {
+                self.apiKey = ""
+                self.isAPIKeyValid = false
             }
         } else {
             self.apiKey = ""
@@ -320,7 +321,10 @@ class AIService: ObservableObject {
         }
         
         if selectedProvider == .awsBedrock {
-            completion(true, nil)
+            let hasRegion = !bedrockRegion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            let hasModel = !bedrockModelId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            let trimmedKey = key.trimmingCharacters(in: .whitespacesAndNewlines)
+            completion(hasRegion && hasModel && !trimmedKey.isEmpty, hasRegion && hasModel && !trimmedKey.isEmpty ? nil : "Provide API key, region, and model.")
             return
         }
         
@@ -339,22 +343,23 @@ class AIService: ObservableObject {
     }
     
     func saveBedrockConfig(apiKey: String, region: String, modelId: String) {
-        bedrockApiKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         bedrockRegion = region.trimmingCharacters(in: .whitespacesAndNewlines)
         bedrockModelId = modelId.trimmingCharacters(in: .whitespacesAndNewlines)
-        isAPIKeyValid = !bedrockApiKey.isEmpty && !bedrockRegion.isEmpty && !bedrockModelId.isEmpty
+        
+        if !trimmedKey.isEmpty {
+            let entry = keyManager.addKey(trimmedKey, for: AIProvider.awsBedrock.rawValue)
+            keyManager.selectKey(id: entry.id, for: AIProvider.awsBedrock.rawValue)
+            apiKey = entry.value
+        }
+        
+        isAPIKeyValid = keyManager.activeKey(for: AIProvider.awsBedrock.rawValue) != nil && !bedrockRegion.isEmpty && !bedrockModelId.isEmpty
         NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
     }
     
     func clearAPIKey() {
-        if selectedProvider == .awsBedrock {
-            bedrockApiKey = ""
-            bedrockRegion = ""
-            bedrockModelId = ""
-        } else {
-            keyManager.removeAllKeys(for: selectedProvider.rawValue)
-            apiKey = ""
-        }
+        keyManager.removeAllKeys(for: selectedProvider.rawValue)
+        apiKey = ""
         isAPIKeyValid = false
         NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
     }
@@ -503,6 +508,14 @@ class AIService: ObservableObject {
                 completion(false, nil)
             }
         }.resume()
+    }
+
+    func verifyBedrockConnection(completion: @escaping (Bool, String?) -> Void) {
+        let hasKey = keyManager.activeKey(for: AIProvider.awsBedrock.rawValue) != nil
+        let hasRegion = !bedrockRegion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let hasModel = !bedrockModelId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let valid = hasKey && hasRegion && hasModel
+        completion(valid, valid ? nil : "Provide API key, region, and model before testing.")
     }
 
     private func verifySonioxAPIKey(_ key: String, completion: @escaping (Bool, String?) -> Void) {

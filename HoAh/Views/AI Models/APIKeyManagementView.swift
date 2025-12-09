@@ -261,17 +261,29 @@ struct APIKeyManagementView: View {
                         }
                     }
                     
-                    HStack {
-                        Button(action: {
-                            aiService.saveBedrockConfig(
-                                apiKey: aiService.bedrockApiKey,
-                                region: aiService.bedrockRegion,
-                                modelId: aiService.bedrockModelId
-                            )
-                        }) {
-                            Label("Save", systemImage: "checkmark.circle.fill")
-                        }
-                        .disabled(aiService.bedrockApiKey.isEmpty || aiService.bedrockRegion.isEmpty || aiService.bedrockModelId.isEmpty)
+                        HStack {
+                            Button(action: {
+                                aiService.saveBedrockConfig(
+                                    apiKey: aiService.bedrockApiKey,
+                                    region: aiService.bedrockRegion,
+                                    modelId: aiService.bedrockModelId
+                                )
+                                aiService.bedrockApiKey = ""
+                            }) {
+                                Label("Save", systemImage: "checkmark.circle.fill")
+                            }
+                            .disabled(aiService.bedrockApiKey.isEmpty || aiService.bedrockRegion.isEmpty || aiService.bedrockModelId.isEmpty)
+                            
+                            Button {
+                                aiService.verifyBedrockConnection { success, message in
+                                    alertMessage = success ? "Connection looks valid." : (message ?? "Missing configuration.")
+                                    showAlert = true
+                                }
+                            } label: {
+                                Label("Test Connection", systemImage: "bolt.horizontal.circle")
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
                         
                         Spacer()
                         
