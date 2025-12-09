@@ -40,6 +40,7 @@ fi
 echo "==> Building & signing app (Release)..."
 xcodebuild -scheme HoAh -configuration Release \
   CODE_SIGN_IDENTITY="$SIGN_IDENTITY" DEVELOPMENT_TEAM="$TEAM_ID" \
+  CODE_SIGN_STYLE=Manual \
   ARCHS=arm64 ONLY_ACTIVE_ARCH=YES SWIFT_DISABLE_EXPLICIT_MODULES=YES \
   SWIFT_ACTIVE_COMPILATION_CONDITIONS="" \
   -derivedDataPath "$DERIVED_DIR"
