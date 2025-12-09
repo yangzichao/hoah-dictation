@@ -37,13 +37,21 @@ if [ -z "$SIGN_IDENTITY" ] || [ -z "$TEAM_ID" ]; then
   exit 1
 fi
 
-echo "==> Building & signing app (Release)..."
+echo "==> Building app (Release, Ad-Hoc)..."
 xcodebuild -scheme HoAh -configuration Release \
-  CODE_SIGN_IDENTITY="$SIGN_IDENTITY" DEVELOPMENT_TEAM="$TEAM_ID" \
-  CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE_SPECIFIER="" PROVISIONING_PROFILE="" \
+  CODE_SIGN_IDENTITY="-" CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE_SPECIFIER="" PROVISIONING_PROFILE="" \
   ARCHS=arm64 ONLY_ACTIVE_ARCH=YES SWIFT_DISABLE_EXPLICIT_MODULES=YES \
   SWIFT_ACTIVE_COMPILATION_CONDITIONS="" \
   -derivedDataPath "$DERIVED_DIR"
+
+APP_BUNDLE="$DERIVED_DIR/Build/Products/Release/HoAh.app"
+ENTITLEMENTS="$ROOT_DIR/HoAh/HoAh.entitlements"
+
+echo "==> Manually signing $APP_BUNDLE with $SIGN_IDENTITY..."
+codesign --force --options runtime --deep --sign "$SIGN_IDENTITY" --entitlements "$ENTITLEMENTS" "$APP_BUNDLE"
+
+echo "==> Verifying signature..."
+codesign --verify --verbose "$APP_BUNDLE"
 
 echo "==> Packaging DMG (signed app)..."
 SIGN_IDENTITY="$SIGN_IDENTITY" bash "$ROOT_DIR/scripts/packaging/build_dmg.sh" "$VERSION"
@@ -52,6 +60,9 @@ if [ ! -f "$DMG_PATH" ]; then
   echo "✖️  DMG not found at $DMG_PATH" >&2
   exit 1
 fi
+
+echo "==> Signing DMG file..."
+codesign --force --sign "$SIGN_IDENTITY" "$DMG_PATH"
 
 echo "==> Submitting to Apple notarization..."
 if [ -n "$NOTARY_PROFILE" ]; then
