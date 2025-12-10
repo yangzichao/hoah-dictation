@@ -5,22 +5,30 @@ struct OnboardingModelDownloadView: View {
     @EnvironmentObject private var whisperState: WhisperState
     @State private var scale: CGFloat = 0.8
     @State private var opacity: CGFloat = 0
-    @State private var isDownloadingTurbo = false
-    @State private var isTurboDownloaded = false
-    @State private var isTurboSelected = false
+    @State private var downloadingModelName: String? = nil
     @State private var showTutorial = false
-    @State private var hasQualifiedLocalModel = false
+    @State private var isMoreOptionsExpanded = false
     
-    private var canContinue: Bool {
-        (isTurboDownloaded && isTurboSelected) || hasQualifiedLocalModel
-    }
-    
-    private let turboModel = PredefinedModels.models.first { $0.name == "ggml-large-v3-turbo-q5_0" } as! LocalModel
-    private let largeModelNames: Set<String> = [
+    // Model Constants (single source of truth from PredefinedModels, with defensive fallback)
+    private let defaultLargeModelOrder = [
         "ggml-large-v3-turbo-q5_0",
         "ggml-large-v3-turbo",
         "ggml-large-v3"
     ]
+
+    private var resolvedLargeModelOrder: [String] {
+        let order = PredefinedModels.largeV3ModelOrder
+        return order.count >= 3 ? order : defaultLargeModelOrder
+    }
+
+    private var turboQuantizedName: String { resolvedLargeModelOrder[0] }
+    private var turboName: String { resolvedLargeModelOrder[1] }
+    private var largeV3Name: String { resolvedLargeModelOrder[2] }
+    
+    // Helper to get model objects
+    private func getModel(_ name: String) -> LocalModel? {
+        PredefinedModels.models.first { $0.name == name } as? LocalModel
+    }
     
     var body: some View {
         ZStack {
@@ -30,57 +38,85 @@ struct OnboardingModelDownloadView: View {
                 
                 VStack(spacing: 32) {
                     // Title and description
-                    VStack(spacing: 12) {
-                        Text(LocalizedStringKey("onboarding_model_title"))
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                        
-                        VStack(spacing: 6) {
-                            Text(LocalizedStringKey("onboarding_model_subtitle"))
-                                .font(.body)
-                                .foregroundColor(.white.opacity(0.7))
-                                .multilineTextAlignment(.center)
-                            
-                            Text("Download the local Whisper model to continue. Apple Speech is not used by default; cloud models can be configured later.")
-                                .font(.footnote)
-                                .foregroundColor(.white.opacity(0.75))
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal)
-                        }
-                            .multilineTextAlignment(.center)
-                    }
-                    .scaleEffect(scale)
-                    .opacity(opacity)
+                    titleSection
+                        .scaleEffect(scale)
+                        .opacity(opacity)
                     
-                    // Cards
-                    VStack(spacing: 20) {
-                        whisperTurboCard
+                    // Cards Container
+                    ScrollView {
+                        VStack(spacing: 24) {
+                            // Primary Option: Turbo Quantized
+                            if let model = getModel(turboQuantizedName) {
+                                ModelCard(
+                                    model: model,
+                                    isRecommended: true,
+                                    isDownloading: downloadingModelName == model.name,
+                                    isDownloaded: isDownloaded(model.name),
+                                    isSelected: isSelected(model.name),
+                                    onSelect: { handleModelSelection(model) }
+                                )
+                            }
+                            
+                            // More Options
+                            VStack(spacing: 16) {
+                                Button(action: {
+                                    withAnimation { isMoreOptionsExpanded.toggle() }
+                                }) {
+                                    HStack {
+                                        Text(isMoreOptionsExpanded ? "Less options" : "More options")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.white.opacity(0.8))
+                                        Image(systemName: "chevron.down")
+                                            .foregroundColor(.white.opacity(0.8))
+                                            .rotationEffect(.degrees(isMoreOptionsExpanded ? 180 : 0))
+                                    }
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.white.opacity(0.1))
+                                    .cornerRadius(20)
+                                }
+                                .buttonStyle(.plain)
+                                
+                                if isMoreOptionsExpanded {
+                                    VStack(spacing: 16) {
+                                        if let model = getModel(turboName) {
+                                            ModelCard(
+                                                model: model,
+                                                isRecommended: false,
+                                                isDownloading: downloadingModelName == model.name,
+                                                isDownloaded: isDownloaded(model.name),
+                                                isSelected: isSelected(model.name),
+                                                onSelect: { handleModelSelection(model) }
+                                            )
+                                        }
+                                        
+                                        if let model = getModel(largeV3Name) {
+                                            ModelCard(
+                                                model: model,
+                                                isRecommended: false,
+                                                isDownloading: downloadingModelName == model.name,
+                                                isDownloaded: isDownloaded(model.name),
+                                                isSelected: isSelected(model.name),
+                                                onSelect: { handleModelSelection(model) }
+                                            )
+                                        }
+                                    }
+                                    .transition(.opacity.combined(with: .move(edge: .top)))
+                                }
+                            }
+                        }
+                        .padding()
                     }
                     .frame(maxWidth: min(geometry.size.width * 0.8, 700))
+                    // .frame(height: 400) // Fixed height to prevent layout jumps
                     .scaleEffect(scale)
                     .opacity(opacity)
                     
-                    // Continue button – only enabled once a model is selected
-                    Button(action: {
-                        withAnimation {
-                            showTutorial = true
-                        }
-                    }) {
-                        Text(LocalizedStringKey("onboarding_continue"))
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(width: 200, height: 50)
-                            .background(canContinue ? Color.accentColor : Color.gray)
-                            .cornerRadius(25)
-                    }
-                    .buttonStyle(ScaleButtonStyle())
-                    .disabled(!canContinue)
-                    .opacity(opacity)
+                    // "Skip/Continue" footer if needed, but primary action is now auto-advance via card
                 }
                 .padding()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .frame(width: min(geometry.size.width * 0.9, 800))
                 .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
             }
             
@@ -95,6 +131,27 @@ struct OnboardingModelDownloadView: View {
         }
     }
     
+    private var titleSection: some View {
+        VStack(spacing: 12) {
+            Text(LocalizedStringKey("onboarding_model_title"))
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+            
+            VStack(spacing: 6) {
+                Text(LocalizedStringKey("onboarding_model_subtitle"))
+                    .font(.body)
+                    .foregroundColor(.white.opacity(0.7))
+                    .multilineTextAlignment(.center)
+                
+                Text("Select a model to download and continue.")
+                    .font(.footnote)
+                    .foregroundColor(.white.opacity(0.75))
+                    .multilineTextAlignment(.center)
+            }
+        }
+    }
+    
     private func animateIn() {
         withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
             scale = 1
@@ -102,118 +159,151 @@ struct OnboardingModelDownloadView: View {
         }
     }
     
-    // MARK: - Cards
+    // MARK: - Logic
     
-    private var whisperTurboCard: some View {
+    private func isDownloaded(_ name: String) -> Bool {
+        whisperState.availableModels.contains(where: { $0.name == name })
+    }
+    
+    private func isSelected(_ name: String) -> Bool {
+        whisperState.currentTranscriptionModel?.name == name
+    }
+    
+    private func checkInitialState() {
+        // Check if any of the target models are already valid (downloaded AND selected)
+        let targetModels = [turboQuantizedName, turboName, largeV3Name]
+        
+        // If the user already has one of these selected and downloaded, auto-advance
+        if let current = whisperState.currentTranscriptionModel,
+           targetModels.contains(current.name),
+           isDownloaded(current.name) {
+             // Already setup, auto advance
+             withAnimation {
+                 showTutorial = true
+             }
+             return
+        }
+        
+        // If not selected but downloaded (e.g. from previous install), just exist.
+        // We let the user choose in the UI.
+    }
+    
+    private func handleModelSelection(_ model: LocalModel) {
+        if isDownloaded(model.name) {
+            // Already downloaded, just select and advance
+            selectAndAdvance(model)
+        } else {
+            // Download then advance
+            downloadAndAdvance(model)
+        }
+    }
+    
+    private func selectAndAdvance(_ model: LocalModel) {
+        Task {
+            // Find the actual model object in allAvailableModels to ensure we have the full metadata
+            if let modelToSet = whisperState.allAvailableModels.first(where: { $0.name == model.name }) {
+                await whisperState.setDefaultTranscriptionModel(modelToSet)
+                await MainActor.run {
+                    withAnimation {
+                        showTutorial = true
+                    }
+                }
+            }
+        }
+    }
+    
+    private func downloadAndAdvance(_ model: LocalModel) {
+        withAnimation {
+            downloadingModelName = model.name
+        }
+        
+        Task {
+            await whisperState.downloadModel(model)
+            
+            await MainActor.run {
+                withAnimation {
+                    downloadingModelName = nil
+                }
+                // Verify download success
+                if isDownloaded(model.name) {
+                    selectAndAdvance(model)
+                }
+            }
+        }
+    }
+}
+
+// Subview for Model Card to keep main view clean
+struct ModelCard: View {
+    let model: LocalModel
+    let isRecommended: Bool
+    let isDownloading: Bool
+    let isDownloaded: Bool
+    let isSelected: Bool
+    let onSelect: () -> Void
+    @EnvironmentObject private var whisperState: WhisperState // To access progress
+    
+    var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(LocalizedStringKey("onboarding_model_whisper_title"))
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    Text(LocalizedStringKey("onboarding_model_whisper_body"))
-                        .font(.subheadline)
+                    HStack {
+                        Text(model.name.replacingOccurrences(of: "ggml-", with: "").replacingOccurrences(of: "_", with: " ").capitalized)
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        if isRecommended {
+                            Text("Best Value")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.black)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.yellow)
+                                .cornerRadius(4)
+                        }
+                    }
+                    
+                    Text("Size: \(model.size)")
+                        .font(.caption)
                         .foregroundColor(.white.opacity(0.7))
                 }
                 Spacer()
+                
+                // Action Button
+                Button(action: onSelect) {
+                    Group {
+                         if isDownloading {
+                             ProgressView()
+                                 .scaleEffect(0.6)
+                                 .frame(width: 80)
+                         } else {
+                             Text(isDownloaded ? "Select" : "Download")
+                                 .font(.subheadline.bold())
+                                 .foregroundColor(.black)
+                                 .frame(width: 80)
+                         }
+                    }
+                    .padding(.vertical, 8)
+                    .background(Color.white)
+                    .cornerRadius(16)
+                }
+                .buttonStyle(ScaleButtonStyle())
+                .disabled(isDownloading)
             }
             
-            Text(String(format: NSLocalizedString("onboarding_model_whisper_note", comment: ""), turboModel.size))
-                .font(.caption)
-                .foregroundColor(.white.opacity(0.7))
-            
-            if isDownloadingTurbo {
+            if isDownloading {
                 DownloadProgressView(
-                    modelName: turboModel.name,
+                    modelName: model.name,
                     downloadProgress: whisperState.downloadProgress
                 )
             }
-            
-            HStack {
-                Spacer()
-                Button(action: handleTurboSelection) {
-                    Text(
-                        isTurboDownloaded
-                        ? NSLocalizedString("onboarding_model_whisper_use", comment: "")
-                        : NSLocalizedString("onboarding_model_whisper_download_and_use", comment: "")
-                    )
-                        .font(.subheadline.bold())
-                        .foregroundColor(.black)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(Color.white)
-                        .cornerRadius(20)
-                }
-                .buttonStyle(ScaleButtonStyle())
-                .disabled(isDownloadingTurbo)
-            }
         }
-        .padding(20)
+        .padding(16)
         .background(Color.black.opacity(0.3))
         .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                .stroke(isRecommended ? Color.accentColor : Color.white.opacity(0.1), lineWidth: isRecommended ? 2 : 1)
         )
-    }
-    
-    // MARK: - Actions
-    
-    private func checkInitialState() {
-        isTurboDownloaded = whisperState.availableModels.contains(where: { $0.name == turboModel.name })
-        isTurboSelected = whisperState.currentTranscriptionModel?.name == turboModel.name
-        
-        if let currentName = whisperState.currentTranscriptionModel?.name,
-           whisperState.currentTranscriptionModel?.provider == .local,
-           largeModelNames.contains(currentName),
-           whisperState.availableModels.contains(where: { $0.name == currentName }) {
-            hasQualifiedLocalModel = true
-            // Edge case: already has a local large model; skip download gate.
-            withAnimation {
-                showTutorial = true
-            }
-        }
-    }
-    
-    private func handleTurboSelection() {
-        if isTurboDownloaded {
-            if let modelToSet = whisperState.allAvailableModels.first(where: { $0.name == turboModel.name }) {
-                Task {
-                    await whisperState.setDefaultTranscriptionModel(modelToSet)
-                    await MainActor.run {
-                        withAnimation {
-                            isTurboSelected = true
-                        }
-                    }
-                }
-            }
-        } else {
-            withAnimation {
-                isDownloadingTurbo = true
-            }
-            Task {
-                await whisperState.downloadModel(turboModel)
-                let downloaded = whisperState.availableModels.contains(where: { $0.name == turboModel.name })
-                if downloaded,
-                   let modelToSet = whisperState.allAvailableModels.first(where: { $0.name == turboModel.name }) {
-                    await whisperState.setDefaultTranscriptionModel(modelToSet)
-                    await MainActor.run {
-                        withAnimation {
-                            isDownloadingTurbo = false
-                            isTurboDownloaded = true
-                            isTurboSelected = true
-                        }
-                    }
-                } else {
-                    await MainActor.run {
-                        withAnimation {
-                            isDownloadingTurbo = false
-                            isTurboDownloaded = false
-                            isTurboSelected = false
-                        }
-                    }
-                }
-            }
-        }
     }
 }

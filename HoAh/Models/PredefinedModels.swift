@@ -1,6 +1,17 @@
 import Foundation
  
  enum PredefinedModels {
+    /// Single source of truth for supported Large v3 local model names (ordered for UI preference).
+    static let largeV3ModelOrder: [String] = [
+        "ggml-large-v3-turbo-q5_0",
+        "ggml-large-v3-turbo",
+        "ggml-large-v3"
+    ]
+
+    static var largeV3ModelNames: Set<String> {
+        Set(largeV3ModelOrder)
+    }
+
     static func getLanguageDictionary(isMultilingual: Bool, provider: ModelProvider = .local) -> [String: String] {
         if !isMultilingual {
             return ["en": "English"]
