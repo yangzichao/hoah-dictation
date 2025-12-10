@@ -7,10 +7,12 @@ class NotchWindowManager: ObservableObject {
      var notchPanel: NotchRecorderPanel?
     private let whisperState: WhisperState
     private let recorder: Recorder
+    private let appSettings: AppSettingsStore
     
-    init(whisperState: WhisperState, recorder: Recorder) {
+    init(whisperState: WhisperState, recorder: Recorder, appSettings: AppSettingsStore) {
         self.whisperState = whisperState
         self.recorder = recorder
+        self.appSettings = appSettings
         
         NotificationCenter.default.addObserver(
             self,
@@ -56,9 +58,15 @@ class NotchWindowManager: ObservableObject {
         let metrics = NotchRecorderPanel.calculateWindowMetrics()
         let panel = NotchRecorderPanel(contentRect: metrics.frame)
         
+        guard let enhancementService = whisperState.enhancementService else {
+            whisperState.logger.error("Missing enhancementService while creating NotchRecorderView")
+            return
+        }
+        
         let notchRecorderView = NotchRecorderView(whisperState: whisperState, recorder: recorder)
             .environmentObject(self)
-            .environmentObject(whisperState.enhancementService!)
+            .environmentObject(appSettings)
+            .environmentObject(enhancementService)
         
         let hostingController = NotchRecorderHostingController(rootView: notchRecorderView)
         panel.contentView = hostingController.view

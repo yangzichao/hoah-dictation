@@ -7,10 +7,12 @@ class MiniWindowManager: ObservableObject {
     private var miniPanel: MiniRecorderPanel?
     private let whisperState: WhisperState
     private let recorder: Recorder
+    private let appSettings: AppSettingsStore
     
-    init(whisperState: WhisperState, recorder: Recorder) {
+    init(whisperState: WhisperState, recorder: Recorder, appSettings: AppSettingsStore) {
         self.whisperState = whisperState
         self.recorder = recorder
+        self.appSettings = appSettings
         setupNotifications()
     }
     
@@ -56,9 +58,15 @@ class MiniWindowManager: ObservableObject {
         let metrics = MiniRecorderPanel.calculateWindowMetrics()
         let panel = MiniRecorderPanel(contentRect: metrics)
         
+        guard let enhancementService = whisperState.enhancementService else {
+            whisperState.logger.error("Missing enhancementService while creating MiniRecorderView")
+            return
+        }
+        
         let miniRecorderView = MiniRecorderView(whisperState: whisperState, recorder: recorder)
             .environmentObject(self)
-            .environmentObject(whisperState.enhancementService!)
+            .environmentObject(appSettings)
+            .environmentObject(enhancementService)
         
         let hostingController = NSHostingController(rootView: miniRecorderView)
         panel.contentView = hostingController.view

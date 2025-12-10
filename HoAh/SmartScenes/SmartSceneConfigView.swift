@@ -151,406 +151,12 @@ struct ConfigurationView: View {
             
             ScrollView {
                 VStack(spacing: 20) {
-                    // Main Input Section
-                    VStack(spacing: 16) {
-                        HStack(spacing: 16) {
-                            Button(action: {
-                                isShowingEmojiPicker.toggle()
-                            }) {
-                                ZStack {
-                                    Circle()
-                                        .fill(Color.accentColor.opacity(0.15))
-                                        .frame(width: 48, height: 48)
-                                    
-                                    Text(selectedEmoji)
-                                        .font(.system(size: 24))
-                                }
-                            }
-                            .buttonStyle(.plain)
-                            .popover(isPresented: $isShowingEmojiPicker, arrowEdge: .bottom) {
-                                EmojiPickerView(
-                                    selectedEmoji: $selectedEmoji,
-                                    isPresented: $isShowingEmojiPicker
-                                )
-                            }
-                            
-                            TextField(NSLocalizedString("Name your smart scene", comment: "Placeholder for smart scene name"), text: $configName)
-                                .font(.system(size: 18, weight: .bold))
-                                .textFieldStyle(.plain)
-                                .foregroundColor(.primary)
-                                .tint(.accentColor)
-                                .focused($isNameFieldFocused)
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 16)
-                    .background(CardBackground(isSelected: false))
-                    .padding(.horizontal)
-                    .onAppear {
-                        // Add a small delay to ensure the view is fully loaded
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            isNameFieldFocused = true
-                        }
-                    }
-                    
-                    VStack(spacing: 16) {
-                        SectionHeader(title: NSLocalizedString("When to Trigger", comment: "Section header"))
-                        Text("Add at least one app or website trigger; otherwise this smart scene stays inactive.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text(NSLocalizedString("Applications", comment: "Label for applications"))
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                
-                                Spacer()
-                                
-                                Button(action: {
-                                    loadInstalledApps()
-                                    isShowingAppPicker = true
-                                }) {
-                                    Label("Add App", systemImage: "plus.circle.fill")
-                                        .font(.subheadline)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                            
-                            if selectedAppConfigs.isEmpty {
-                                HStack {
-                                    Spacer()
-                                    Text(NSLocalizedString("No applications added", comment: "Empty state for applications"))
-                                        .foregroundColor(.secondary)
-                                        .font(.subheadline)
-                                    Spacer()
-                                }
-                                .padding()
-                                .background(CardBackground(isSelected: false))
-                            } else {
-                                // Grid of selected apps that wraps to next line
-                                LazyVGrid(columns: [GridItem(.adaptive(minimum: 50, maximum: 55), spacing: 10)], spacing: 10) {
-                                    ForEach(selectedAppConfigs) { appConfig in
-                                        VStack {
-                                            ZStack(alignment: .topTrailing) {
-                                                // App icon - completely filling the container
-                                                if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: appConfig.bundleIdentifier) {
-                                                    Image(nsImage: NSWorkspace.shared.icon(forFile: appURL.path))
-                                                        .resizable()
-                                                        .aspectRatio(contentMode: .fill)
-                                                        .frame(width: 50, height: 50)
-                                                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                                                } else {
-                                                    Image(systemName: "app.fill")
-                                                        .resizable()
-                                                        .aspectRatio(contentMode: .fill)
-                                                        .frame(width: 50, height: 50)
-                                                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                                                }
-                                                
-                                                // Remove button
-                                                Button(action: {
-                                                    selectedAppConfigs.removeAll(where: { $0.id == appConfig.id })
-                                                }) {
-                                                    Image(systemName: "xmark.circle.fill")
-                                                        .font(.system(size: 14))
-                                                        .foregroundColor(.white)
-                                                        .background(Circle().fill(Color.black.opacity(0.6)))
-                                                }
-                                                .buttonStyle(.plain)
-                                                .offset(x: 6, y: -6)
-                                            }
-                                        }
-                                        .frame(width: 50, height: 50)
-                                        .background(CardBackground(isSelected: false, cornerRadius: 10))
-                                    }
-                                }
-                            }
-                        }
-                        
-                        Divider()
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text(NSLocalizedString("Websites", comment: "Label for websites"))
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                
-                            // Add URL Field
-                            HStack {
-                                TextField("Enter website URL (e.g., google.com)", text: $newWebsiteURL)
-                                .textFieldStyle(.roundedBorder)
-                                    .onSubmit {
-                                        addWebsite()
-                                    }
-                                
-                                Button(action: addWebsite) {
-                                    Image(systemName: "plus.circle.fill")
-                                        .foregroundColor(.accentColor)
-                                        .font(.system(size: 18))
-                                }
-                                .buttonStyle(.plain)
-                                .disabled(newWebsiteURL.isEmpty)
-                            }
-                            
-                            if websiteConfigs.isEmpty {
-                                HStack {
-                                    Spacer()
-                                    Text(NSLocalizedString("No websites added", comment: "Empty state for websites"))
-                                        .foregroundColor(.secondary)
-                                        .font(.subheadline)
-                                    Spacer()
-                                }
-                                .padding()
-                                .background(CardBackground(isSelected: false))
-                            } else {
-                                // Grid of website tags that wraps to next line
-                                LazyVGrid(columns: [GridItem(.adaptive(minimum: 100, maximum: 160), spacing: 10)], spacing: 10) {
-                                    ForEach(websiteConfigs) { urlConfig in
-                                        HStack(spacing: 4) {
-                                            Image(systemName: "globe")
-                                                .font(.system(size: 11))
-                                                .foregroundColor(.accentColor)
-                                            
-                                            Text(urlConfig.url)
-                                                .font(.system(size: 11))
-                                                .lineLimit(1)
-                                            
-                                            Spacer(minLength: 0)
-                                            
-                                            Button(action: {
-                                                websiteConfigs.removeAll(where: { $0.id == urlConfig.id })
-                                            }) {
-                                                Image(systemName: "xmark.circle.fill")
-                                                    .font(.system(size: 9))
-                                                    .foregroundColor(.secondary)
-                                            }
-                                            .buttonStyle(.plain)
-                                        }
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 6)
-                                        .frame(height: 28)
-                                        .background(CardBackground(isSelected: false, cornerRadius: 10))
-                                    }
-                                }
-                                .padding(8)
-                            }
-                        }
-                    }
-                    .padding()
-                    .background(CardBackground(isSelected: false))
-                    .padding(.horizontal)
-                    
-                    VStack(spacing: 16) {
-                        SectionHeader(title: NSLocalizedString("Transcription", comment: "Section header"))
-                        let currentModelName = whisperState.currentTranscriptionModel?.displayName ?? "Uses current app setting"
-                        let currentLanguage = UserDefaults.standard.string(forKey: "SelectedLanguage") ?? "auto"
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(NSLocalizedString("Uses your current transcription settings", comment: "Description for transcription settings"))
-                                .font(.subheadline)
-                                .foregroundColor(.primary)
-                            Text("Model: \(currentModelName) • Language: \(currentLanguage == "auto" ? "Auto-detect" : currentLanguage)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(CardBackground(isSelected: false))
-                    }
-                    .padding()
-                    .background(CardBackground(isSelected: false))
-                    .padding(.horizontal)
-                    
-                    VStack(spacing: 16) {
-                        SectionHeader(title: "AI Enhancement")
-                        
-                        Text(NSLocalizedString("Uses current AI provider/model unless you override below.", comment: "Description for AI settings"))
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-
-                            DisclosureGroup(isExpanded: $showAdvancedAISettings) {
-                                let providerBinding = Binding<AIProvider>(
-                                    get: {
-                                        if let providerName = selectedAIProvider,
-                                           let provider = AIProvider(rawValue: providerName) {
-                                            return provider
-                                        }
-                                        return aiService.selectedProvider
-                                    },
-                                    set: { newValue in
-                                        selectedAIProvider = newValue.rawValue
-                                        aiService.selectedProvider = newValue
-                                        selectedAIModel = nil
-                                    }
-                                )
-
-                                HStack {
-                                    Text("AI Provider")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                    
-                                    if aiService.connectedProviders.isEmpty {
-                                        Text("No providers connected")
-                                            .foregroundColor(.secondary)
-                                            .italic()
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                    } else {
-                                        Picker("", selection: providerBinding) {
-                                            ForEach(aiService.connectedProviders.filter { $0 != .elevenLabs }, id: \ .self) { provider in
-                                                Text(provider.rawValue).tag(provider)
-                                            }
-                                        }
-                                        .labelsHidden()
-                                        .onChange(of: selectedAIProvider) { _, newValue in
-                                            if let provider = newValue.flatMap({ AIProvider(rawValue: $0) }) {
-                                                selectedAIModel = provider.defaultModel
-                                            }
-                                        }
-                                        Spacer()
-                                    }
-                                }
-                                
-                                let providerName = selectedAIProvider ?? aiService.selectedProvider.rawValue
-                                if let provider = AIProvider(rawValue: providerName),
-                                   provider != .custom {
-                                    
-                                    HStack {
-                                        Text("AI Model")
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondary)
-                                        
-                                        if aiService.availableModels.isEmpty {
-                                            Text(provider == .openRouter ? "No models loaded" : "No models available")
-                                                .foregroundColor(.secondary)
-                                                .italic()
-                                                .frame(maxWidth: .infinity, alignment: .leading)
-                                        } else {
-                                            let modelBinding = Binding<String>(
-                                                get: { 
-                                                    if let model = selectedAIModel, !model.isEmpty {
-                                                        return model
-                                                    }
-                                                    return aiService.currentModel
-                                                },
-                                                set: { newModelValue in
-                                                    selectedAIModel = newModelValue
-                                                    aiService.selectModel(newModelValue)
-                                                }
-                                            )
-                                            
-                                            let models = provider == .openRouter ? aiService.availableModels : provider.availableModels
-                                            
-                                            Picker("", selection: modelBinding) {
-                                                ForEach(models, id: \ .self) { model in
-                                                    Text(model).tag(model)
-                                                }
-                                            }
-                                            .labelsHidden()
-                                            
-                                            if provider == .openRouter {
-                                                Button(action: {
-                                                    Task {
-                                                        await aiService.fetchOpenRouterModels()
-                                                    }
-                                                }) {
-                                                    Image(systemName: "arrow.clockwise")
-                                                }
-                                                .buttonStyle(.borderless)
-                                                .help("Refresh models")
-                                            }
-                                            
-                                            Spacer()
-                                        }
-                                    }
-                                }
-                            } label: {
-                                HStack {
-                                    Text(NSLocalizedString("Optional: Override AI provider/model", comment: "Label for advanced AI settings"))
-                                    Spacer()
-                                    Text(showAdvancedAISettings ? "Hide" : "Show")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                            .onChange(of: showAdvancedAISettings) { _, expanded in
-                                if !expanded {
-                                    selectedAIProvider = nil
-                                    selectedAIModel = nil
-                                } else {
-                                    if selectedAIProvider == nil {
-                                        selectedAIProvider = aiService.selectedProvider.rawValue
-                                    }
-                                    if selectedAIModel == nil {
-                                        selectedAIModel = aiService.currentModel
-                                    }
-                                }
-                            }
-
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("Enhancement Prompt")
-                                    .font(.headline)
-                                    .foregroundColor(.primary)
-                                
-                                PromptSelectionGrid(
-                                    prompts: enhancementService.activePrompts,
-                                    selectedPromptId: selectedPromptId,
-                                    onPromptSelected: { prompt in
-                                        selectedPromptId = prompt.id
-                                    },
-                                    onEditPrompt: { prompt in
-                                        selectedPromptForEdit = prompt
-                                    },
-                                    onDeletePrompt: { prompt in
-                                        enhancementService.deletePrompt(prompt)
-                                    },
-                                    onAddNewPrompt: {
-                                        isEditingPrompt = true
-                                    }
-                                )
-                            }
-
-
-                    }
-                    .padding()
-                    .background(CardBackground(isSelected: false))
-                    .padding(.horizontal)
-                    
-                    VStack(spacing: 16) {
-                        SectionHeader(title: NSLocalizedString("Advanced", comment: "Section header"))
-
-                        HStack {
-                            Toggle("Auto Send", isOn: $isAutoSendEnabled)
-                            
-                            InfoTip(
-                                title: "Auto Send",
-                                message: "Automatically presses the Return/Enter key after pasting text. This is useful for chat applications or forms where its not necessary to to make changes to the transcribed text"
-                            )
-                            
-                            Spacer()
-                        }
-                    }
-                    .padding()
-                    .background(CardBackground(isSelected: false))
-                    .padding(.horizontal)
-                    
-                    HStack {
-                        Spacer()
-                        Button(action: saveConfiguration) {
-                            Text(mode.isAdding ? NSLocalizedString("Add Smart Scene", comment: "Button label") : NSLocalizedString("Save Changes", comment: "Button label"))
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(canSave ? Color(red: 0.3, green: 0.7, blue: 0.4) : Color(red: 0.3, green: 0.7, blue: 0.4).opacity(0.5))
-                                )
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(!canSave)
-                    }
-                    .padding(.horizontal)
+                    nameSection
+                    triggerSection
+                    transcriptionSection
+                    aiSection
+                    advancedSection
+                    saveSection
                 }
                 .padding(.vertical)
             }
@@ -572,27 +178,431 @@ struct ConfigurationView: View {
         .powerModeValidationAlert(errors: validationErrors, isPresented: $showValidationAlert)
         .navigationTitle("") // Explicitly set an empty title for this view
         .toolbar(.hidden) // Attempt to hide the navigation bar area
-            .onAppear {
-                // Set AI provider and model for new power modes after environment objects are available
-                if case .add = mode {
-                    if showAdvancedAISettings {
-                        if selectedAIProvider == nil {
-                            selectedAIProvider = aiService.selectedProvider.rawValue
+        .onAppear {
+            // Set AI provider and model for new power modes after environment objects are available
+            if case .add = mode {
+                if showAdvancedAISettings {
+                    if selectedAIProvider == nil {
+                        selectedAIProvider = aiService.selectedProvider.rawValue
+                    }
+                    if selectedAIModel == nil || selectedAIModel?.isEmpty == true {
+                        selectedAIModel = aiService.currentModel
+                    }
+                } else {
+                    selectedAIProvider = nil
+                    selectedAIModel = nil
+                }
+            }
+            
+            // Select first prompt if no prompt is selected
+            if selectedPromptId == nil {
+                selectedPromptId = enhancementService.activePrompts.first?.id
+            }
+        }
+    }
+    
+    // MARK: - Extracted sections to reduce body complexity
+
+    private var nameSection: some View {
+        VStack(spacing: 16) {
+            HStack(spacing: 16) {
+                Button(action: {
+                    isShowingEmojiPicker.toggle()
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.accentColor.opacity(0.15))
+                            .frame(width: 48, height: 48)
+                        
+                        Text(selectedEmoji)
+                            .font(.system(size: 24))
+                    }
+                }
+                .buttonStyle(.plain)
+                .popover(isPresented: $isShowingEmojiPicker, arrowEdge: .bottom) {
+                    EmojiPickerView(
+                        selectedEmoji: $selectedEmoji,
+                        isPresented: $isShowingEmojiPicker
+                    )
+                }
+                
+                TextField(NSLocalizedString("Name your smart scene", comment: "Placeholder for smart scene name"), text: $configName)
+                    .font(.system(size: 18, weight: .bold))
+                    .textFieldStyle(.plain)
+                    .foregroundColor(.primary)
+                    .tint(.accentColor)
+                    .focused($isNameFieldFocused)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(CardBackground(isSelected: false))
+        .padding(.horizontal)
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                isNameFieldFocused = true
+            }
+        }
+    }
+
+    private var triggerSection: some View {
+        VStack(spacing: 16) {
+            SectionHeader(title: NSLocalizedString("When to Trigger", comment: "Section header"))
+            Text("Add at least one app or website trigger; otherwise this smart scene stays inactive.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text(NSLocalizedString("Applications", comment: "Label for applications"))
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        loadInstalledApps()
+                        isShowingAppPicker = true
+                    }) {
+                        Label("Add App", systemImage: "plus.circle.fill")
+                            .font(.subheadline)
+                    }
+                    .buttonStyle(.plain)
+                }
+                
+                if selectedAppConfigs.isEmpty {
+                    HStack {
+                        Spacer()
+                        Text(NSLocalizedString("No applications added", comment: "Empty state for applications"))
+                            .foregroundColor(.secondary)
+                            .font(.subheadline)
+                        Spacer()
+                    }
+                    .padding()
+                    .background(CardBackground(isSelected: false))
+                } else {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 50, maximum: 55), spacing: 10)], spacing: 10) {
+                        ForEach(selectedAppConfigs) { appConfig in
+                            VStack {
+                                ZStack(alignment: .topTrailing) {
+                                    if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: appConfig.bundleIdentifier) {
+                                        Image(nsImage: NSWorkspace.shared.icon(forFile: appURL.path))
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 50, height: 50)
+                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                    } else {
+                                        Image(systemName: "app.fill")
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 50, height: 50)
+                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                    }
+                                    
+                                    Button(action: {
+                                        selectedAppConfigs.removeAll(where: { $0.id == appConfig.id })
+                                    }) {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.white)
+                                            .background(Circle().fill(Color.black.opacity(0.6)))
+                                    }
+                                    .buttonStyle(.plain)
+                                    .offset(x: 6, y: -6)
+                                }
+                            }
+                            .frame(width: 50, height: 50)
+                            .background(CardBackground(isSelected: false, cornerRadius: 10))
                         }
-                        if selectedAIModel == nil || selectedAIModel?.isEmpty == true {
-                            selectedAIModel = aiService.currentModel
+                    }
+                }
+            }
+            
+            Divider()
+            
+            VStack(alignment: .leading, spacing: 12) {
+                Text(NSLocalizedString("Websites", comment: "Label for websites"))
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    
+                HStack {
+                    TextField("Enter website URL (e.g., google.com)", text: $newWebsiteURL)
+                        .textFieldStyle(.roundedBorder)
+                        .onSubmit { addWebsite() }
+                    
+                    Button(action: addWebsite) {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(.accentColor)
+                            .font(.system(size: 18))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(newWebsiteURL.isEmpty)
+                }
+                
+                if websiteConfigs.isEmpty {
+                    HStack {
+                        Spacer()
+                        Text(NSLocalizedString("No websites added", comment: "Empty state for websites"))
+                            .foregroundColor(.secondary)
+                            .font(.subheadline)
+                        Spacer()
+                    }
+                    .padding()
+                    .background(CardBackground(isSelected: false))
+                } else {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 100, maximum: 160), spacing: 10)], spacing: 10) {
+                        ForEach(websiteConfigs) { urlConfig in
+                            HStack(spacing: 4) {
+                                Image(systemName: "globe")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.accentColor)
+                                
+                                Text(urlConfig.url)
+                                    .font(.system(size: 11))
+                                    .lineLimit(1)
+                                
+                                Spacer(minLength: 0)
+                                
+                                Button(action: {
+                                    websiteConfigs.removeAll(where: { $0.id == urlConfig.id })
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 9))
+                                        .foregroundColor(.secondary)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 6)
+                            .frame(height: 28)
+                            .background(CardBackground(isSelected: false, cornerRadius: 10))
                         }
-                    } else {
-                        selectedAIProvider = nil
+                    }
+                    .padding(8)
+                }
+            }
+        }
+        .padding()
+        .background(CardBackground(isSelected: false))
+        .padding(.horizontal)
+    }
+
+    private var transcriptionSection: some View {
+        VStack(spacing: 16) {
+            SectionHeader(title: NSLocalizedString("Transcription", comment: "Section header"))
+            let currentModelName = whisperState.currentTranscriptionModel?.displayName ?? "Uses current app setting"
+            let currentLanguage = UserDefaults.standard.string(forKey: "SelectedLanguage") ?? "auto"
+            VStack(alignment: .leading, spacing: 6) {
+                Text(NSLocalizedString("Uses your current transcription settings", comment: "Description for transcription settings"))
+                    .font(.subheadline)
+                    .foregroundColor(.primary)
+                Text("Model: \(currentModelName) • Language: \(currentLanguage == "auto" ? "Auto-detect" : currentLanguage)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(CardBackground(isSelected: false))
+        }
+        .padding()
+        .background(CardBackground(isSelected: false))
+        .padding(.horizontal)
+    }
+
+    private var aiSection: some View {
+        VStack(spacing: 16) {
+            SectionHeader(title: "AI Enhancement")
+            
+            Text(NSLocalizedString("Uses current AI provider/model unless you override below.", comment: "Description for AI settings"))
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            DisclosureGroup(isExpanded: $showAdvancedAISettings) {
+                let providerBinding = Binding<AIProvider>(
+                    get: {
+                        if let providerName = selectedAIProvider,
+                           let provider = AIProvider(rawValue: providerName) {
+                            return provider
+                        }
+                        return aiService.selectedProvider
+                    },
+                    set: { newValue in
+                        selectedAIProvider = newValue.rawValue
+                        aiService.selectedProvider = newValue
                         selectedAIModel = nil
+                    }
+                )
+
+                HStack {
+                    Text("AI Provider")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    if aiService.connectedProviders.isEmpty {
+                        Text("No providers connected")
+                            .foregroundColor(.secondary)
+                            .italic()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    } else {
+                        Picker("", selection: providerBinding) {
+                            ForEach(aiService.connectedProviders, id: \.self) { provider in
+                                Text(provider.rawValue).tag(provider)
+                            }
+                        }
+                        .labelsHidden()
+                        .onChange(of: selectedAIProvider) { _, newValue in
+                            if let provider = newValue.flatMap({ AIProvider(rawValue: $0) }) {
+                                selectedAIModel = provider.defaultModel
+                            }
+                        }
+                        Spacer()
                     }
                 }
                 
-                // Select first prompt if no prompt is selected
-                if selectedPromptId == nil {
-                    selectedPromptId = enhancementService.activePrompts.first?.id
+                let providerName = selectedAIProvider ?? aiService.selectedProvider.rawValue
+                if let provider = AIProvider(rawValue: providerName),
+                   provider != .custom {
+                    
+                    HStack {
+                        Text("AI Model")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        if aiService.availableModels.isEmpty {
+                            Text(provider == .openRouter ? "No models loaded" : "No models available")
+                                .foregroundColor(.secondary)
+                                .italic()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        } else {
+                            let modelBinding = Binding<String>(
+                                get: { 
+                                    if let model = selectedAIModel, !model.isEmpty {
+                                        return model
+                                    }
+                                    return aiService.currentModel
+                                },
+                                set: { newModelValue in
+                                    selectedAIModel = newModelValue
+                                    aiService.selectModel(newModelValue)
+                                }
+                            )
+                            
+                            let models = provider == .openRouter ? aiService.availableModels : provider.availableModels
+                            
+                            Picker("", selection: modelBinding) {
+                                ForEach(models, id: \.self) { model in
+                                    Text(model).tag(model)
+                                }
+                            }
+                            .labelsHidden()
+                            
+                            if provider == .openRouter {
+                                Button(action: {
+                                    Task {
+                                        await aiService.fetchOpenRouterModels()
+                                    }
+                                }) {
+                                    Image(systemName: "arrow.clockwise")
+                                }
+                                .buttonStyle(.borderless)
+                                .help("Refresh models")
+                            }
+                            
+                            Spacer()
+                        }
+                    }
+                }
+            } label: {
+                HStack {
+                    Text(NSLocalizedString("Optional: Override AI provider/model", comment: "Label for advanced AI settings"))
+                    Spacer()
+                    Text(showAdvancedAISettings ? "Hide" : "Show")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .onChange(of: showAdvancedAISettings) { _, expanded in
+                if !expanded {
+                    selectedAIProvider = nil
+                    selectedAIModel = nil
+                } else {
+                    if selectedAIProvider == nil {
+                        selectedAIProvider = aiService.selectedProvider.rawValue
+                    }
+                    if selectedAIModel == nil {
+                        selectedAIModel = aiService.currentModel
+                    }
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Enhancement Prompt")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                PromptSelectionGrid(
+                    prompts: enhancementService.activePrompts,
+                    selectedPromptId: selectedPromptId,
+                    onPromptSelected: { prompt in
+                        selectedPromptId = prompt.id
+                    },
+                    onEditPrompt: { prompt in
+                        selectedPromptForEdit = prompt
+                    },
+                    onDeletePrompt: { prompt in
+                        enhancementService.deletePrompt(prompt)
+                    },
+                    onAddNewPrompt: {
+                        isEditingPrompt = true
+                    }
+                )
             }
         }
+        .padding()
+        .background(CardBackground(isSelected: false))
+        .padding(.horizontal)
+    }
+
+    private var advancedSection: some View {
+        VStack(spacing: 16) {
+            SectionHeader(title: NSLocalizedString("Advanced", comment: "Section header"))
+
+            HStack {
+                Toggle("Auto Send", isOn: $isAutoSendEnabled)
+                
+                InfoTip(
+                    title: "Auto Send",
+                    message: "Automatically presses the Return/Enter key after pasting text. This is useful for chat applications or forms where its not necessary to to make changes to the transcribed text"
+                )
+                
+                Spacer()
+            }
+        }
+        .padding()
+        .background(CardBackground(isSelected: false))
+        .padding(.horizontal)
+    }
+
+    private var saveSection: some View {
+        HStack {
+            Spacer()
+            Button(action: saveConfiguration) {
+                Text(mode.isAdding ? NSLocalizedString("Add Smart Scene", comment: "Button label") : NSLocalizedString("Save Changes", comment: "Button label"))
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(canSave ? Color(red: 0.3, green: 0.7, blue: 0.4) : Color(red: 0.3, green: 0.7, blue: 0.4).opacity(0.5))
+                    )
+            }
+            .buttonStyle(.plain)
+            .disabled(!canSave)
+        }
+        .padding(.horizontal)
     }
     
     private var canSave: Bool {

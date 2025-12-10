@@ -1,6 +1,8 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+/// EnhancementSettingsView manages AI enhancement providers (LLMs for text post-processing).
+/// For transcription models (speech-to-text), see ModelManagementView.
 struct EnhancementSettingsView: View {
     @EnvironmentObject private var enhancementService: AIEnhancementService
     @EnvironmentObject private var aiService: AIService
@@ -98,7 +100,7 @@ struct EnhancementSettingsView: View {
                         }
                     } label: {
                         HStack {
-                            Text("AI Provider Integration")
+                            Text("AI Enhancement Provider Integration")
                                 .font(.headline)
                             
                             Spacer()
@@ -388,6 +390,7 @@ private struct ReorderablePromptGrid: View {
                                     )
                                 )
                                 .toggleStyle(.switch)
+                                .controlSize(.mini)
                                 .font(.caption)
                                 .lineLimit(1)
                                 .truncationMode(.tail)

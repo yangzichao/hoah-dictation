@@ -52,13 +52,12 @@ build: setup
 
 # Run application
 run:
-	@echo "Looking for HoAh.app..."
-	@APP_PATH=$$(find "$(BUILD_DIR)" "$$HOME/Library/Developer/Xcode/DerivedData" -name "HoAh.app" -type d | head -1) && \
-	if [ -n "$$APP_PATH" ]; then \
-		echo "Found app at: $$APP_PATH"; \
+	@APP_PATH="$(BUILD_DIR)/Build/Products/Debug/HoAh.app"; \
+	if [ -d "$$APP_PATH" ]; then \
+		echo "Launching: $$APP_PATH"; \
 		open "$$APP_PATH"; \
 	else \
-		echo "HoAh.app not found. Please run 'make build' first."; \
+		echo "HoAh.app not found at $$APP_PATH. Run 'make build' first."; \
 		exit 1; \
 	fi
 

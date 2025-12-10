@@ -9,14 +9,19 @@ extension WhisperState {
     
     func showRecorderPanel() {
         logger.notice("📱 Showing \(self.recorderType) recorder")
+        guard let appSettings = appSettings else {
+            logger.error("AppSettingsStore missing; cannot show recorder panel")
+            return
+        }
+        
         if recorderType == "notch" {
             if notchWindowManager == nil {
-                notchWindowManager = NotchWindowManager(whisperState: self, recorder: recorder)
+                notchWindowManager = NotchWindowManager(whisperState: self, recorder: recorder, appSettings: appSettings)
             }
             notchWindowManager?.show()
         } else {
             if miniWindowManager == nil {
-                miniWindowManager = MiniWindowManager(whisperState: self, recorder: recorder)
+                miniWindowManager = MiniWindowManager(whisperState: self, recorder: recorder, appSettings: appSettings)
             }
             miniWindowManager?.show()
         }

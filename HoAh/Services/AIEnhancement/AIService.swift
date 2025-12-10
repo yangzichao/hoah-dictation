@@ -1,6 +1,8 @@
 import Foundation
 import Combine
 
+// AIProvider enum contains only AI enhancement providers (for post-processing transcribed text).
+// Transcription-only providers (ElevenLabs, Soniox) are managed separately in WhisperState.
 enum AIProvider: String, CaseIterable {
     case awsBedrock = "AWS Bedrock"
     case cerebras = "Cerebras"
@@ -10,8 +12,6 @@ enum AIProvider: String, CaseIterable {
     case openAI = "OpenAI"
     case openRouter = "OpenRouter"
     case mistral = "Mistral"
-    case elevenLabs = "ElevenLabs"
-    case soniox = "Soniox"
     case custom = "Custom"
     
     
@@ -31,10 +31,6 @@ enum AIProvider: String, CaseIterable {
             return "https://openrouter.ai/api/v1/chat/completions"
         case .mistral:
             return "https://api.mistral.ai/v1/chat/completions"
-        case .elevenLabs:
-            return "https://api.elevenlabs.io/v1/speech-to-text"
-        case .soniox:
-            return "https://api.soniox.com/v1"
         case .custom:
             return UserDefaults.standard.string(forKey: "customProviderBaseURL") ?? ""
         case .awsBedrock:
@@ -57,10 +53,6 @@ enum AIProvider: String, CaseIterable {
             return "gpt-5.1"
         case .mistral:
             return "mistral-large-latest"
-        case .elevenLabs:
-            return "scribe_v2"
-        case .soniox:
-            return "stt-async-v3"
         case .custom:
             return UserDefaults.standard.string(forKey: "customProviderModel") ?? ""
         case .openRouter:
@@ -119,10 +111,6 @@ enum AIProvider: String, CaseIterable {
                 "mistral-small-latest",
                 "mistral-saba-latest"
             ]
-        case .elevenLabs:
-            return ["scribe_v2", "scribe_v1_experimental"]
-        case .soniox:
-            return ["stt-async-v3"]
         case .custom:
             return []
         case .openRouter:
@@ -315,10 +303,55 @@ class AIService: ObservableObject {
             self.legacySelectedProvider = .gemini
         }
         
+        // Migration: Check for misplaced transcription provider API keys
+        migrateTranscriptionProviderKeys()
+        
+        // Debug assertion: Ensure all AIProvider cases are enhancement providers
+        #if DEBUG
+        for provider in AIProvider.allCases {
+            assert(isValidEnhancementProvider(provider.rawValue),
+                   "AIProvider enum contains invalid provider: \(provider.rawValue)")
+        }
+        #endif
+        
         refreshAPIKeyState()
         
         loadSavedModelSelections()
         loadSavedOpenRouterModels()
+    }
+    
+    /// Migrates any misplaced transcription provider API keys from AIService storage
+    /// This handles backward compatibility for users who may have configured
+    /// ElevenLabs or Soniox through the old AIService interface
+    private func migrateTranscriptionProviderKeys() {
+        let transcriptionProviders = ["ElevenLabs", "Soniox"]
+        
+        for providerName in transcriptionProviders {
+            // Check for legacy API keys in UserDefaults
+            if let legacyKey = userDefaults.string(forKey: "\(providerName)APIKey"), !legacyKey.isEmpty {
+                print("⚠️ Migration: Found \(providerName) API key in AIService storage.")
+                print("   \(providerName) is a transcription provider and should be configured in the AI Models tab.")
+                print("   The key has been left in place but will not be used by AIService.")
+                // Note: We don't remove the key here to avoid data loss
+                // The transcription service can pick it up if needed
+            }
+            
+            // Check for keys in CloudAPIKeyManager
+            let keys = keyManager.keys(for: providerName)
+            if !keys.isEmpty {
+                print("⚠️ Migration: Found \(keys.count) \(providerName) API key(s) in CloudAPIKeyManager.")
+                print("   \(providerName) is a transcription provider and should be configured in the AI Models tab.")
+                // Note: We don't remove the keys here to avoid data loss
+            }
+        }
+        
+        // If the selected provider was a transcription provider, reset to default
+        if let savedProvider = userDefaults.string(forKey: "selectedAIProvider"),
+           transcriptionProviders.contains(savedProvider) {
+            print("⚠️ Migration: Selected provider was \(savedProvider), resetting to Gemini.")
+            userDefaults.set(AIProvider.gemini.rawValue, forKey: "selectedAIProvider")
+            legacySelectedProvider = .gemini
+        }
     }
     
     /// Configure with AppSettingsStore for centralized state management
@@ -434,9 +467,28 @@ class AIService: ObservableObject {
         NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
     }
     
+    /// Validates that the provider is an enhancement provider (not a transcription provider)
+    /// - Parameter providerName: The raw value of the provider to validate
+    /// - Returns: True if the provider is valid for AI enhancement, false otherwise
+    func isValidEnhancementProvider(_ providerName: String) -> Bool {
+        // Check if the provider exists in the AIProvider enum
+        guard AIProvider(rawValue: providerName) != nil else {
+            return false
+        }
+        // All providers in AIProvider enum are enhancement providers
+        // (transcription-only providers have been removed)
+        return true
+    }
+    
     func saveAPIKey(_ key: String, completion: @escaping (Bool, String?) -> Void) {
         guard selectedProvider.requiresAPIKey else {
             completion(true, nil)
+            return
+        }
+        
+        // Validate that this is an enhancement provider
+        guard isValidEnhancementProvider(selectedProvider.rawValue) else {
+            completion(false, "Invalid provider: This provider is not available for AI enhancement.")
             return
         }
         
@@ -484,12 +536,8 @@ class AIService: ObservableObject {
         switch selectedProvider {
         case .anthropic:
             verifyAnthropicAPIKey(key, completion: completion)
-        case .elevenLabs:
-            verifyElevenLabsAPIKey(key, completion: completion)
         case .mistral:
             verifyMistralAPIKey(key, completion: completion)
-        case .soniox:
-            verifySonioxAPIKey(key, completion: completion)
         default:
             verifyOpenAICompatibleAPIKey(key, completion: completion)
         }
@@ -613,28 +661,6 @@ class AIService: ObservableObject {
         }.resume()
     }
     
-    private func verifyElevenLabsAPIKey(_ key: String, completion: @escaping (Bool, String?) -> Void) {
-        let url = URL(string: "https://api.elevenlabs.io/v1/user")!
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue(key, forHTTPHeaderField: "xi-api-key")
-
-        URLSession.shared.dataTask(with: request) { data, response, _ in
-            let isValid = (response as? HTTPURLResponse)?.statusCode == 200
-
-            if let data = data, let body = String(data: data, encoding: .utf8) {
-                if !isValid {
-                    completion(false, body)
-                    return
-                }
-            }
-
-            completion(isValid, nil)
-        }.resume()
-    }
-    
     private func verifyMistralAPIKey(_ key: String, completion: @escaping (Bool, String?) -> Void) {
         let url = URL(string: "https://api.mistral.ai/v1/models")!
         var request = URLRequest(url: url)
@@ -745,38 +771,6 @@ class AIService: ObservableObject {
         }.resume()
     }
 
-    private func verifySonioxAPIKey(_ key: String, completion: @escaping (Bool, String?) -> Void) {
-        guard let url = URL(string: "https://api.soniox.com/v1/files") else {
-            completion(false, nil)
-            return
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                completion(false, error.localizedDescription)
-                return
-            }
-            
-            if let httpResponse = response as? HTTPURLResponse {
-                if httpResponse.statusCode == 200 {
-                    completion(true, nil)
-                } else {
-                    if let data = data, let responseString = String(data: data, encoding: .utf8) {
-                        completion(false, responseString)
-                    } else {
-                        completion(false, nil)
-                    }
-                }
-            } else {
-                completion(false, nil)
-            }
-        }.resume()
-    }
-    
     func fetchOpenRouterModels() async {
         let url = URL(string: "https://openrouter.ai/api/v1/models")!
         var request = URLRequest(url: url)

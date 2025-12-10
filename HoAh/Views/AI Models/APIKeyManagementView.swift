@@ -1,5 +1,8 @@
 import SwiftUI
 
+/// APIKeyManagementView manages API keys for AI enhancement providers only.
+/// This view is used within EnhancementSettingsView (AI Agents tab).
+/// Transcription provider configuration is handled separately in ModelManagementView.
 struct APIKeyManagementView: View {
     @EnvironmentObject private var aiService: AIService
     @State private var apiKey: String = ""
@@ -13,10 +16,22 @@ struct APIKeyManagementView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Provider Selection
+            // Header with explanation
+            VStack(alignment: .leading, spacing: 4) {
+                Text("AI Enhancement Provider Configuration")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                Text("Configure LLM providers for post-processing transcribed text. For transcription models, use the AI Models tab.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Divider()
+            
+            // Provider Selection - AI Enhancement Providers Only
             HStack {
-                Picker("AI Provider", selection: $aiService.selectedProvider) {
-                    ForEach(AIProvider.allCases.filter { $0 != .elevenLabs && $0 != .soniox }, id: \.self) { provider in
+                Picker("AI Enhancement Provider", selection: $aiService.selectedProvider) {
+                    ForEach(AIProvider.allCases, id: \.self) { provider in
                         Text(provider.rawValue).tag(provider)
                     }
                 }
@@ -78,7 +93,7 @@ struct APIKeyManagementView: View {
             } else if !aiService.availableModels.isEmpty &&
                         aiService.selectedProvider != .custom {
                 HStack {
-                    Picker("Model", selection: Binding(
+                    Picker("Enhancement Model", selection: Binding(
                         get: { aiService.currentModel },
                         set: { aiService.selectModel($0) }
                     )) {
@@ -445,10 +460,6 @@ struct APIKeyManagementView: View {
                                     URL(string: "https://console.anthropic.com/settings/keys")!
                                 case .mistral:
                                     URL(string: "https://console.mistral.ai/api-keys")!
-                                case .elevenLabs:
-                                    URL(string: "https://elevenlabs.io/speech-synthesis")!
-                                case .soniox:
-                                    URL(string: "https://console.soniox.com/")!
                                 case .custom:
                                     URL(string: "")! // not used
                                 case .openRouter:

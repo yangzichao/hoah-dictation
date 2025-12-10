@@ -11,12 +11,12 @@ enum ModelFilter: String, CaseIterable, Identifiable {
     var id: String { self.rawValue }
 }
 
+/// ModelManagementView manages transcription models (speech-to-text).
+/// For AI enhancement providers (text post-processing), see EnhancementSettingsView.
 struct ModelManagementView: View {
     @ObservedObject var whisperState: WhisperState
     @State private var customModelToEdit: CustomCloudModel?
-    @StateObject private var aiService = AIService()
     @StateObject private var customModelManager = CustomModelManager.shared
-    @EnvironmentObject private var enhancementService: AIEnhancementService
     @Environment(\.modelContext) private var modelContext
     @StateObject private var whisperPrompt = WhisperPrompt()
     @ObservedObject private var warmupCoordinator = WhisperModelWarmupCoordinator.shared
@@ -53,7 +53,7 @@ struct ModelManagementView: View {
     
     private var defaultModelSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Default Model")
+            Text("Default Transcription Model")
                 .font(.headline)
                 .foregroundColor(.secondary)
             Text(whisperState.currentTranscriptionModel?.displayName ?? String(localized: "No model selected"))

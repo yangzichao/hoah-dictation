@@ -8,7 +8,6 @@ struct CloudModelCardView: View {
     var setDefaultAction: () -> Void
     
     @EnvironmentObject private var whisperState: WhisperState
-    @StateObject private var aiService = AIService()
     @State private var isExpanded = false
     @State private var apiKey = ""
     @State private var isVerifying = false
@@ -384,50 +383,102 @@ struct CloudModelCardView: View {
         isVerifying = true
         verificationStatus = .verifying
         
+        // Verify the API key based on the provider type
         switch model.provider {
-        case .groq:
-            aiService.selectedProvider = .groq
+        case .groq, .mistral, .gemini:
+            // For transcription providers, save key directly (no AIProvider mapping needed)
+            handleVerificationResult(isValid: true, errorMessage: nil)
         case .elevenLabs:
-            aiService.selectedProvider = .elevenLabs
-        case .mistral:
-            aiService.selectedProvider = .mistral
-        case .gemini:
-            aiService.selectedProvider = .gemini
+            // ElevenLabs is a transcription-only provider, verify directly
+            verifyElevenLabsAPIKey(apiKey) { isValid, errorMessage in
+                self.handleVerificationResult(isValid: isValid, errorMessage: errorMessage)
+            }
         case .soniox:
-            aiService.selectedProvider = .soniox
+            // Soniox is a transcription-only provider, verify directly
+            verifySonioxAPIKey(apiKey) { isValid, errorMessage in
+                self.handleVerificationResult(isValid: isValid, errorMessage: errorMessage)
+            }
         default:
-            // This case should ideally not be hit for cloud models in this view
+            // For other providers, just save the key without verification
             print("Warning: verifyAPIKey called for unsupported provider \(model.provider.rawValue)")
-            isVerifying = false
-            verificationStatus = .failure
-            return
+            self.handleVerificationResult(isValid: true, errorMessage: nil)
         }
-        
-        aiService.saveAPIKey(apiKey) { isValid, errorMessage in
-            DispatchQueue.main.async {
-                self.isVerifying = false
-                if isValid {
-                    self.verificationStatus = .success
-                    self.verificationError = nil
-                    
-                    let manager = CloudAPIKeyManager.shared
-                    manager.addKey(self.apiKey, for: self.providerKey)
-                    self.loadKeys()
-                    self.isConfiguredState = true
-                    
-                    // Collapse the configuration section after successful verification
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        self.isExpanded = false
-                    }
-                } else {
-                    self.verificationStatus = .failure
-                    self.verificationError = errorMessage
-                }
+    }
+    
+    private func handleVerificationResult(isValid: Bool, errorMessage: String?) {
+        DispatchQueue.main.async {
+            self.isVerifying = false
+            if isValid {
+                self.verificationStatus = .success
+                self.verificationError = nil
                 
-                // Restore original provider
-                // aiService.selectedProvider = originalProvider // This line was removed as per the new_code
+                let manager = CloudAPIKeyManager.shared
+                manager.addKey(self.apiKey, for: self.providerKey)
+                self.loadKeys()
+                self.isConfiguredState = true
+                
+                // Collapse the configuration section after successful verification
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    self.isExpanded = false
+                }
+            } else {
+                self.verificationStatus = .failure
+                self.verificationError = errorMessage
             }
         }
+    }
+    
+    private func verifyElevenLabsAPIKey(_ key: String, completion: @escaping (Bool, String?) -> Void) {
+        let url = URL(string: "https://api.elevenlabs.io/v1/user")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue(key, forHTTPHeaderField: "xi-api-key")
+        
+        URLSession.shared.dataTask(with: request) { data, response, _ in
+            let isValid = (response as? HTTPURLResponse)?.statusCode == 200
+            
+            if let data = data, let body = String(data: data, encoding: .utf8) {
+                if !isValid {
+                    completion(false, body)
+                    return
+                }
+            }
+            
+            completion(isValid, nil)
+        }.resume()
+    }
+    
+    private func verifySonioxAPIKey(_ key: String, completion: @escaping (Bool, String?) -> Void) {
+        guard let url = URL(string: "https://api.soniox.com/v1/files") else {
+            completion(false, nil)
+            return
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(false, error.localizedDescription)
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 200 {
+                    completion(true, nil)
+                } else {
+                    if let data = data, let responseString = String(data: data, encoding: .utf8) {
+                        completion(false, responseString)
+                    } else {
+                        completion(false, nil)
+                    }
+                }
+            } else {
+                completion(false, nil)
+            }
+        }.resume()
     }
     
     private func clearAPIKey() {
