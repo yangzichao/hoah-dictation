@@ -267,7 +267,7 @@ class AIService: ObservableObject {
     /// This handles backward compatibility for users who may have configured
     /// ElevenLabs or Soniox through the old AIService interface
     private func migrateTranscriptionProviderKeys() {
-        let transcriptionProviders = ["ElevenLabs", "Soniox"]
+        let transcriptionProviders = ["ElevenLabs"]
         
         for providerName in transcriptionProviders {
             // Check for legacy API keys in UserDefaults

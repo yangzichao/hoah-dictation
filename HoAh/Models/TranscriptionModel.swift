@@ -6,7 +6,6 @@ enum ModelProvider: String, Codable, Hashable, CaseIterable {
     case groq = "Groq"
     case elevenLabs = "ElevenLabs"
     case gemini = "Gemini"
-    case soniox = "Soniox"
     case custom = "Custom"
     case nativeApple = "Native Apple"
     // Future providers can be added here

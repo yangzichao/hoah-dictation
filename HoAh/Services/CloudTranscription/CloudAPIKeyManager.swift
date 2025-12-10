@@ -183,7 +183,6 @@ final class CloudAPIKeyManager {
             "GROQ",
             "ElevenLabs",
             "Gemini",
-            "Soniox",
             "Anthropic",
             "OpenAI",
             "OpenRouter",

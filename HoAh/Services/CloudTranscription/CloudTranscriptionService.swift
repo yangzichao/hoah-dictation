@@ -39,7 +39,6 @@ class CloudTranscriptionService: TranscriptionService {
     private lazy var elevenLabsService = ElevenLabsTranscriptionService()
     private lazy var geminiService = GeminiTranscriptionService()
     private lazy var openAICompatibleService = OpenAICompatibleTranscriptionService()
-    private lazy var sonioxService = SonioxTranscriptionService()
     
     func transcribe(audioURL: URL, model: any TranscriptionModel) async throws -> String {
         let providerKey = providerKeyString(for: model.provider)
@@ -106,8 +105,6 @@ class CloudTranscriptionService: TranscriptionService {
             return try await elevenLabsService.transcribe(audioURL: audioURL, model: model)
         case .gemini:
             return try await geminiService.transcribe(audioURL: audioURL, model: model)
-        case .soniox:
-            return try await sonioxService.transcribe(audioURL: audioURL, model: model)
         case .custom:
             guard let customModel = model as? CustomCloudModel else {
                 throw CloudTranscriptionError.unsupportedProvider
@@ -126,8 +123,6 @@ class CloudTranscriptionService: TranscriptionService {
             return "ElevenLabs"
         case .gemini:
             return "Gemini"
-        case .soniox:
-            return "Soniox"
         default:
             return provider.rawValue
         }
@@ -135,7 +130,7 @@ class CloudTranscriptionService: TranscriptionService {
     
     private func usesManagedAPIKeys(for provider: ModelProvider) -> Bool {
         switch provider {
-        case .groq, .elevenLabs, .gemini, .soniox:
+        case .groq, .elevenLabs, .gemini:
             return true
         default:
             return false

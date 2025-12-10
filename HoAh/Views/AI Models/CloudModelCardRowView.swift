@@ -33,8 +33,6 @@ struct CloudModelCardView: View {
             return "ElevenLabs"
         case .gemini:
             return "Gemini"
-        case .soniox:
-            return "Soniox"
         default:
             return model.provider.rawValue
         }
@@ -391,11 +389,6 @@ struct CloudModelCardView: View {
             verifyElevenLabsAPIKey(apiKey) { isValid, errorMessage in
                 self.handleVerificationResult(isValid: isValid, errorMessage: errorMessage)
             }
-        case .soniox:
-            // Soniox is a transcription-only provider, verify directly
-            verifySonioxAPIKey(apiKey) { isValid, errorMessage in
-                self.handleVerificationResult(isValid: isValid, errorMessage: errorMessage)
-            }
         default:
             // For other providers, just save the key without verification
             print("Warning: verifyAPIKey called for unsupported provider \(model.provider.rawValue)")
@@ -444,38 +437,6 @@ struct CloudModelCardView: View {
             }
             
             completion(isValid, nil)
-        }.resume()
-    }
-    
-    private func verifySonioxAPIKey(_ key: String, completion: @escaping (Bool, String?) -> Void) {
-        guard let url = URL(string: "https://api.soniox.com/v1/files") else {
-            completion(false, nil)
-            return
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                completion(false, error.localizedDescription)
-                return
-            }
-            
-            if let httpResponse = response as? HTTPURLResponse {
-                if httpResponse.statusCode == 200 {
-                    completion(true, nil)
-                } else {
-                    if let data = data, let responseString = String(data: data, encoding: .utf8) {
-                        completion(false, responseString)
-                    } else {
-                        completion(false, nil)
-                    }
-                }
-            } else {
-                completion(false, nil)
-            }
         }.resume()
     }
     

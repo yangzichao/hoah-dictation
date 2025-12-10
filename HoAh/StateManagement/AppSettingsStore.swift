@@ -332,7 +332,7 @@ class AppSettingsStore: ObservableObject {
     /// Validates AI provider and corrects if invalid
     private func validateProvider() {
         let validProviders = ["AWS Bedrock", "Cerebras", "GROQ", "Gemini", "Anthropic", 
-                             "OpenAI", "OpenRouter", "ElevenLabs", "Soniox", "Custom"]
+                             "OpenAI", "OpenRouter", "ElevenLabs", "Custom"]
         if !validProviders.contains(selectedAIProvider) {
             logger.warning("Invalid provider '\(self.selectedAIProvider)', resetting to 'gemini'")
             selectedAIProvider = "gemini"

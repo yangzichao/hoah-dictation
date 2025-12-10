@@ -274,10 +274,10 @@ struct ModelManagementView: View {
         switch selectedFilter {
         case .recommended:
             return whisperState.allAvailableModels.filter {
-                let recommendedNames = ["ggml-large-v3-turbo", "scribe_v2", "ggml-base", "whisper-large-v3-turbo"]
+                let recommendedNames = ["ggml-large-v3-turbo", "scribe_v2", "whisper-large-v3-turbo"]
                 return recommendedNames.contains($0.name)
             }.sorted { model1, model2 in
-                let recommendedOrder = ["ggml-large-v3-turbo", "scribe_v2", "ggml-base", "whisper-large-v3-turbo"]
+                let recommendedOrder = ["ggml-large-v3-turbo", "scribe_v2", "whisper-large-v3-turbo"]
                 let index1 = recommendedOrder.firstIndex(of: model1.name) ?? Int.max
                 let index2 = recommendedOrder.firstIndex(of: model2.name) ?? Int.max
                 return index1 < index2
@@ -285,7 +285,7 @@ struct ModelManagementView: View {
         case .local:
             return whisperState.allAvailableModels.filter { $0.provider == .local || $0.provider == .nativeApple }
         case .cloud:
-            let cloudProviders: [ModelProvider] = [.groq, .elevenLabs, .gemini, .soniox]
+            let cloudProviders: [ModelProvider] = [.groq, .elevenLabs, .gemini]
             return whisperState.allAvailableModels.filter { cloudProviders.contains($0.provider) }
         case .custom:
             return whisperState.allAvailableModels.filter { $0.provider == .custom }

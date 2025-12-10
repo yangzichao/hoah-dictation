@@ -181,7 +181,7 @@ class UserDefaultsStorage: SettingsStorage {
         // Migrate selected models per provider
         // Note: We need to check all possible providers
         let providerNames = ["AWS Bedrock", "Cerebras", "GROQ", "Gemini", "Anthropic", 
-                            "OpenAI", "OpenRouter", "ElevenLabs", "Soniox", "Custom"]
+                            "OpenAI", "OpenRouter", "ElevenLabs", "Custom"]
         for providerName in providerNames {
             let key = "\(providerName)SelectedModel"
             if let model = userDefaults.string(forKey: key) {
