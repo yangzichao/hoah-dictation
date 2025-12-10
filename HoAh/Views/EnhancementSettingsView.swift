@@ -130,25 +130,29 @@ struct EnhancementSettingsView: View {
                     .padding()
                     .background(CardBackground(isSelected: false))
                     
-                    // 3. Enhancement Modes & Assistant Section
+                    // 3. Default Enhancement Mode Card
                     VStack(alignment: .leading, spacing: 16) {
-                        // Auto enhancement (manual selection) section
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text("Auto Enhancement Modes")
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Default Auto-Enhancement")
                                     .font(.headline)
-                                Spacer()
-                                Button("Reset Built-in Prompts") {
-                                    enhancementService.resetPredefinedPrompts()
-                                }
-                                .buttonStyle(.bordered)
-                                .controlSize(.small)
+                                Text("Select the default AI behavior applied to every dictation.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
                             
-                            Text("\(NSLocalizedString("ai_enhancement_auto_prompt_hint", comment: "")) \(activeAutoPromptTitle).")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            Spacer()
+                            
+                            Button("Reset Built-in Prompts") {
+                                enhancementService.resetPredefinedPrompts()
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
                         }
+                        
+                        Text("\(NSLocalizedString("ai_enhancement_auto_prompt_hint", comment: "")) \(activeAutoPromptTitle).")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                         
                         ReorderablePromptGrid(
                             boundPrompts: $enhancementService.activePrompts,
@@ -167,47 +171,53 @@ struct EnhancementSettingsView: View {
                                 isEditingPrompt = true
                             }
                         )
-
-                        Divider()
-
-                        // Trigger-based prompts section
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack(spacing: 12) {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Prompt Triggers")
-                                        .font(.headline)
-                                    Text("Auto-activate prompts when their trigger words appear.")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                
-                                Spacer()
-                                
-                                Toggle(
-                                    "Enable Prompt Triggers",
-                                    isOn: Binding(
-                                        get: { appSettings.arePromptTriggersEnabled },
-                                        set: { newValue in
-                                            if newValue {
-                                                appSettings.arePromptTriggersEnabled = true
-                                                if !appSettings.isAIEnhancementEnabled {
-                                                    appSettings.isAIEnhancementEnabled = true
-                                                }
-                                            } else {
-                                                appSettings.arePromptTriggersEnabled = false
-                                                enhancementService.disableAllTriggerPrompts()
-                                            }
-                                        }
-                                    )
-                                )
-                                .toggleStyle(.switch)
-                            }
-
-                            if !appSettings.isAIEnhancementEnabled {
-                                Text("Auto enhancement is off, so triggers are inactive until you turn it on.")
-                                    .font(.caption2)
+                    }
+                    .padding()
+                    .background(CardBackground(isSelected: false))
+                    
+                    // 4. Smart Triggers Card
+                    VStack(alignment: .leading, spacing: 16) {
+                        // Header with Master Toggle
+                        HStack(alignment: .center) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Prompt Triggers")
+                                    .font(.headline)
+                                Text("Automatically switch prompts when specific words are detected.")
+                                    .font(.caption)
                                     .foregroundColor(.secondary)
                             }
+                            
+                            Spacer()
+                            
+                            Toggle(
+                                "",
+                                isOn: Binding(
+                                    get: { appSettings.arePromptTriggersEnabled },
+                                    set: { newValue in
+                                        if newValue {
+                                            appSettings.arePromptTriggersEnabled = true
+                                            if !appSettings.isAIEnhancementEnabled {
+                                                appSettings.isAIEnhancementEnabled = true
+                                            }
+                                        } else {
+                                            appSettings.arePromptTriggersEnabled = false
+                                            enhancementService.disableAllTriggerPrompts()
+                                        }
+                                    }
+                                )
+                            )
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .scaleEffect(0.9) // Match typical header toggle size
+                        }
+                        
+                        Divider()
+
+                        if !appSettings.isAIEnhancementEnabled {
+                            Text("Auto enhancement is off, so triggers are inactive until you turn it on.")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                                .padding(.vertical, 4)
                         }
                         
                         ReorderablePromptGrid(

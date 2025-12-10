@@ -220,19 +220,182 @@ struct APIKeyManagementView: View {
                 ]
 
                 let presetModels = [
+                    // Claude Sonnet Series
                     "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                    "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+                    "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+                    
+                    // Claude Opus
                     "us.anthropic.claude-opus-4-20250514-v1:0",
+                    
+                    // Claude Haiku
+                    "us.anthropic.claude-haiku-4-20250514-v1:0",
+                    
+                    // Other Models
                     "openai.gpt-oss-safeguard-120b",
                     "us.amazon.nova-pro-v1:0"
                 ]
 
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 20) {
                     Text("AWS Bedrock Configuration")
                         .font(.headline)
                     
-                    VStack(alignment: .leading, spacing: 8) {
-                        SecureField("API Key (ABSKQmVkcm9ja0FQSUtleS1...)", text: $aiService.bedrockApiKey)
-                            .textFieldStyle(.roundedBorder)
+                    // API Keys Management Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("🔑 API Keys")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            Spacer()
+                            Button {
+                                let _ = aiService.rotateAPIKey()
+                                reloadKeys()
+                            } label: {
+                                Label("Next Key", systemImage: "arrow.triangle.2.circlepath")
+                            }
+                            .disabled(keyEntries.count <= 1)
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                        }
+                        
+                        if keyEntries.isEmpty {
+                            Text("No API keys added yet. Add one below.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        } else {
+                            VStack(spacing: 8) {
+                                ForEach(keyEntries) { entry in
+                                    let isActive = entry.id == activeKeyId
+                                    HStack {
+                                        Text(maskKey(entry.value))
+                                            .font(.system(.body, design: .monospaced))
+                                            .foregroundColor(isActive ? .primary : .secondary)
+                                        
+                                        if let lastUsed = entry.lastUsedAt {
+                                            Text("Last used \(relativeDate(lastUsed))")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        if isActive {
+                                            Label("Active", systemImage: "checkmark.circle.fill")
+                                                .font(.caption)
+                                                .foregroundColor(.green)
+                                        } else {
+                                            Button("Use") {
+                                                aiService.selectAPIKey(id: entry.id)
+                                                reloadKeys()
+                                            }
+                                            .buttonStyle(.borderless)
+                                        }
+                                        
+                                        Button(role: .destructive) {
+                                            CloudAPIKeyManager.shared.removeKey(id: entry.id, for: aiService.selectedProvider.rawValue)
+                                            reloadKeys()
+                                        } label: {
+                                            Image(systemName: "trash")
+                                        }
+                                        .buttonStyle(.borderless)
+                                        .foregroundColor(.red)
+                                    }
+                                    .padding(8)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(isActive ? Color.accentColor.opacity(0.08) : Color.secondary.opacity(0.05))
+                                    )
+                                }
+                            }
+                        }
+                        
+                        Divider()
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Add New API Key")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            
+                            SecureField("API Key (ABSKQmVkcm9ja0FQSUtleS1...)", text: $apiKey)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.system(.body, design: .monospaced))
+                            
+                            HStack {
+                                Button(action: {
+                                    isVerifying = true
+                                    // Verify with current region and model settings
+                                    aiService.verifyBedrockConnection(
+                                        apiKey: apiKey,
+                                        region: aiService.bedrockRegion,
+                                        modelId: aiService.bedrockModelId
+                                    ) { success, message in
+                                        isVerifying = false
+                                        if success {
+                                            // Just save the key, region and model are managed separately
+                                            let entry = CloudAPIKeyManager.shared.addKey(apiKey, for: aiService.selectedProvider.rawValue)
+                                            CloudAPIKeyManager.shared.selectKey(id: entry.id, for: aiService.selectedProvider.rawValue)
+                                            apiKey = ""
+                                            reloadKeys()
+                                            alertMessage = "✅ API Key verified and saved successfully!"
+                                        } else {
+                                            alertMessage = "❌ " + (message ?? "Verification failed.")
+                                        }
+                                        showAlert = true
+                                    }
+                                }) {
+                                    HStack {
+                                        if isVerifying {
+                                            ProgressView()
+                                                .scaleEffect(0.5)
+                                                .frame(width: 16, height: 16)
+                                        } else {
+                                            Image(systemName: "checkmark.circle.fill")
+                                        }
+                                        Text("Verify and Save")
+                                    }
+                                }
+                                .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                                
+                                Spacer()
+                                
+                                Button(role: .destructive) {
+                                    aiService.clearAPIKey()
+                                    reloadKeys()
+                                } label: {
+                                    Label("Remove All", systemImage: "trash")
+                                }
+                                .buttonStyle(.borderless)
+                                .foregroundColor(.red)
+                                .disabled(keyEntries.isEmpty)
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color.secondary.opacity(0.05))
+                    .cornerRadius(10)
+                    
+                    // Configuration Section (Region + Model)
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("🌍 Current Configuration")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            Spacer()
+                            if aiService.isAPIKeyValid {
+                                HStack(spacing: 4) {
+                                    Circle()
+                                        .fill(Color.green)
+                                        .frame(width: 8, height: 8)
+                                    Text("Connected")
+                                        .font(.caption)
+                                        .foregroundColor(.green)
+                                }
+                            }
+                        }
+                        
+                        Text("Applies to the active API key above")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                         
                         HStack {
                             Picker("Region", selection: $bedrockRegionSelection) {
@@ -263,58 +426,67 @@ struct APIKeyManagementView: View {
                         .onChange(of: bedrockModelSelection) { _, newValue in
                             aiService.bedrockModelId = newValue
                         }
-                    }
-                    
-                    HStack {
-                        Button(action: {
-                            isVerifying = true
-                            aiService.verifyBedrockConnection(
-                                apiKey: aiService.bedrockApiKey,
-                                region: aiService.bedrockRegion,
-                                modelId: aiService.bedrockModelId
-                            ) { success, message in
-                                isVerifying = false
-                                if success {
-                                    // Save configuration after successful test
-                                    aiService.saveBedrockConfig(
-                                        apiKey: aiService.bedrockApiKey,
-                                        region: aiService.bedrockRegion,
-                                        modelId: aiService.bedrockModelId
-                                    )
-                                    aiService.bedrockApiKey = ""
-                                    alertMessage = "✅ Connection successful! Configuration saved."
-                                } else {
-                                    alertMessage = "❌ " + (message ?? "Connection failed.")
-                                }
-                                showAlert = true
-                            }
-                        }) {
-                            HStack {
-                                if isVerifying {
-                                    ProgressView()
-                                        .scaleEffect(0.7)
-                                        .frame(width: 16, height: 16)
-                                } else {
-                                    Image(systemName: "bolt.horizontal.circle.fill")
-                                }
-                                Text(isVerifying ? "Testing..." : "Test & Save")
-                            }
-                        }
-                        .disabled(aiService.bedrockApiKey.isEmpty || aiService.bedrockRegion.isEmpty || aiService.bedrockModelId.isEmpty || isVerifying)
-                        .buttonStyle(.borderedProminent)
                         
-                        Spacer()
-                        
-                        if aiService.isAPIKeyValid && aiService.selectedProvider == .awsBedrock {
-                            Button(role: .destructive) {
-                                aiService.clearAPIKey()
-                            } label: {
-                                Label("Clear", systemImage: "trash")
-                                    .foregroundColor(.red)
+                        HStack {
+                            Button(action: {
+                                guard let activeKey = CloudAPIKeyManager.shared.activeKey(for: aiService.selectedProvider.rawValue) else {
+                                    alertMessage = "⚠️ Please add and select an API key first."
+                                    showAlert = true
+                                    return
+                                }
+                                
+                                isVerifying = true
+                                aiService.verifyBedrockConnection(
+                                    apiKey: activeKey.value,
+                                    region: aiService.bedrockRegion,
+                                    modelId: aiService.bedrockModelId
+                                ) { success, message in
+                                    isVerifying = false
+                                    if success {
+                                        // Save the configuration
+                                        aiService.saveBedrockConfig(
+                                            apiKey: activeKey.value,
+                                            region: aiService.bedrockRegion,
+                                            modelId: aiService.bedrockModelId
+                                        )
+                                        alertMessage = "✅ Connection successful! Configuration saved."
+                                    } else {
+                                        alertMessage = "❌ " + (message ?? "Connection failed.")
+                                    }
+                                    showAlert = true
+                                }
+                            }) {
+                                HStack {
+                                    if isVerifying {
+                                        ProgressView()
+                                            .scaleEffect(0.7)
+                                            .frame(width: 16, height: 16)
+                                    } else {
+                                        Image(systemName: "bolt.horizontal.circle.fill")
+                                    }
+                                    Text(isVerifying ? "Testing..." : "Test Connection")
+                                }
                             }
-                            .buttonStyle(.borderless)
+                            .disabled(keyEntries.isEmpty || isVerifying)
+                            .buttonStyle(.borderedProminent)
+                            
+                            Spacer()
                         }
+                        
+                        // Info message
+                        HStack(spacing: 6) {
+                            Image(systemName: "info.circle")
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                            Text("The same API key works across all regions and models")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.top, 4)
                     }
+                    .padding()
+                    .background(Color.secondary.opacity(0.05))
+                    .cornerRadius(10)
                 }
                 .padding()
                 .background(Color.secondary.opacity(0.03))
