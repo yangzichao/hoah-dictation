@@ -11,9 +11,8 @@ enum PredefinedPrompts {
     static let defaultPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
     static let polishPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000003")!
     static let summarizePromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000005")!
-    static let emailDraftPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000007")!
     static let formalPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000009")!
-    static let terminalPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000011")!
+
     static let todoPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000013")!
     static let professionalPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000015")!
     static let vibeCodingPromptId = UUID(uuidString: "00000000-0000-0000-0000-000000000017")!
@@ -217,45 +216,7 @@ Create a crisp summary in 3–5 bullet points.
                 ],
                 useSystemInstructions: true
             ),
-            CustomPrompt(
-                id: emailDraftPromptId,
-                title: t("prompt_email_title"),
-                promptText: """
-Rewrite as a concise, polite, professional email with a clear greeting and sign-off.
-- Maintain the original language (Chinese/English/mixed) unless the user explicitly asked to translate.
-- Fix obvious mistranscriptions (homophones/near-homophones, ASR/IME slips) using context; keep English names/brands/technical terms exactly as spoken.
-- Keep all facts intact (people, dates, numbers, commitments). Do not add or remove information.
-- Tone: professional, courteous, readable; keep it brief and structured.
-""",
-                icon: "envelope.fill",
-                description: t("prompt_email_description"),
-                isPredefined: true,
-                triggerWords: [
-                    "/(draft|write|compose|generate).*(email|reply)/i",
-                    "/.*(写|生成|草拟|回复).*(邮件|信).*/"
-                ],
-                useSystemInstructions: true
-            ),
-            CustomPrompt(
-                id: terminalPromptId,
-                title: t("prompt_terminal_title"),
-                promptText: """
-You are a precise command-line assistant.
-1. Output ONLY the raw shell command(s). NO markdown (no ```), no explanations, no chat.
-2. If the input is natural language (e.g., "list files"), generate the corresponding macOS zsh command (e.g., "ls -la").
-3. If the input is a dictated command with typos (e.g., "get status"), fix it (e.g., "git status").
-4. Handle "common line" or "comment line" as a shell comment (e.g., "# comment").
-5. If ambiguous or unsafe, output `echo "unsafe/ambiguous command"`.
-""",
-                icon: "terminal.fill",
-                description: t("prompt_terminal_description"),
-                isPredefined: true,
-                triggerWords: [
-                    "/(generate|create|write).*(terminal|shell|command\\s*line|script)/i",
-                    "/.*(生成|写|创建).*(终端|命令|shell|脚本).*/i"
-                ],
-                useSystemInstructions: true
-            ),
+
         ]
     }
 }
