@@ -276,6 +276,10 @@ struct OnboardingPermissionsView: View {
             // Re-check permissions when user returns from System Settings
             checkExistingPermissions()
         }
+        .onReceive(Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()) { _ in
+            // Polling backup to ensure we catch changes even if didBecomeActive doesn't fire or is delayed
+            checkExistingPermissions()
+        }
     }
     
     private func animateIn() {
