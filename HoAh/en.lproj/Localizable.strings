@@ -479,6 +479,8 @@
 "Smart Scenes require AI Enhancement to be enabled. Turn it on in Settings > AI Agents." = "Smart Scenes require AI Enhancement to be enabled. Turn it on in Settings > AI Agents.";
 "Enable AI Enhancement to add smart scenes." = "Enable AI Enhancement to add smart scenes.";
 "AI enhancement lets you pass the transcribed audio through LLMs to post-process using different prompts suitable for different use cases like e-mails, summary, writing, etc." = "AI enhancement lets you pass the transcribed audio through LLMs to post-process using different prompts suitable for different use cases like e-mails, summary, writing, etc.";
+"AI Enhancement Provider Integration" = "AI Enhancement Provider Integration";
+"Automatically apply AI-powered enhancement after each transcription" = "Automatically apply AI-powered enhancement after each transcription";
 "Auto enhancement is off, so triggers are inactive until you turn it on." = "Auto enhancement is off, so triggers are inactive until you turn it on.";
 "Add new prompt" = "Add new prompt";
 "provider_status_with_name" = "%@ (%@)";

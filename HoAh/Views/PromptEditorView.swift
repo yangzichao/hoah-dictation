@@ -140,14 +140,14 @@ struct PromptEditorView: View {
         if isEditingPredefinedPrompt, case .edit(let prompt) = mode {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Built-in prompt")
+                    Text(LocalizedStringKey("Built-in prompt"))
                         .font(.headline)
-                    Text("Default and other built-in prompts can be edited but not deleted. Reset anytime to restore the original text and trigger words.")
+                    Text(LocalizedStringKey("Default and other built-in prompts can be edited but not deleted. Reset anytime to restore the original text and trigger words."))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
                 Spacer()
-                Button("Reset to Default") {
+                Button(LocalizedStringKey("Reset to Default")) {
                     resetToDefaultTemplate(for: prompt)
                 }
                 .buttonStyle(.bordered)
@@ -160,17 +160,17 @@ struct PromptEditorView: View {
     private var titleAndIcon: some View {
         HStack(spacing: 20) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Title")
+                Text(LocalizedStringKey("Title"))
                     .font(.headline)
                     .foregroundColor(.secondary)
-                TextField("Enter a short, descriptive title", text: $title)
+                TextField(LocalizedStringKey("Enter a short, descriptive title"), text: $title)
                     .textFieldStyle(.roundedBorder)
                     .font(.body)
             }
             .frame(maxWidth: .infinity)
             
             VStack(alignment: .leading, spacing: 8) {
-                Text("Icon")
+                Text(LocalizedStringKey("Icon"))
                     .font(.headline)
                     .foregroundColor(.secondary)
                 
@@ -200,15 +200,15 @@ struct PromptEditorView: View {
 
     private var descriptionField: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Description")
+            Text(LocalizedStringKey("Description"))
                 .font(.headline)
                 .foregroundColor(.secondary)
             
-            Text("Add a brief description of what this prompt does")
+            Text(LocalizedStringKey("Add a brief description of what this prompt does"))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
-            TextField("Enter a description", text: $description)
+            TextField(LocalizedStringKey("Enter a description"), text: $description)
                 .textFieldStyle(.roundedBorder)
                 .font(.body)
         }
@@ -217,20 +217,20 @@ struct PromptEditorView: View {
 
     private var promptTextSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Prompt Instructions")
+            Text(LocalizedStringKey("Prompt Instructions"))
                 .font(.headline)
                 .foregroundColor(.secondary)
             
-            Text("Define how AI should enhance your transcriptions")
+            Text(LocalizedStringKey("Define how AI should enhance your transcriptions"))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
             HStack(spacing: 8) {
-                Toggle("Use System Instructions", isOn: $useSystemInstructions)
+                Toggle(LocalizedStringKey("Use System Instructions"), isOn: $useSystemInstructions)
                 
                 InfoTip(
-                    title: "System Instructions",
-                    message: "If enabled, your instructions are combined with a general-purpose template to improve transcription quality.\n\nDisable for full control over the AI's system prompt (for advanced users)."
+                    title: NSLocalizedString("System Instructions", comment: "Title for system instructions tip"),
+                    message: NSLocalizedString("If enabled, your instructions are combined with a general-purpose template to improve transcription quality.\n\nDisable for full control over the AI's system prompt (for advanced users).", comment: "Message for system instructions tip")
                 )
             }
             .padding(.bottom, 4)
@@ -254,7 +254,7 @@ struct PromptEditorView: View {
     @ViewBuilder
     private var templatePicker: some View {
         if case .add = mode {
-            Button("Start with a Predefined Template") {
+            Button(LocalizedStringKey("Start with a Predefined Template")) {
                 showingPredefinedPrompts.toggle()
             }
             .font(.headline)
@@ -339,11 +339,11 @@ struct TriggerWordsEditor: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Trigger Words")
+            Text(LocalizedStringKey("Trigger Words"))
                 .font(.headline)
                 .foregroundColor(.secondary)
             
-            Text("Add multiple words that can activate this prompt")
+            Text(LocalizedStringKey("Add multiple words that can activate this prompt"))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
@@ -360,14 +360,14 @@ struct TriggerWordsEditor: View {
             
             // Input for new trigger word
             HStack {
-                TextField("Add trigger word", text: $newTriggerWord)
+                TextField(LocalizedStringKey("Add trigger word"), text: $newTriggerWord)
                     .textFieldStyle(.roundedBorder)
                     .font(.body)
                     .onSubmit {
                         addTriggerWord()
                     }
                 
-                Button("Add") {
+                Button(LocalizedStringKey("Add")) {
                     addTriggerWord()
                 }
                 .disabled(newTriggerWord.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)

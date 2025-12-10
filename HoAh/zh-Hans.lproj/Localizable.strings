@@ -623,6 +623,7 @@
 // Enhancement Settings
 "Enable Auto Enhancement" = "启用自动增强";
 "AI enhancement lets you pass the transcribed audio through LLMS to post-process using different prompts suitable for different use cases like e-mails, summary, writing, etc." = "AI 增强允许您利用大语言模型对转录文本进行后处理，例如：生成邮件、摘要、润色文章等。";
+"AI Enhancement Provider Integration" = "AI 服务提供商集成";
 "Automatically apply AI-powered enhancement after each transcription" = "在每次转录后自动应用 AI 增强";
 "Clipboard Context" = "剪贴板上下文";
 "Use text from clipboard to understand the context" = "利用剪贴板内容辅助理解上下文";
