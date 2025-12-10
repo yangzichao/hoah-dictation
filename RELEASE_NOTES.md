@@ -1,5 +1,9 @@
 # What's New in# Release Notes
 
+## [3.1.7]
+### Fixes
+- **Build**: Fixed critical build issue introduced in v3.1.6.
+
 ## [3.1.6]
 ### Fixes
 - **Localization**: Added missing Chinese/English localization for the "Selected Text Context" setting.

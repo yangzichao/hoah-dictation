@@ -95,7 +95,6 @@ final class CloudAPIKeyManager {
         guard let keys = keysByProvider[providerKey],
               keys.contains(where: { $0.id == id }) else { return }
         activeIdByProvider[providerKey] = id
-        activeIdByProvider[providerKey] = id
         persist(for: providerKey)
         NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
     }
@@ -108,7 +107,6 @@ final class CloudAPIKeyManager {
             // Only one key, nothing to rotate but treat as success so caller does not fail prematurely
             if let current = activeKey(for: providerKey) {
                 activeIdByProvider[providerKey] = current.id
-                activeIdByProvider[providerKey] = current.id
                 persist(for: providerKey)
                 NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
                 return true
@@ -120,7 +118,6 @@ final class CloudAPIKeyManager {
         let currentIndex = keys.firstIndex(where: { $0.id == currentId }) ?? 0
         let nextIndex = (currentIndex + 1) % keys.count
         let next = keys[nextIndex]
-        activeIdByProvider[providerKey] = next.id
         activeIdByProvider[providerKey] = next.id
         persist(for: providerKey)
         NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
@@ -140,7 +137,6 @@ final class CloudAPIKeyManager {
             keys[0].lastUsedAt = now
             keysByProvider[providerKey] = keys
             activeIdByProvider[providerKey] = keys[0].id
-        }
         }
         persist(for: providerKey)
         NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
@@ -163,7 +159,6 @@ final class CloudAPIKeyManager {
     
     func removeAllKeys(for providerKey: String) {
         keysByProvider[providerKey] = []
-        activeIdByProvider[providerKey] = nil
         activeIdByProvider[providerKey] = nil
         persist(for: providerKey)
         NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)

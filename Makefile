@@ -5,7 +5,7 @@ FRAMEWORK_PATH := $(WHISPER_CPP_DIR)/build-apple/whisper.xcframework
 
 .PHONY: all clean whisper setup build check healthcheck help dev run reset-onboarding archive-mas export-mas check-mas
 DMG_VERSION ?= 3.0.0
-MAS_VERSION = 3.1.6
+MAS_VERSION = 3.1.7
 
 # Default target
 all: check build
