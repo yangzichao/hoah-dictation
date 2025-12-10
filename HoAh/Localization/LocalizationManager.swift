@@ -52,7 +52,7 @@ final class LocalizationManager: ObservableObject {
 
 private var bundleKey: UInt8 = 0
 
-private final class LanguageBundle: Bundle {
+private final class LanguageBundle: Bundle, @unchecked Sendable {
     override func localizedString(forKey key: String, value: String?, table tableName: String?) -> String {
         if let bundle = objc_getAssociatedObject(self, &bundleKey) as? Bundle {
             return bundle.localizedString(forKey: key, value: value, table: tableName)

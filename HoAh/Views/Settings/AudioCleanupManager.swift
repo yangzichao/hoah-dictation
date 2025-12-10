@@ -61,18 +61,17 @@ class AudioCleanupManager {
             return (0, 0, [])
         }
         
-        do {
-            // Execute SwiftData operations on the main thread
-            return try await MainActor.run {
-                // Create a predicate to find transcriptions with audio files older than the cutoff date
-                let descriptor = FetchDescriptor<Transcription>(
-                    predicate: #Predicate<Transcription> { transcription in
-                        transcription.timestamp < cutoffDate && 
-                        transcription.audioFileURL != nil
-                    }
-                )
-                
-                let transcriptions = try modelContext.fetch(descriptor)
+        // Execute SwiftData operations on the main thread
+        return await MainActor.run {
+            // Create a predicate to find transcriptions with audio files older than the cutoff date
+            let descriptor = FetchDescriptor<Transcription>(
+                predicate: #Predicate<Transcription> { transcription in
+                    transcription.timestamp < cutoffDate && 
+                    transcription.audioFileURL != nil
+                }
+            )
+            
+            let transcriptions = (try? modelContext.fetch(descriptor)) ?? []
                 
                 // Calculate stats (can be done on any thread)
                 var fileCount = 0
@@ -100,10 +99,6 @@ class AudioCleanupManager {
                 self.logger.info("Found \(fileCount) files eligible for cleanup, totaling \(self.formatFileSize(totalSize))")
                 return (fileCount, totalSize, eligibleTranscriptions)
             }
-        } catch {
-            logger.error("Error analyzing files for cleanup: \(error.localizedDescription)")
-            return (0, 0, [])
-        }
     }
     
     /// Perform the cleanup operation
@@ -215,20 +210,12 @@ class AudioCleanupManager {
                 }
                 
                 if deletedCount > 0 || errorCount > 0 {
-                    do {
-                        try modelContext.save()
-                        self.logger.info("Cleanup complete. Deleted \(deletedCount) files. Failed: \(errorCount)")
-                    } catch {
-                        self.logger.error("Error saving model context after cleanup: \(error.localizedDescription)")
-                    }
+                    modelContext.save()
+                    self.logger.info("Cleanup complete. Deleted \(deletedCount) files. Failed: \(errorCount)")
                 }
                 
                 return (deletedCount, errorCount)
             }
-        } catch {
-            logger.error("Error during targeted cleanup: \(error.localizedDescription)")
-            return (0, 0)
-        }
     }
     
     /// Format file size in human-readable form

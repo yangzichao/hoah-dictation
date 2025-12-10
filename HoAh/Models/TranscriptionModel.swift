@@ -77,12 +77,13 @@ struct CustomCloudModel: TranscriptionModel, Codable {
     let name: String
     let displayName: String
     let description: String
-    let provider: ModelProvider = .custom
     let apiEndpoint: String
     let apiKey: String
     let modelName: String
     let isMultilingualModel: Bool
     let supportedLanguages: [String: String]
+    
+    var provider: ModelProvider { .custom }
 
     init(id: UUID = UUID(), name: String, displayName: String, description: String, apiEndpoint: String, apiKey: String, modelName: String, isMultilingual: Bool = true, supportedLanguages: [String: String]? = nil) {
         self.id = id

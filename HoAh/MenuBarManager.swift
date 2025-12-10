@@ -30,7 +30,7 @@ class MenuBarManager: ObservableObject {
                 WindowManager.shared.hideMainWindow()
             } else {
                 application.setActivationPolicy(.regular)
-                WindowManager.shared.showMainWindow()
+                _ = WindowManager.shared.showMainWindow()
             }
         }
 

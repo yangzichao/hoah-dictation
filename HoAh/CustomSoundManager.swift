@@ -166,7 +166,12 @@ class CustomSoundManager: ObservableObject {
         }
 
         let asset = AVAsset(url: url)
-        let duration = asset.duration.seconds
+        let duration: Double
+        do {
+            duration = try await asset.load(.duration).seconds
+        } catch {
+            return .failure(.invalidAudioFile)
+        }
 
         guard duration.isFinite && duration > 0 else {
             return .failure(.invalidAudioFile)

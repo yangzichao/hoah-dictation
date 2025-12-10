@@ -166,7 +166,7 @@ class NativeAppleTranscriptionService: TranscriptionService {
             transcript += result.text
         }
         
-        var finalTranscription = String(transcript.characters).trimmingCharacters(in: .whitespacesAndNewlines)
+        let finalTranscription = String(transcript.characters).trimmingCharacters(in: .whitespacesAndNewlines)
 
         logger.notice("Native transcription successful. Length: \(finalTranscription.count) characters.")
         return finalTranscription
