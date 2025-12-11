@@ -1,5 +1,14 @@
 # What's New in# Release Notes
 
+## [3.2.2]
+
+### ✨ New Features
+- **Robust AWS Authentication**: Implemented complete SigV4 signing for Bedrock requests, with automatic fallback to API Key if no profile is active.
+- **Smart Validation**: Added asynchronous validation for AWS profiles and regions to ensure configuration is correct before use.
+
+### 🚀 Improvements
+- **Credential Parsing**: Enhanced parsing to support JSON output formats and cleaner region extraction.
+
 ## [3.2.1]
 
 ### ✨ New Features

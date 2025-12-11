@@ -3,6 +3,22 @@
     <channel>
         <title>HoAh Releases</title>
         <item>
+            <title>3.2.2</title>
+            <pubDate>Thu, 12 Dec 2025 00:00:00 -0800</pubDate>
+            <sparkle:version>322</sparkle:version>
+            <sparkle:shortVersionString>3.2.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h3>What's New in Version 3.2.2</h3>
+                <ul>
+                    <li><strong>Feature:</strong> Robust AWS Authentication with complete SigV4 signing and API Key fallback.</li>
+                    <li><strong>Feature:</strong> Smart asynchronous validation for AWS profiles and regions.</li>
+                    <li><strong>Improvement:</strong> Enhanced credential parsing for better stability.</li>
+                </ul>
+            ]]></description>
+            <enclosure url="https://github.com/yangzichao/hoah-dictation/releases/download/v3.2.2/HoAh-3.2.2.dmg" length="0" type="application/octet-stream" sparkle:edSignature=""/>
+        </item>
+        <item>
             <title>3.2.1</title>
             <pubDate>Wed, 11 Dec 2025 02:00:00 -0800</pubDate>
             <sparkle:version>321</sparkle:version>
