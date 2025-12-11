@@ -19,6 +19,7 @@ enum PromptKind {
 @MainActor
 class AIEnhancementService: ObservableObject {
     private let logger = Logger(subsystem: "com.yangzichao.hoah", category: "AIEnhancementService")
+    private let awsProfileService = AWSProfileService()
     
     private let activePromptsKey = "activePrompts"
     private let triggerPromptsKey = "triggerPrompts"
@@ -597,13 +598,10 @@ class AIEnhancementService: ObservableObject {
     }
     
     private func makeBedrockRequest(systemMessage: String, userMessage: String) async throws -> String {
+        let config = aiService.activeConfiguration
         let apiKey = aiService.apiKey
-        let region = aiService.bedrockRegion
-        let modelId = aiService.currentModel
-        
-        guard !apiKey.isEmpty, !region.isEmpty, !modelId.isEmpty else {
-            throw EnhancementError.notConfigured
-        }
+        var region = config?.region ?? aiService.bedrockRegion
+        let modelId = config?.model ?? aiService.currentModel
         
         // Combine system message and user message into a single prompt
         let prompt = "\(systemMessage)\n\(userMessage)"
@@ -628,17 +626,56 @@ class AIEnhancementService: ObservableObject {
         ]
         
         let payloadData = try JSONSerialization.data(withJSONObject: payload)
+        guard !modelId.isEmpty else {
+            throw EnhancementError.notConfigured
+        }
         
-        // Build URL with model ID in the path
-        let host = "bedrock-runtime.\(region).amazonaws.com"
-        let url = URL(string: "https://\(host)/model/\(modelId)/converse")!
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.httpBody = payloadData
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.timeoutInterval = baseTimeout
+        // Use AWS Profile (SigV4) if configured; otherwise fall back to API key header
+        var request: URLRequest
+        if let profileName = config?.awsProfileName, !profileName.isEmpty {
+            // Resolve credentials via profile
+            let credentials = try await awsProfileService.resolveCredentials(for: profileName)
+            if let resolved = credentials.region, !resolved.isEmpty {
+                region = resolved
+            }
+            guard !region.isEmpty else { throw EnhancementError.notConfigured }
+            let host = "bedrock-runtime.\(region).amazonaws.com"
+            guard let url = URL(string: "https://\(host)/model/\(modelId)/converse") else {
+                throw EnhancementError.invalidResponse
+            }
+            request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.httpBody = payloadData
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.timeoutInterval = baseTimeout
+            let signerCredentials = AWSCredentials(
+                accessKeyId: credentials.accessKeyId,
+                secretAccessKey: credentials.secretAccessKey,
+                sessionToken: credentials.sessionToken,
+                region: region
+            )
+            request = try AWSSigV4Signer.sign(
+                request: request,
+                credentials: signerCredentials,
+                region: region,
+                service: "bedrock-runtime"
+            )
+        } else {
+            guard !region.isEmpty else { throw EnhancementError.notConfigured }
+            let host = "bedrock-runtime.\(region).amazonaws.com"
+            guard let url = URL(string: "https://\(host)/model/\(modelId)/converse") else {
+                throw EnhancementError.invalidResponse
+            }
+            request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.httpBody = payloadData
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.timeoutInterval = baseTimeout
+            guard !apiKey.isEmpty else {
+                throw EnhancementError.notConfigured
+            }
+            request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        }
         
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
