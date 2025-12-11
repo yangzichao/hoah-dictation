@@ -7,7 +7,6 @@ enum ModelFilter: String, CaseIterable, Identifiable {
     case recommended = "Recommended"
     case local = "Local"
     case cloud = "Cloud"
-    case custom = "Custom"
     var id: String { self.rawValue }
 }
 
@@ -15,8 +14,6 @@ enum ModelFilter: String, CaseIterable, Identifiable {
 /// For AI enhancement providers (text post-processing), see EnhancementSettingsView.
 struct ModelManagementView: View {
     @ObservedObject var whisperState: WhisperState
-    @State private var customModelToEdit: CustomCloudModel?
-    @StateObject private var customModelManager = CustomModelManager.shared
     @Environment(\.modelContext) private var modelContext
     @StateObject private var whisperPrompt = WhisperPrompt()
     @ObservedObject private var warmupCoordinator = WhisperModelWarmupCoordinator.shared
@@ -187,18 +184,7 @@ struct ModelManagementView: View {
                             modelURL: whisperState.availableModels.first { $0.name == model.name }?.url,
                             isWarming: isWarming,
                             deleteAction: {
-                                if let customModel = model as? CustomCloudModel {
-                                    alertTitle = "Delete Custom Model"
-                                    alertMessage = String(
-                                        format: String(localized: "Are you sure you want to delete the custom model '%@'?"),
-                                        customModel.displayName
-                                    )
-                                    deleteActionClosure = {
-                                        customModelManager.removeCustomModel(withId: customModel.id)
-                                        whisperState.refreshAllAvailableModels()
-                                    }
-                                    isShowingDeleteAlert = true
-                                } else if let downloadedModel = whisperState.availableModels.first(where: { $0.name == model.name }) {
+                                if let downloadedModel = whisperState.availableModels.first(where: { $0.name == model.name }) {
                                     alertTitle = "Delete Model"
                                     alertMessage = String(
                                         format: String(localized: "Are you sure you want to delete the model '%@'?"),
@@ -222,9 +208,7 @@ struct ModelManagementView: View {
                                     Task { await whisperState.downloadModel(localModel) }
                                 }
                             },
-                            editAction: model.provider == .custom ? { customModel in
-                                customModelToEdit = customModel
-                            } : nil
+                            editAction: nil
                         )
                     }
                     
@@ -252,18 +236,6 @@ struct ModelManagementView: View {
                             .help("Read more about custom local models")
                         }
                     }
-                    
-                    if selectedFilter == .custom {
-                        // Add Custom Model Card at the bottom
-                        AddCustomModelCardView(
-                            customModelManager: customModelManager,
-                            editingModel: customModelToEdit
-                        ) {
-                            // Refresh the models when a new custom model is added
-                            whisperState.refreshAllAvailableModels()
-                            customModelToEdit = nil // Clear editing state
-                        }
-                    }
                 }
             }
         }
@@ -287,8 +259,6 @@ struct ModelManagementView: View {
         case .cloud:
             let cloudProviders: [ModelProvider] = [.groq, .elevenLabs, .gemini]
             return whisperState.allAvailableModels.filter { cloudProviders.contains($0.provider) }
-        case .custom:
-            return whisperState.allAvailableModels.filter { $0.provider == .custom }
         }
     }
 

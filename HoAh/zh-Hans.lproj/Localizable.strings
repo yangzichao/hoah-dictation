@@ -143,16 +143,16 @@
 
 // Onboarding - Permissions
 "onboarding_permissions_microphone_title" = "麦克风权限";
-"onboarding_permissions_microphone_description" = "允许 HoAh 访问麦克风，这样你才能开始说话并把语音实时转成文字。";
+"onboarding_permissions_microphone_description" = "允许 吼蛙 访问麦克风，这样你才能开始说话并把语音实时转成文字。";
 "onboarding_permissions_device_title" = "选择麦克风设备";
-"onboarding_permissions_device_description" = "选择你希望 HoAh 使用的麦克风设备，推荐使用 Mac 内置麦克风。";
+"onboarding_permissions_device_description" = "选择你希望 吼蛙 使用的麦克风设备，推荐使用 Mac 内置麦克风。";
 "onboarding_permissions_accessibility_title" = "辅助功能权限";
-"onboarding_permissions_accessibility_description" = "在系统设置中为 HoAh 打开「辅助功能」权限，这样它才能在任何应用里帮你输入文字。打开后回到这里，再继续下一步。";
+"onboarding_permissions_accessibility_description" = "在系统设置中为 吼蛙 打开「辅助功能」权限，这样它才能在任何应用里帮你输入文字。打开后回到这里，再继续下一步。";
 "onboarding_permissions_keyboard_title" = "键盘快捷键";
-"onboarding_permissions_keyboard_description" = "为 HoAh 选择一个快捷键（推荐右侧 Option 键），这样你可以随时一键开始和结束说话。";
+"onboarding_permissions_keyboard_description" = "为 吼蛙 选择一个快捷键（推荐右侧 Option 键），这样你可以随时一键开始和结束说话。";
 "onboarding_permissions_open_settings" = "打开系统设置";
 "onboarding_permissions_accessibility_confirm_or_skip" = "我已完成设置 / 暂时跳过";
-"onboarding_permissions_accessibility_restart_hint" = "授予「辅助功能」后，需要重启 HoAh 权限才会生效。";
+"onboarding_permissions_accessibility_restart_hint" = "授予「辅助功能」后，需要重启 吼蛙 权限才会生效。";
 "onboarding_permissions_button_enable" = "去设置";
 "onboarding_permissions_button_continue" = "已设置好，继续";
 "onboarding_permissions_button_keyboard_setup" = "设置快捷键";
@@ -161,7 +161,7 @@
 
 // Onboarding - Model selection
 "onboarding_model_title" = "选择语音模型";
-"onboarding_model_subtitle" = "HoAh 需要至少一个语音模型才能开始工作。我们强烈推荐先使用本地 Whisper 模型，如果你有条件，也可以使用 ElevenLabs 的 Scribe v2 云端模型。";
+"onboarding_model_subtitle" = "吼蛙 需要至少一个语音模型才能开始工作。想在本地运行就选 Whisper；如果更在意云端速度/质量，也可以用 Scribe v2（ElevenLabs 等云模型）。";
 "onboarding_model_whisper_title" = "强烈推荐 · 本地 Whisper Large v3 Turbo（量化版）";
 "onboarding_model_whisper_body" = "大多数用户的首选方案。高准确率，适合中文、英文以及中英混合场景。";
 "onboarding_model_whisper_note" = "大约 %@ 下载一次，之后完全在本机运行，音频不会上传到云端。";
@@ -173,19 +173,19 @@
 "onboarding_model_scribe_later" = "稍后在「AI 模型」中了解 Scribe v2";
 "onboarding_model_apple_title" = "不推荐 · Apple 听写（仅用于快速试用）";
 "onboarding_model_apple_body" = "无需下载即可使用，但在长篇或中英混合的场景下，准确率通常低于 Whisper 或 Scribe。";
-"onboarding_model_apple_note" = "如果你长期只打算使用 Apple 听写，其实直接使用 macOS 自带听写即可。HoAh 中更推荐使用 Whisper 或 Scribe，获得更好的体验。";
+"onboarding_model_apple_note" = "如果你长期只打算使用 Apple 听写，其实直接使用 macOS 自带听写即可。吼蛙 中更推荐使用 Whisper 或 Scribe，获得更好的体验。";
 "onboarding_model_apple_use_anyway" = "仍然使用 Apple 听写";
 "onboarding_permissions_accessibility_authorized_restart" = "我确认我已经授权了，同意重启";
 
 // Onboarding - Tutorial
-"onboarding_tutorial_title" = "开始使用 HoAh";
+"onboarding_tutorial_title" = "开始使用 吼蛙";
 "onboarding_tutorial_subtitle" = "下面介绍如何开始说话，以及 AI 如何帮你润色结果。";
 "onboarding_tutorial_shortcut_label" = "你的快捷键：";
 "onboarding_tutorial_step1" = "在任何时候按下右侧 Option 键，就会开始听你说话。";
 "onboarding_tutorial_step2" = "说完你想表达的内容后，再按一次右侧 Option 键结束。";
-"onboarding_tutorial_step3" = "如果光标在输入框里，HoAh 会直接帮你打字；否则结果会复制到剪贴板，随时粘贴到任意应用。";
+"onboarding_tutorial_step3" = "如果光标在输入框里，吼蛙 会直接帮你打字；否则结果会复制到剪贴板，随时粘贴到任意应用。";
 "onboarding_tutorial_ai_title" = "AI 后处理（可选，但强烈推荐）";
-"onboarding_tutorial_ai_intro" = "如果你愿意提供自己的 API Key（例如 OpenAI、Groq 等），HoAh 可以：";
+"onboarding_tutorial_ai_intro" = "如果你愿意提供自己的 API Key（例如 OpenAI、Groq 等），吼蛙 可以：";
 "onboarding_tutorial_ai_point1" = "• 把口语化内容润色成更清晰、书面化的文本。";
 "onboarding_tutorial_ai_point2" = "• 在中英文之间智能翻译，并尽量保持语气和术语。";
 "onboarding_tutorial_ai_point3" = "• 把长时间录音整理成摘要和待办清单。";
@@ -586,14 +586,14 @@
 "Hotkey 2" = "快捷键 2";
 
 /* Permissions View */
-"HoAh requires the following permissions to function properly" = "HoAh 需要以下权限才能正常运行";
-"Set up a keyboard shortcut to use HoAh anywhere" = "设置键盘快捷键以在任何地方使用 HoAh";
+"HoAh requires the following permissions to function properly" = "吼蛙 需要以下权限才能正常运行";
+"Set up a keyboard shortcut to use HoAh anywhere" = "设置键盘快捷键以在任何地方使用 吼蛙";
 "Configure Shortcut" = "配置快捷键";
-"Allow HoAh to record your voice for transcription" = "允许 HoAh 录制你的声音进行转录";
+"Allow HoAh to record your voice for transcription" = "允许 吼蛙 录制你的声音进行转录";
 "Request Permission" = "请求权限";
 "Open System Settings" = "打开系统设置";
-"Allow HoAh to paste transcribed text directly at your cursor position" = "允许 HoAh 在光标位置直接粘贴转录文本";
-"HoAh uses Accessibility permissions to paste the transcribed text directly into other applications at your cursor's position. This allows for a seamless dictation experience across your Mac." = "HoAh 使用辅助功能权限将转录文本直接粘贴到其他应用程序的光标位置。这样可以在你的 Mac 上实现无缝的听写体验。";
+"Allow HoAh to paste transcribed text directly at your cursor position" = "允许 吼蛙 在光标位置直接粘贴转录文本";
+"HoAh uses Accessibility permissions to paste the transcribed text directly into other applications at your cursor's position. This allows for a seamless dictation experience across your Mac." = "吼蛙 使用辅助功能权限将转录文本直接粘贴到其他应用程序的光标位置。这样可以在你的 Mac 上实现无缝的听写体验。";
 
 /* Missing Help Texts */
 "Shortcut for pasting the most recent transcription." = "粘贴最新转录内容的快捷键。";
@@ -626,7 +626,7 @@
 // Settings - Updates
 "Updates" = "更新";
 "Check for Updates…" = "检查更新…";
-"HoAh checks for updates once at launch. Click the button above anytime to manually check for a new version." = "HoAh 会在启动时自动检查一次更新。如需手动检查新版本，可随时点击上方按钮。";
+"HoAh checks for updates once at launch. Click the button above anytime to manually check for a new version." = "吼蛙 会在启动时自动检查一次更新。如需手动检查新版本，可随时点击上方按钮。";
 "HoAh Homepage" = "吼蛙主页";
 
 // Enhancement Settings

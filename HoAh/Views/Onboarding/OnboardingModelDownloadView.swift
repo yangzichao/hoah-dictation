@@ -247,8 +247,8 @@ struct ModelCard: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text(model.name.replacingOccurrences(of: "ggml-", with: "").replacingOccurrences(of: "_", with: " ").capitalized)
+                    HStack(spacing: 8) {
+                        Text(model.displayName)
                             .font(.headline)
                             .foregroundColor(.white)
                         if isRecommended {
@@ -263,9 +263,18 @@ struct ModelCard: View {
                         }
                     }
                     
-                    Text("Size: \(model.size)")
-                        .font(.caption)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Size: \(model.size)")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.7))
+                        
+                        HStack(spacing: 10) {
+                            Text(String(format: "Speed: %.0f%%", model.speed * 100))
+                            Text(String(format: "Accuracy: %.0f%%", model.accuracy * 100))
+                        }
+                        .font(.caption2)
                         .foregroundColor(.white.opacity(0.7))
+                    }
                 }
                 Spacer()
                 

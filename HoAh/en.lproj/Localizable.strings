@@ -131,7 +131,7 @@
 
 // Onboarding - Model selection
 "onboarding_model_title" = "Choose a Speech Model";
-"onboarding_model_subtitle" = "HoAh needs at least one model to transcribe your voice. We strongly recommend starting with a local Whisper model, and using Scribe v2 if you have access to ElevenLabs.";
+"onboarding_model_subtitle" = "HoAh needs at least one model to transcribe your voice. Start with a local Whisper model if you prefer on-device; if you want cloud speed/quality, you can also use models like Scribe v2 (ElevenLabs).";
 "onboarding_model_whisper_title" = "Strongly Recommended · Local Whisper Large v3 Turbo (Quantized)";
 "onboarding_model_whisper_body" = "Best default for most users. High accuracy, great for Chinese + English and mixed speech.";
 "onboarding_model_whisper_note" = "Approx. %@ download once, then runs entirely on your Mac without uploading audio.";
