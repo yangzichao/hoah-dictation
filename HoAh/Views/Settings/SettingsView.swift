@@ -18,6 +18,7 @@ struct SettingsView: View {
     @State private var currentShortcut = KeyboardShortcuts.getShortcut(for: .toggleMiniRecorder)
     @State private var isCustomCancelEnabled = false
     @State private var isCustomSoundsExpanded = false
+    @State private var showResetConfirmation = false
 
     
     var body: some View {
@@ -407,6 +408,25 @@ struct SettingsView: View {
                             }
                             .controlSize(.large)
                         }
+                    }
+                    
+                    Divider()
+                        .padding(.vertical, 8)
+                    
+                    Button(role: .destructive) {
+                        showResetConfirmation = true
+                    } label: {
+                        Label(LocalizedStringKey("Reset System Settings"), systemImage: "arrow.counterclockwise")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .controlSize(.large)
+                    .alert(LocalizedStringKey("Reset System Settings?"), isPresented: $showResetConfirmation) {
+                        Button(LocalizedStringKey("Reset"), role: .destructive) {
+                            appSettings.resetSystemSettings()
+                        }
+                        Button(LocalizedStringKey("Cancel"), role: .cancel) { }
+                    } message: {
+                        Text(LocalizedStringKey("Reset all system settings (appearance, behavior, audio) to default values. Your AI settings (API keys, models, prompts, profile) and custom shortcuts will be preserved."))
                     }
                 }
                 

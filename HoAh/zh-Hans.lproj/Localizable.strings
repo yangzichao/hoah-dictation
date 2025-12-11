@@ -204,6 +204,13 @@
 "Start Transcription" = "开始转录";
 "Choose Different File" = "选择其他文件";
 "Drop audio or video file here" = "将音频或视频文件拖到此处";
+
+// Settings - Reset
+"Reset" = "重置";
+"Reset System Settings" = "重置系统设置";
+"Reset System Settings?" = "确定要重置系统设置吗？";
+"Reset all system settings (appearance, behavior, audio) to default values. Your AI settings (API keys, models, prompts, profile) and custom shortcuts will be preserved." = "将系统设置（如界面、行为、声音）恢复为默认值。\n\n您的 AI 设置（API Key、模型、Prompt）以及自定义快捷键将被完整保留。";
+"This will revert interface and recording settings to their defaults. Your API keys, AI models, and shortcuts will NOT be affected." = "此操作不可撤销。它将把界面语言、录音样式等恢复为出厂设置。\n\n放心，您的 AI 资产和快捷键设置绝对安全。";
 "or" = "或";
 "Choose File" = "选择文件";
 "Supported formats: WAV, MP3, M4A, AIFF, MP4, MOV" = "支持的格式：WAV、MP3、M4A、AIFF、MP4、MOV";

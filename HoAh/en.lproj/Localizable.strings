@@ -505,6 +505,12 @@
 "Microphone Access" = "Microphone Access";
 "Allow HoAh to record your voice for transcription" = "Allow HoAh to record your voice for transcription";
 "Request Permission" = "Request Permission";
+// Settings - Reset
+"Reset" = "Reset";
+"Reset System Settings" = "Reset System Settings";
+"Reset System Settings?" = "Reset System Settings?";
+"Reset all system settings (appearance, behavior, audio) to default values. Your AI settings (API keys, models, prompts, profile) and custom shortcuts will be preserved." = "Reset all system settings (appearance, behavior, audio) to default values. Your AI settings (API keys, models, prompts, profile) and custom shortcuts will be preserved.";
+"This will revert interface and recording settings to their defaults. Your API keys, AI models, and shortcuts will NOT be affected." = "This will revert interface and recording settings to their defaults. Your API keys, AI models, and shortcuts will NOT be affected.";
 "Open System Settings" = "Open System Settings";
 "Accessibility Access" = "Accessibility Access";
 "Allow HoAh to paste transcribed text directly at your cursor position" = "Allow HoAh to paste transcribed text directly at your cursor position";

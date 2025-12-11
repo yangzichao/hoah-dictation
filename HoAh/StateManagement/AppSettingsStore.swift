@@ -402,6 +402,61 @@ class AppSettingsStore: ObservableObject {
         logger.info("Hotkey settings updated: hotkey1=\(hotkey1), hotkey2=\(finalHotkey2)")
     }
     
+    /// Resets all system settings to defaults while preserving AI configurations
+    /// - Note: Preserves API keys, models, providers, prompts, user profile, AND shortcuts.
+    func resetSystemSettings() {
+        // 1. Create a fresh state with default values
+        var newState = AppSettingsState()
+        
+        // 2. RESTORE settings that should NOT be reset
+        
+        // A. Identity & Keys (Preserve Provider & Model selections from STORAGE)
+        newState.selectedAIProvider = self._selectedAIProvider 
+        newState.selectedModels = self._selectedModels
+        newState.bedrockRegion = self.bedrockRegion
+        newState.bedrockModelId = self.bedrockModelId
+        newState.customProviderBaseURL = self.customProviderBaseURL
+        newState.customProviderModel = self.customProviderModel
+        
+        // B. AI State (Preserve Enable state & Prompt selection)
+        newState.isAIEnhancementEnabled = self._isAIEnhancementEnabled
+        newState.selectedPromptId = self._selectedPromptId
+        
+        // Keep prompt triggers consistent with AI enablement state
+        if self._isAIEnhancementEnabled {
+            newState.arePromptTriggersEnabled = self.arePromptTriggersEnabled
+        } else {
+            newState.arePromptTriggersEnabled = false
+        }
+        
+        // C. User Content (Preserve User Profile Context)
+        newState.userProfileContext = self.userProfileContext
+        
+        // D. Shortcuts & Triggers (PRESERVE User's Control Scheme)
+        newState.selectedHotkey1 = self.selectedHotkey1
+        newState.selectedHotkey2 = self.selectedHotkey2
+        newState.isMiddleClickToggleEnabled = self.isMiddleClickToggleEnabled
+        newState.middleClickActivationDelay = self.middleClickActivationDelay
+        
+        // E. App State (Preserve Onboarding status)
+        newState.hasCompletedOnboarding = self.hasCompletedOnboarding
+        
+        // 3. Apply the new state
+        // This effectively resets ONLY:
+        // - Language
+        // - Interface Style (Dock icon, Recorder type)
+        // - Audio/Recording Behaviors (Sound feedback, Mute, Pause media, Clipboard preservation)
+        // - Context Awareness Toggles (Clipboard/Screen/Selection usage defaults to OFF)
+        
+        applyState(newState)
+        saveSettings()
+        
+        logger.info("System settings reset to defaults. Preserved: AI Config, User Profile, Shortcuts.")
+        
+        // 4. Post notification for UI updates
+        NotificationCenter.default.post(name: .languageDidChange, object: nil)
+    }
+    
     // MARK: - Smart Scene Management
     
     /// Applies a temporary override for Smart Scenes (Layer 2)
