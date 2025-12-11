@@ -677,18 +677,21 @@ class AIEnhancementService: ObservableObject {
         
         // Parse Bedrock Converse API response format:
         // {"output": {"message": {"content": [{"text": "..."}], "role": "assistant"}}, ...}
+        // GPT-OSS format: {"content": [{"reasoningContent": {...}}, {"text": "final answer"}]}
         if let output = json["output"] as? [String: Any],
            let message = output["message"] as? [String: Any],
            let content = message["content"] as? [[String: Any]] {
             
-            // Try to extract text from each content item
+            // First pass: look for direct "text" field (final answer, not reasoning)
             for contentItem in content {
-                // Standard text format
                 if let text = contentItem["text"] as? String {
                     return text
                 }
-                
-                // GPT-OSS reasoning format: {"reasoningContent": {"reasoningText": {"text": "..."}}}
+            }
+            
+            // Second pass: if no direct text found, check for reasoning content
+            // (fallback for models that only return reasoning)
+            for contentItem in content {
                 if let reasoningContent = contentItem["reasoningContent"] as? [String: Any],
                    let reasoningText = reasoningContent["reasoningText"] as? [String: Any],
                    let text = reasoningText["text"] as? String {

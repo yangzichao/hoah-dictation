@@ -237,6 +237,14 @@ class UserDefaultsStorage: SettingsStorage {
         // Get the active API key value for the current provider
         let apiKey = keyManager.activeKey(for: provider)?.value
         
+        // Only migrate when an API key exists
+        let trimmedKey = apiKey?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if trimmedKey.isEmpty {
+            logger.info("No API key for provider '\(provider)'; skipping AI configuration migration.")
+            state.hasCompletedAIConfigMigration = true
+            return
+        }
+        
         // Determine model based on provider
         let model: String
         if let selectedModel = state.selectedModels[provider], !selectedModel.isEmpty {
@@ -256,7 +264,7 @@ class UserDefaultsStorage: SettingsStorage {
             name: configName,
             provider: provider,
             model: model,
-            apiKey: apiKey,
+            apiKey: trimmedKey,
             awsProfileName: nil,
             region: provider == "AWS Bedrock" ? state.bedrockRegion : nil,
             enableCrossRegion: false

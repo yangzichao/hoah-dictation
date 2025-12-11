@@ -127,6 +127,10 @@ struct ConfigurationEditSheet: View {
         }
         .alert(NSLocalizedString("Verification Failed", comment: ""), isPresented: $showError) {
             Button(NSLocalizedString("OK", comment: ""), role: .cancel) {}
+            Button(NSLocalizedString("Save Anyway", comment: "")) {
+                saveConfiguration()
+                dismiss()
+            }
         } message: {
             Text(verificationError ?? NSLocalizedString("Unknown error", comment: ""))
         }
@@ -278,7 +282,7 @@ struct ConfigurationEditSheet: View {
                         HStack {
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .foregroundColor(.orange)
-                            Text(NSLocalizedString("No AWS profiles found in ~/.aws/credentials", comment: ""))
+                            Text(NSLocalizedString("No AWS profiles found in ~/.aws/credentials or ~/.aws/config", comment: ""))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -336,36 +340,11 @@ struct ConfigurationEditSheet: View {
         let trimmedApiKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedModel = selectedModel.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        // For AWS Bedrock with AWS Profile, verify profile exists before saving
+        // For AWS Bedrock with AWS Profile, verify with real API call using SigV4
         if selectedProvider == .awsBedrock && useAWSProfile {
-            // Verify the selected profile actually exists
-            let profiles = awsProfileService.listProfiles()
-            if !profiles.contains(selectedAWSProfile) {
-                isVerifying = false
-                verificationError = String(format: NSLocalizedString("AWS Profile '%@' not found in ~/.aws/credentials", comment: ""), selectedAWSProfile)
-                showError = true
-                return
+            Task {
+                await verifyAWSProfileWithSigV4(profile: selectedAWSProfile, region: region, model: trimmedModel)
             }
-            
-            // Verify we can read credentials for this profile
-            do {
-                let credentials = try awsProfileService.getCredentials(for: selectedAWSProfile)
-                if credentials.accessKeyId.isEmpty || credentials.secretAccessKey.isEmpty {
-                    isVerifying = false
-                    verificationError = String(format: NSLocalizedString("AWS Profile '%@' has incomplete credentials", comment: ""), selectedAWSProfile)
-                    showError = true
-                    return
-                }
-            } catch {
-                isVerifying = false
-                verificationError = String(format: NSLocalizedString("Failed to read credentials for AWS Profile '%@': %@", comment: ""), selectedAWSProfile, error.localizedDescription)
-                showError = true
-                return
-            }
-            
-            isVerifying = false
-            saveConfiguration()
-            dismiss()
             return
         }
         
@@ -496,6 +475,139 @@ struct ConfigurationEditSheet: View {
         } else {
             verificationError = errorMessage ?? NSLocalizedString("Verification failed. Please check your API key and try again.", comment: "")
             showError = true
+        }
+    }
+    
+    /// Verifies AWS Profile credentials by calling ListFoundationModels API
+    /// This is a lightweight GET request that validates credentials without invoking a model
+    private func verifyAWSProfileWithSigV4(profile: String, region: String, model: String) async {
+        // Check if view is still presented
+        guard isVerifying else { return }
+        
+        // First resolve credentials (supports SSO, assume-role, credential_process)
+        let credentials: AWSCredentials
+        do {
+            credentials = try await awsProfileService.resolveCredentials(for: profile)
+        } catch {
+            await MainActor.run {
+                guard isVerifying else { return }
+                isVerifying = false
+                verificationError = String(format: NSLocalizedString("Failed to resolve credentials for AWS Profile '%@': %@", comment: ""), profile, error.localizedDescription)
+                showError = true
+            }
+            return
+        }
+        
+        // Use ListFoundationModels API as a lightweight probe
+        // This validates credentials without needing model-specific payloads
+        let host = "bedrock.\(region).amazonaws.com"
+        guard let url = URL(string: "https://\(host)/foundation-models?byOutputModality=TEXT&maxResults=1") else {
+            await MainActor.run {
+                guard isVerifying else { return }
+                isVerifying = false
+                verificationError = NSLocalizedString("Invalid Bedrock URL", comment: "")
+                showError = true
+            }
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.timeoutInterval = 15
+        
+        // Sign the request with SigV4
+        do {
+            let signerCredentials = AWSCredentials(
+                accessKeyId: credentials.accessKeyId,
+                secretAccessKey: credentials.secretAccessKey,
+                sessionToken: credentials.sessionToken,
+                region: region
+            )
+            request = try AWSSigV4Signer.sign(
+                request: request,
+                credentials: signerCredentials,
+                region: region,
+                service: "bedrock"  // ListFoundationModels uses "bedrock" service, not "bedrock-runtime"
+            )
+        } catch {
+            await MainActor.run {
+                guard isVerifying else { return }
+                isVerifying = false
+                verificationError = String(format: NSLocalizedString("Failed to sign request: %@", comment: ""), error.localizedDescription)
+                showError = true
+            }
+            return
+        }
+        
+        // Make the request
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            guard isVerifying else { return }
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                await MainActor.run {
+                    isVerifying = false
+                    verificationError = NSLocalizedString("Invalid response from Bedrock", comment: "")
+                    showError = true
+                }
+                return
+            }
+            
+            switch httpResponse.statusCode {
+            case 200:
+                // Success - credentials are valid and have Bedrock access
+                await MainActor.run {
+                    isVerifying = false
+                    saveConfiguration()
+                    dismiss()
+                }
+                
+            case 403:
+                // Authentication failed or no permission
+                let errorMsg: String
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let message = json["message"] as? String {
+                    errorMsg = message
+                } else {
+                    errorMsg = NSLocalizedString("Access denied. Ensure your IAM policy includes bedrock:ListFoundationModels permission.", comment: "")
+                }
+                await MainActor.run {
+                    isVerifying = false
+                    verificationError = errorMsg
+                    showError = true
+                }
+                
+            case 401:
+                // Invalid credentials
+                await MainActor.run {
+                    isVerifying = false
+                    verificationError = NSLocalizedString("Invalid AWS credentials. Please check your profile configuration.", comment: "")
+                    showError = true
+                }
+                
+            default:
+                var errorMsg = "HTTP \(httpResponse.statusCode)"
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let message = json["message"] as? String {
+                    errorMsg = message
+                }
+                await MainActor.run {
+                    isVerifying = false
+                    verificationError = errorMsg
+                    showError = true
+                }
+            }
+        } catch let error as URLError where error.code == .cancelled {
+            // Request was cancelled, do nothing
+            return
+        } catch {
+            await MainActor.run {
+                guard isVerifying else { return }
+                isVerifying = false
+                verificationError = error.localizedDescription
+                showError = true
+            }
         }
     }
     

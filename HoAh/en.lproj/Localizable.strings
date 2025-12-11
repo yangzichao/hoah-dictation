@@ -583,3 +583,16 @@
 "Additional" = "Additional";
 "Show Dock Icon" = "Show Dock Icon";
 "Hide Dock Icon" = "Hide Dock Icon";
+
+// AWS Profile Verification
+"No AWS profiles found in ~/.aws/credentials or ~/.aws/config" = "No AWS profiles found in ~/.aws/credentials or ~/.aws/config";
+"Failed to resolve credentials for AWS Profile '%@': %@" = "Failed to resolve credentials for AWS Profile '%@': %@";
+"Invalid Bedrock URL" = "Invalid Bedrock URL";
+"Failed to sign request: %@" = "Failed to sign request: %@";
+"Invalid response from Bedrock" = "Invalid response from Bedrock";
+"Access denied. Check your AWS permissions for Bedrock." = "Access denied. Check your AWS permissions for Bedrock.";
+"Access denied. Ensure your IAM policy includes bedrock:ListFoundationModels permission." = "Access denied. Ensure your IAM policy includes bedrock:ListFoundationModels permission.";
+
+"Invalid AWS credentials. Please check your profile configuration." = "Invalid AWS credentials. Please check your profile configuration.";
+
+"Save Anyway" = "Save Anyway";

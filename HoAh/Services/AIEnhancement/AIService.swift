@@ -48,7 +48,7 @@ enum AIProvider: String, CaseIterable {
         case .openRouter:
             return "openai/gpt-oss-120b"
         case .awsBedrock:
-            return UserDefaults.standard.string(forKey: "AWSBedrockModelId") ?? "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+            return UserDefaults.standard.string(forKey: "AWSBedrockModelId") ?? "us.anthropic.claude-haiku-4-5-20251001-v1:0"
         }
     }
     
@@ -97,12 +97,17 @@ enum AIProvider: String, CaseIterable {
         case .openRouter:
             return []
         case .awsBedrock:
+            // Cross-region inference profile IDs (Haiku & Sonnet + OpenAI GPT-OSS)
             return [
+                // Claude 4.5 (Haiku first as default)
+                "us.anthropic.claude-haiku-4-5-20251001-v1:0",
                 "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                // Claude 4
+                "us.anthropic.claude-sonnet-4-20250514-v1:0",
+                // Claude 3.7
                 "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
-                "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
-                "us.anthropic.claude-opus-4-20250514-v1:0",
-                "us.anthropic.claude-haiku-4-20250514-v1:0"
+                // OpenAI GPT-OSS (text-only)
+                "openai.gpt-oss-120b-1:0"
             ]
         }
     }
