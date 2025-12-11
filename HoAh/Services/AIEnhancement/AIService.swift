@@ -231,6 +231,7 @@ class AIService: ObservableObject {
     
     private let userDefaults = UserDefaults.standard
     private let keyManager = CloudAPIKeyManager.shared
+    private let awsProfileService = AWSProfileService()
     
     @Published private var openRouterModels: [String] = []
     
@@ -438,11 +439,14 @@ class AIService: ObservableObject {
         isRefreshingFromConfiguration = true
         defer { isRefreshingFromConfiguration = false }
         
-        // Check if configuration is valid
-        guard config.isValid else {
-            self.apiKey = ""
-            self.isAPIKeyValid = false
-            return
+        let isAWSProfileConfig = (config.awsProfileName?.isEmpty == false) && config.provider == AIProvider.awsBedrock.rawValue
+        // Check validity for non-profile configs; AWS Profile will be validated below
+        if !isAWSProfileConfig {
+            guard config.isValid else {
+                self.apiKey = ""
+                self.isAPIKeyValid = false
+                return
+            }
         }
         
         // Sync provider settings from configuration (with equality checks to prevent loops)
@@ -475,14 +479,13 @@ class AIService: ObservableObject {
         }
         
         // Handle authentication
-        // AWS Profile authentication - assume valid if profile name is set
-        // Full validation happens at save time in ConfigurationEditSheet
-        // This avoids filesystem I/O on every refresh
         if let profileName = config.awsProfileName, !profileName.isEmpty {
             self.apiKey = ""
-            // Trust that the profile was validated when saved
-            // If it becomes invalid later (user deletes profile), the actual API call will fail
-            self.isAPIKeyValid = true
+            self.isAPIKeyValid = false
+            let regionToUse = config.region ?? appSettings?.bedrockRegion ?? "us-east-1"
+            Task { [weak self] in
+                await self?.validateAWSProfileConfiguration(profileName: profileName, region: regionToUse)
+            }
             return
         }
         
@@ -493,6 +496,27 @@ class AIService: ObservableObject {
         } else {
             self.apiKey = ""
             self.isAPIKeyValid = false
+        }
+    }
+    
+    /// Resolves AWS profile credentials on selection to allow profile-based switching
+    private func validateAWSProfileConfiguration(profileName: String, region: String?) async {
+        do {
+            let credentials = try await awsProfileService.resolveCredentials(for: profileName)
+            let resolvedRegion = region ?? credentials.region ?? "us-east-1"
+            await MainActor.run {
+                if let appSettings = appSettings, appSettings.bedrockRegion != resolvedRegion {
+                    appSettings.bedrockRegion = resolvedRegion
+                }
+                self.apiKey = ""
+                self.isAPIKeyValid = true
+            }
+        } catch {
+            await MainActor.run {
+                self.apiKey = ""
+                self.isAPIKeyValid = false
+                print("⚠️ AWS profile validation failed: \(error.localizedDescription)")
+            }
         }
     }
     
