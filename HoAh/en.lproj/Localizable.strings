@@ -143,7 +143,7 @@
 "onboarding_model_apple_title" = "Not Recommended · Apple Dictation (Quick Trial Only)";
 "onboarding_model_apple_body" = "No download required, but quality is usually lower than Whisper or Scribe for long or mixed Chinese–English speech.";
 "onboarding_model_apple_note" = "If you plan to use Apple dictation most of the time, using macOS built-in dictation may be enough. In HoAh we recommend switching to Whisper or Scribe for better results.";
-"onboarding_model_apple_use_anyway" = "Still Use Apple Dictation";
+"onboarding_permissions_accessibility_authorized_restart" = "Authorized & Restart App";
 
 // Onboarding - Tutorial
 "onboarding_tutorial_title" = "Start Using HoAh";

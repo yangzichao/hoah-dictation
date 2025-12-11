@@ -228,10 +228,22 @@ struct OnboardingPermissionsView: View {
                                 }
                                 .buttonStyle(ScaleButtonStyle())
                                 
-                                // Secondary option: user confirms they are done, or chooses to skip
+                                // Secondary option: user confirms they enabled it (or wants to continue)
                                 Button(action: confirmAccessibilityAndContinue) {
                                     Text(LocalizedStringKey("onboarding_permissions_accessibility_confirm_or_skip"))
-                                        .font(.system(size: 13, weight: .regular))
+                                        .font(.system(size: 13, weight: .bold))
+                                        .foregroundColor(.white.opacity(0.9))
+                                        .padding(.vertical, 8)
+                                        .padding(.horizontal, 16)
+                                        .background(Color.white.opacity(0.1))
+                                        .cornerRadius(12)
+                                }
+                                .buttonStyle(ScaleButtonStyle())
+                                
+                                // Tertiary option: Restart app after authorizing (for stubborn system prompts)
+                                Button(action: restartApp) {
+                                    Text(LocalizedStringKey("onboarding_permissions_accessibility_authorized_restart"))
+                                        .font(.system(size: 13, weight: .medium))
                                         .foregroundColor(.white.opacity(0.8))
                                 }
                                 .buttonStyle(PlainButtonStyle())
@@ -317,17 +329,17 @@ struct OnboardingPermissionsView: View {
         
         switch permissions[currentPermissionIndex].type {
         case .microphone:
+            // Async; wait for the system prompt.
             AVCaptureDevice.requestAccess(for: .audio) { granted in
                 DispatchQueue.main.async {
                     self.permissionStates[self.currentPermissionIndex] = granted
                     if granted {
-                        withAnimation {
-                            self.showAnimation = true
-                        }
+                        withAnimation { self.showAnimation = true }
                         self.audioDeviceManager.loadAvailableDevices()
                     }
                 }
             }
+            return
             
         case .audioDeviceSelection:
             audioDeviceManager.loadAvailableDevices()
@@ -342,15 +354,12 @@ struct OnboardingPermissionsView: View {
                 return
             }
             
-            // If no device is selected yet, auto-select the built-in microphone or first available device
             if audioDeviceManager.selectedDeviceID == nil {
                 let builtInDevice = audioDeviceManager.availableDevices.first { device in
-                    device.name.lowercased().contains("built-in") || 
+                    device.name.lowercased().contains("built-in") ||
                     device.name.lowercased().contains("internal")
                 }
-                
                 let deviceToSelect = builtInDevice ?? audioDeviceManager.availableDevices.first
-                
                 if let device = deviceToSelect {
                     audioDeviceManager.selectDevice(id: device.id)
                     audioDeviceManager.selectInputMode(.custom)
@@ -361,14 +370,16 @@ struct OnboardingPermissionsView: View {
                 }
             }
             moveToNext()
-            
+            return
+
         case .accessibility:
-            // Handled by dedicated buttons (openAccessibilitySettings / confirmAccessibilityAndContinue)
+            // Handled by dedicated buttons (openAccessibilitySettings / confirmAccessibilityAndContinue / restartApp)
             openAccessibilitySettings()
-            
+            return
+        
         case .keyboardShortcut:
-            // The keyboard shortcut is handled by the KeyboardShortcuts.Recorder
-            break
+            // Keyboard shortcut is handled via the recorder UI; no implicit advance here.
+            return
         }
     }
     
@@ -411,6 +422,22 @@ struct OnboardingPermissionsView: View {
         AXIsProcessTrustedWithOptions(options)
     }
 
+    private func restartApp() {
+        let url = URL(fileURLWithPath: Bundle.main.bundlePath)
+        let config = NSWorkspace.OpenConfiguration()
+        config.createsNewApplicationInstance = true
+        
+        NSWorkspace.shared.openApplication(at: url, configuration: config) { _, error in
+            if error == nil {
+                DispatchQueue.main.async {
+                    NSApp.terminate(nil)
+                }
+            } else {
+                print("Failed to restart app: \(error?.localizedDescription ?? "Unknown error")")
+            }
+        }
+    }
+    
     private func confirmAccessibilityAndContinue() {
         let trusted = AXIsProcessTrusted()
         permissionStates[currentPermissionIndex] = trusted
