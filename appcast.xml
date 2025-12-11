@@ -3,6 +3,21 @@
     <channel>
         <title>HoAh Releases</title>
         <item>
+            <title>3.1.8</title>
+            <pubDate>Tue, 10 Dec 2025 18:00:00 -0800</pubDate>
+            <sparkle:version>318</sparkle:version>
+            <sparkle:shortVersionString>3.1.8</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h3>What's New in Version 3.1.8</h3>
+                <ul>
+                    <li><strong>Feature:</strong> Added "Reset System Settings" to safely restore default preferences while keeping your AI models, keys, and custom shortcuts intact.</li>
+                    <li><strong>Improvement:</strong> Onboarding permission prompts now properly handle app focus recovery.</li>
+                </ul>
+            ]]></description>
+            <enclosure url="https://github.com/yangzichao/hoah-dictation/releases/download/v3.1.8/HoAh-3.1.8.dmg" length="0" type="application/octet-stream" sparkle:edSignature=""/>
+        </item>
+        <item>
       <title>3.1.7</title>
       <sparkle:releaseNotesLink>https://github.com/yangzichao/hoah-dictation/releases/tag/v3.1.7</sparkle:releaseNotesLink>
       <pubDate>Wed, 11 Dec 2025 12:15:00 +0800</pubDate>

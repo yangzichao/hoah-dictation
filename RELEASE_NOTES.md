@@ -1,5 +1,13 @@
 # What's New in# Release Notes
 
+## [3.1.8]
+
+### ✨ New Features
+- **Reset System Settings**: Implemented a "Reset System Settings" feature that allows restoring default preferences (appearance, audio, etc.) while carefully preserving your AI assets (API keys, models, prompts, user profile) and custom shortcuts.
+
+### 🚀 Improvements
+- **Onboarding UX**: Improved the "Accessibility Permission" flow to offer a restart option if granted, and fixed app focus issues after permission prompts.
+
 ## [3.1.7]
 ### Fixes
 - **Build**: Fixed critical build issue introduced in v3.1.6.
