@@ -1,5 +1,15 @@
 # What's New in# Release Notes
 
+## [3.2.1]
+
+### ✨ New Features
+- **AWS Profile Support**: Comprehensive AWS profile management for Bedrock. You can now use your local AWS CLI credentials directly with SigV4 signing.
+- **Onboarding UX**: Added app restart functionality and clearer hints for Accessibility Permission setup.
+- **Model Info**: Displayed speed and accuracy indicators for models in the onboarding screen.
+
+### 🚀 Improvements
+- **Cleanup**: Removed custom cloud model management and Amazon Nova models to streamline the experience.
+
 ## [3.2.0]
 
 ### ✨ New Features

@@ -3,6 +3,22 @@
     <channel>
         <title>HoAh Releases</title>
         <item>
+            <title>3.2.1</title>
+            <pubDate>Wed, 11 Dec 2025 02:00:00 -0800</pubDate>
+            <sparkle:version>321</sparkle:version>
+            <sparkle:shortVersionString>3.2.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h3>What's New in Version 3.2.1</h3>
+                <ul>
+                    <li><strong>Feature:</strong> Added support for AWS Profile credentials (~/.aws/credentials) with SigV4 signing for Bedrock.</li>
+                    <li><strong>Feature:</strong> Improved onboarding with app restart option and model speed/accuracy indicators.</li>
+                    <li><strong>Improvement:</strong> Streamlined model selection by removing custom cloud/Nova models.</li>
+                </ul>
+            ]]></description>
+            <enclosure url="https://github.com/yangzichao/hoah-dictation/releases/download/v3.2.1/HoAh-3.2.1.dmg" length="0" type="application/octet-stream" sparkle:edSignature=""/>
+        </item>
+        <item>
             <title>3.2.0</title>
             <pubDate>Wed, 11 Dec 2025 00:00:00 -0800</pubDate>
             <sparkle:version>320</sparkle:version>
