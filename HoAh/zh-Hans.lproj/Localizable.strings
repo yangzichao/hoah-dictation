@@ -717,3 +717,42 @@
 /* Selected Text Context */
 "Selected Text Context" = "选定文本上下文";
 "Use currently selected text to understand the context" = "使用当前选中的文本辅助理解上下文";
+
+
+/* AI Configuration Management */
+"New AI Configuration" = "新建 AI 配置";
+"Edit AI Configuration" = "编辑 AI 配置";
+"AI Configurations" = "AI 配置";
+"Add Configuration" = "添加配置";
+"No configurations. Click + to add one." = "暂无配置，点击 + 添加一个。";
+"Delete Configuration" = "删除配置";
+"Are you sure you want to delete \"%@\"?" = "确定要删除「%@」吗？";
+"Set as Active" = "设为当前使用";
+"Verification Failed" = "验证失败";
+"Unknown error" = "未知错误";
+"Verifying..." = "验证中...";
+"Verify & Save" = "验证并保存";
+"Name" = "名称";
+"e.g. My Gemini Config" = "例如：我的 Gemini 配置";
+"Provider" = "提供商";
+"Enter your API key" = "输入你的 API 密钥";
+"Authentication" = "认证方式";
+"AWS Profile" = "AWS Profile";
+"No AWS profiles found in ~/.aws/credentials" = "在 ~/.aws/credentials 中未找到 AWS Profile";
+"Select Profile" = "选择 Profile";
+"Enable Cross-Region Inference" = "启用跨区域推理";
+"Enter model name" = "输入模型名称";
+"AWS Profile '%@' not found in ~/.aws/credentials" = "在 ~/.aws/credentials 中未找到 AWS Profile「%@」";
+"AWS Profile '%@' has incomplete credentials" = "AWS Profile「%@」的凭证不完整";
+"Failed to read credentials for AWS Profile '%@': %@" = "读取 AWS Profile「%@」的凭证失败：%@";
+"Verification failed. Please check your API key and try again." = "验证失败，请检查你的 API 密钥后重试。";
+
+
+/* Menu Bar */
+"Manage Models" = "管理模型";
+"No configurations available" = "暂无可用配置";
+"Manage Configurations..." = "管理配置...";
+"AI Config: %@" = "AI 配置：%@";
+"Additional" = "更多";
+"Show Dock Icon" = "显示 Dock 图标";
+"Hide Dock Icon" = "隐藏 Dock 图标";

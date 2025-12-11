@@ -41,7 +41,7 @@ struct MenuBarView: View {
                 
                 Divider()
                 
-                Button("Manage Models") {
+                Button(NSLocalizedString("Manage Models", comment: "")) {
                     menuBarManager.openMainWindowAndNavigate(to: "AI Models")
                 }
             } label: {
@@ -68,7 +68,7 @@ struct MenuBarView: View {
                 
                 Divider()
                 
-                Button("Configure Shortcuts") {
+                Button(NSLocalizedString("Configure Shortcuts", comment: "")) {
                     menuBarManager.openMainWindowAndNavigate(to: "Settings")
                 }
             } label: {
@@ -81,7 +81,7 @@ struct MenuBarView: View {
             
             Divider()
             
-            Toggle("AI Enhancement", isOn: $appSettings.isAIEnhancementEnabled)
+            Toggle(NSLocalizedString("AI Enhancement", comment: ""), isOn: $appSettings.isAIEnhancementEnabled)
             
             Menu {
                 ForEach(enhancementService.activePrompts) { prompt in
@@ -159,7 +159,7 @@ struct MenuBarView: View {
                 }
 
                 if audioDeviceManager.availableDevices.isEmpty {
-                    Text("No devices available")
+                    Text(NSLocalizedString("No devices available", comment: ""))
                         .foregroundColor(.secondary)
                 }
             } label: {
@@ -170,30 +170,30 @@ struct MenuBarView: View {
                 }
             }
 
-            Menu("Additional") {
+            Menu(NSLocalizedString("Additional", comment: "")) {
                 Toggle(
-                    "Clipboard Context",
+                    NSLocalizedString("Clipboard Context", comment: ""),
                     isOn: $appSettings.useClipboardContext
                 )
             }
             
             Divider()
             
-            Button("Retry Last Transcription") {
+            Button(NSLocalizedString("Retry Last Transcription", comment: "")) {
                 LastTranscriptionService.retryLastTranscription(from: whisperState.modelContext, whisperState: whisperState)
             }
             
-            Button("Copy Last Transcription") {
+            Button(NSLocalizedString("Copy Last Transcription", comment: "")) {
                 LastTranscriptionService.copyLastTranscription(from: whisperState.modelContext)
             }
             .keyboardShortcut("c", modifiers: [.command, .shift])
             
-            Button("History") {
+            Button(NSLocalizedString("History", comment: "")) {
                 menuBarManager.openMainWindowAndNavigate(to: "History")
             }
             .keyboardShortcut("h", modifiers: [.command, .shift])
             
-            Button(appSettings.isMenuBarOnly ? "Show Dock Icon" : "Hide Dock Icon") {
+            Button(appSettings.isMenuBarOnly ? NSLocalizedString("Show Dock Icon", comment: "") : NSLocalizedString("Hide Dock Icon", comment: "")) {
                 appSettings.isMenuBarOnly.toggle()
             }
             .keyboardShortcut("d", modifiers: [.command, .shift])
@@ -203,12 +203,12 @@ struct MenuBarView: View {
                     LaunchAtLogin.isEnabled = newValue
                 }
             
-            Button("Settings") {
+            Button(NSLocalizedString("Settings", comment: "")) {
                 menuBarManager.openMainWindowAndNavigate(to: "Settings")
             }
             .keyboardShortcut(",", modifiers: .command)
             
-            Button("Quit HoAh") {
+            Button(NSLocalizedString("Quit HoAh", comment: "")) {
                 NSApplication.shared.terminate(nil)
             }
         }

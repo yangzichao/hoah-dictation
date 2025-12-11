@@ -543,3 +543,42 @@
 /* Selected Text Context */
 "Selected Text Context" = "Selected Text Context";
 "Use currently selected text to understand the context" = "Use currently selected text to understand the context";
+
+
+/* AI Configuration Management */
+"New AI Configuration" = "New AI Configuration";
+"Edit AI Configuration" = "Edit AI Configuration";
+"AI Configurations" = "AI Configurations";
+"Add Configuration" = "Add Configuration";
+"No configurations. Click + to add one." = "No configurations. Click + to add one.";
+"Delete Configuration" = "Delete Configuration";
+"Are you sure you want to delete \"%@\"?" = "Are you sure you want to delete \"%@\"?";
+"Set as Active" = "Set as Active";
+"Verification Failed" = "Verification Failed";
+"Unknown error" = "Unknown error";
+"Verifying..." = "Verifying...";
+"Verify & Save" = "Verify & Save";
+"Name" = "Name";
+"e.g. My Gemini Config" = "e.g. My Gemini Config";
+"Provider" = "Provider";
+"Enter your API key" = "Enter your API key";
+"Authentication" = "Authentication";
+"AWS Profile" = "AWS Profile";
+"No AWS profiles found in ~/.aws/credentials" = "No AWS profiles found in ~/.aws/credentials";
+"Select Profile" = "Select Profile";
+"Enable Cross-Region Inference" = "Enable Cross-Region Inference";
+"Enter model name" = "Enter model name";
+"AWS Profile '%@' not found in ~/.aws/credentials" = "AWS Profile '%@' not found in ~/.aws/credentials";
+"AWS Profile '%@' has incomplete credentials" = "AWS Profile '%@' has incomplete credentials";
+"Failed to read credentials for AWS Profile '%@': %@" = "Failed to read credentials for AWS Profile '%@': %@";
+"Verification failed. Please check your API key and try again." = "Verification failed. Please check your API key and try again.";
+
+
+/* Menu Bar */
+"Manage Models" = "Manage Models";
+"No configurations available" = "No configurations available";
+"Manage Configurations..." = "Manage Configurations...";
+"AI Config: %@" = "AI Config: %@";
+"Additional" = "Additional";
+"Show Dock Icon" = "Show Dock Icon";
+"Hide Dock Icon" = "Hide Dock Icon";
