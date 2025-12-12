@@ -36,7 +36,8 @@ struct BedrockAccessKeyIntegrationTests {
         // 1) Verify credentials by calling ListFoundationModels
         let verifyResult = await AIConfigurationValidator.verifyAWSCredentials(
             credentials: credentials,
-            region: region
+            region: region,
+            modelId: Self.testModel
         )
         #expect(verifyResult.success, "SigV4 credential verification failed: \(verifyResult.errorMessage ?? "unknown error")")
 

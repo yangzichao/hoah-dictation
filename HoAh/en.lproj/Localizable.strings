@@ -272,6 +272,8 @@
 "prompt_formal_description" = "Formal rewrite: polite, concise, fixes homophone/ASR slips, preserves English nouns and details.";
 "prompt_professional_title" = "Professional";
 "prompt_professional_description" = "High-EQ workplace communication: transforms criticism into constructive feedback, diplomatic and tactful.";
+"prompt_qna_title" = "Q&A";
+"prompt_qna_description" = "Direct question answering; returns raw model output.";
 "prompt_vibe_coding_title" = "Vibe Coding";
 "prompt_vibe_coding_description" = "Transform spoken coding ideas into clear, structured AI task descriptions with requirements and technical specs.";
 "prompt_summarize_title" = "Summarize";

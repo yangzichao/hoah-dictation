@@ -65,14 +65,14 @@ enum PredefinedPrompts {
         [
             CustomPrompt(
                 id: qnaPromptId,
-                title: "Q&A",
+                title: t("prompt_qna_title"),
                 promptText: """
 You are a direct Q&A assistant.
 
 Read <TRANSCRIPT> and reply with the direct answer. Do not polish, rewrite, or add extra formatting. Keep the language consistent with the question.
 """,
                 icon: "questionmark.circle.fill",
-                description: "Direct question answering; returns raw model output.",
+                description: t("prompt_qna_description"),
                 isPredefined: true,
                 triggerWords: [],
                 useSystemInstructions: true

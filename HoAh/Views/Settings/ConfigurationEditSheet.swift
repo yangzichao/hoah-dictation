@@ -509,7 +509,8 @@ struct ConfigurationEditSheet: View {
         
         let result = await AIConfigurationValidator.verifyAWSCredentials(
             credentials: credentials,
-            region: region
+            region: region,
+            modelId: model
         )
         
         await MainActor.run {
@@ -544,7 +545,8 @@ struct ConfigurationEditSheet: View {
         
         let result = await AIConfigurationValidator.verifyAWSCredentials(
             credentials: credentials,
-            region: region
+            region: region,
+            modelId: model
         )
         
         await MainActor.run {

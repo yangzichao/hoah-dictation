@@ -311,6 +311,8 @@
 "prompt_formal_description" = "正式书面化：礼貌精简，修正同音/ASR 误听，保留英文专有名词等细节。";
 "prompt_professional_title" = "高情商";
 "prompt_professional_description" = "职场高情商沟通：将批评转化为建设性反馈，委婉圆融，注重面子和和谐。";
+"prompt_qna_title" = "问答";
+"prompt_qna_description" = "直接问答，返回原始模型输出。";
 "prompt_vibe_coding_title" = "Vibe 写码";
 "prompt_vibe_coding_description" = "将口述编程想法转化为清晰、结构化的 AI 任务描述，包含需求和技术规格。";
 "prompt_summarize_title" = "总结";

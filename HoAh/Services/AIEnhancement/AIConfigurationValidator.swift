@@ -130,8 +130,78 @@ enum AIConfigurationValidator {
     static func verifyAWSCredentials(
         credentials: AWSCredentials,
         region: String,
+        modelId: String? = nil,
         timeout: TimeInterval = 15
     ) async -> ValidationResult {
+        // Prefer a tiny Converse call to avoid requiring ListFoundationModels permission
+        if let modelId = modelId, !modelId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            let host = "bedrock-runtime.\(region).amazonaws.com"
+            let path = "/model/\(modelId)/converse"
+            guard let url = URL(string: "https://\(host)\(path)") else {
+                return .failure("Invalid Bedrock URL")
+            }
+            
+            let payload: [String: Any] = [
+                "messages": [
+                    [
+                        "role": "user",
+                        "content": [["text": "Hello"]]
+                    ]
+                ],
+                "inferenceConfig": [
+                    "maxTokens": 16,
+                    "temperature": 0.3
+                ]
+            ]
+            
+            guard let body = try? JSONSerialization.data(withJSONObject: payload) else {
+                return .failure("Failed to create test request.")
+            }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.timeoutInterval = timeout
+            request.httpBody = body
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            do {
+                request = try AWSSigV4Signer.sign(
+                    request: request,
+                    credentials: credentials,
+                    region: region,
+                    service: "bedrock"
+                )
+            } catch {
+                return .failure("Failed to sign request: \(error.localizedDescription)")
+            }
+            
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    return .failure("Invalid response from Bedrock")
+                }
+                
+                if httpResponse.statusCode == 200 {
+                    return .success()
+                } else if httpResponse.statusCode == 401 {
+                    return .failure("Invalid AWS credentials. Please check your Access Key and Secret Key.", statusCode: 401)
+                } else if httpResponse.statusCode == 403 {
+                    let errorMsg = extractAWSErrorMessage(from: data) ?? "Access denied. Ensure your IAM policy allows invoking the target model."
+                    return .failure(errorMsg, statusCode: 403)
+                } else {
+                    let errorMsg = extractAWSErrorMessage(from: data) ?? "HTTP \(httpResponse.statusCode)"
+                    return .failure(errorMsg, statusCode: httpResponse.statusCode)
+                }
+            } catch let error as URLError where error.code == .timedOut {
+                return .failure("Connection timed out", statusCode: nil)
+            } catch let error as URLError where error.code == .cancelled {
+                return .failure("Request cancelled", statusCode: nil)
+            } catch {
+                return .failure(error.localizedDescription)
+            }
+        }
+        
+        // Fallback to ListFoundationModels if no modelId provided
         let host = "bedrock.\(region).amazonaws.com"
         guard let url = URL(string: "https://\(host)/foundation-models?byOutputModality=TEXT&maxResults=1") else {
             return .failure("Invalid Bedrock URL")

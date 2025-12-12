@@ -280,6 +280,7 @@ class ConfigurationValidationService: ObservableObject {
                 return await AIConfigurationValidator.verifyAWSCredentials(
                     credentials: credentials,
                     region: region,
+                    modelId: config.model,
                     timeout: validationTimeout
                 )
             } catch {
@@ -297,6 +298,7 @@ class ConfigurationValidationService: ObservableObject {
             return await AIConfigurationValidator.verifyAWSCredentials(
                 credentials: credentials,
                 region: region,
+                modelId: config.model,
                 timeout: validationTimeout
             )
         } else if let apiKey = config.getApiKey(), !apiKey.isEmpty {
