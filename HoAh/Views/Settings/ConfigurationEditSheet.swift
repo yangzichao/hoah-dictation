@@ -471,11 +471,17 @@ struct ConfigurationEditSheet: View {
         request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
         request.timeoutInterval = 30
         
-        let body: [String: Any] = [
+        // OpenAI 新模型 (gpt-5.x) 需要用 max_completion_tokens 而不是 max_tokens
+        let useMaxCompletionTokens = selectedProvider == .openAI && model.hasPrefix("gpt-5")
+        var body: [String: Any] = [
             "model": model,
-            "messages": [["role": "user", "content": "test"]],
-            "max_tokens": 5
+            "messages": [["role": "user", "content": "test"]]
         ]
+        if useMaxCompletionTokens {
+            body["max_completion_tokens"] = 5
+        } else {
+            body["max_tokens"] = 5
+        }
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         
         URLSession.shared.dataTask(with: request) { data, response, error in
