@@ -3,6 +3,20 @@
     <channel>
         <title>HoAh Releases</title>
         <item>
+            <title>3.2.4</title>
+            <pubDate>Thu, 11 Dec 2025 19:30:00 -0800</pubDate>
+            <sparkle:version>324</sparkle:version>
+            <sparkle:shortVersionString>3.2.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h3>What's New in Version 3.2.4</h3>
+                <ul>
+                    <li><strong>Improvement:</strong> Minor bug fixes and stability improvements.</li>
+                </ul>
+            ]]></description>
+            <enclosure url="https://github.com/yangzichao/hoah-dictation/releases/download/v3.2.4/HoAh-3.2.4.dmg" length="0" type="application/octet-stream" sparkle:edSignature=""/>
+        </item>
+        <item>
             <title>3.2.3</title>
             <pubDate>Thu, 12 Dec 2025 02:00:00 -0800</pubDate>
             <sparkle:version>323</sparkle:version>
