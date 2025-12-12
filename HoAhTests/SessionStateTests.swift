@@ -2,6 +2,7 @@ import Testing
 @testable import HoAh
 import SwiftData
 
+@MainActor
 struct SessionStateTests {
 
     @Test func ignoresStaleSessionTokenAndKeepsLatestSession() throws {

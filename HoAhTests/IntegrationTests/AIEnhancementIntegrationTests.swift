@@ -13,6 +13,9 @@ struct TestConfiguration {
     let awsBedrockKey: String?
     let awsBedrockRegion: String
     let awsProfile: String?
+    let awsAccessKeyId: String?
+    let awsSecretAccessKey: String?
+    let awsSessionToken: String?
     
     static func load() -> TestConfiguration {
         // 优先从环境变量加载
@@ -23,6 +26,9 @@ struct TestConfiguration {
         let awsBedrock = ProcessInfo.processInfo.environment["AWS_BEDROCK_API_KEY"]
         let awsRegion = ProcessInfo.processInfo.environment["AWS_BEDROCK_REGION"] ?? "us-east-1"
         let awsProfile = ProcessInfo.processInfo.environment["AWS_PROFILE"]
+        let awsAccessKeyId = ProcessInfo.processInfo.environment["AWS_ACCESS_KEY_ID"]
+        let awsSecretAccessKey = ProcessInfo.processInfo.environment["AWS_SECRET_ACCESS_KEY"]
+        let awsSessionToken = ProcessInfo.processInfo.environment["AWS_SESSION_TOKEN"]
         
         // 如果环境变量为空，尝试从 .env.test 文件加载
         if openAI == nil && gemini == nil && groq == nil && cerebras == nil && awsBedrock == nil {
@@ -33,7 +39,10 @@ struct TestConfiguration {
                 cerebrasKey: nil,
                 awsBedrockKey: nil,
                 awsBedrockRegion: "us-east-1",
-                awsProfile: nil
+                awsProfile: nil,
+                awsAccessKeyId: nil,
+                awsSecretAccessKey: nil,
+                awsSessionToken: nil
             )
         }
         
@@ -44,7 +53,10 @@ struct TestConfiguration {
             cerebrasKey: cerebras,
             awsBedrockKey: awsBedrock,
             awsBedrockRegion: awsRegion,
-            awsProfile: awsProfile
+            awsProfile: awsProfile,
+            awsAccessKeyId: awsAccessKeyId,
+            awsSecretAccessKey: awsSecretAccessKey,
+            awsSessionToken: awsSessionToken
         )
     }
     
@@ -103,7 +115,10 @@ struct TestConfiguration {
             cerebrasKey: config["CEREBRAS_API_KEY"],
             awsBedrockKey: config["AWS_BEDROCK_API_KEY"],
             awsBedrockRegion: config["AWS_BEDROCK_REGION"] ?? "us-east-1",
-            awsProfile: config["AWS_PROFILE"]
+            awsProfile: config["AWS_PROFILE"],
+            awsAccessKeyId: config["AWS_ACCESS_KEY_ID"],
+            awsSecretAccessKey: config["AWS_SECRET_ACCESS_KEY"],
+            awsSessionToken: config["AWS_SESSION_TOKEN"]
         )
     }
     

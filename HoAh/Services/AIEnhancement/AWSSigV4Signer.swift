@@ -5,6 +5,9 @@ import CommonCrypto
 /// Reference: https://docs.aws.amazon.com/general/latest/gr/sigv4_signing.html
 enum AWSSigV4Signer {
     
+    /// RFC 3986 path-safe characters (exclude ":" to force encoding bedrock model IDs)
+    private static let uriPathAllowed = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
+    
     enum SigningError: LocalizedError {
         case invalidURL
         case missingHost
@@ -67,10 +70,16 @@ enum AWSSigV4Signer {
         // Create canonical request
         let httpMethod = request.httpMethod ?? "GET"
         // For canonical URI, we need to use the path as it appears in the URL
-        // AWS SigV4 requires URI-encoded path components
+        // AWS SigV4 requires URI-encoded path components (colon must be percent-encoded)
         let rawPath = url.path.isEmpty ? "/" : url.path
-        // Re-encode the path for signing (keep ":" as-is to match Bedrock model IDs like "...:0")
-        let canonicalURI = rawPath.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? rawPath
+        let canonicalURI: String = {
+            // Preserve leading "/" and encode each segment per RFC 3986
+            let segments = rawPath.split(separator: "/", omittingEmptySubsequences: false)
+            let encoded = segments.map { segment in
+                segment.addingPercentEncoding(withAllowedCharacters: uriPathAllowed) ?? String(segment)
+            }
+            return encoded.joined(separator: "/")
+        }()
         let canonicalQueryString = url.query ?? ""
         
         // Get signed headers (sorted alphabetically)

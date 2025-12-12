@@ -68,7 +68,7 @@ enum BedrockProvider {
                 request: request,
                 credentials: credentials,
                 region: region,
-                service: "bedrock-runtime"
+                service: "bedrock"
             )
         case .bedrockBearer(let token, _):
             guard !token.isEmpty else { throw EnhancementError.notConfigured }
