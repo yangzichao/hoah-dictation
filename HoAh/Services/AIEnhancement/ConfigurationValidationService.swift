@@ -108,6 +108,9 @@ class ConfigurationValidationService: ObservableObject {
     /// Timer for clearing success indicator
     private var successClearTimer: Timer?
     
+    /// Token to prevent stale validation results from overwriting newer switches
+    private var switchToken: UUID?
+    
     // MARK: - Initialization
     
     init() {}
@@ -143,7 +146,9 @@ class ConfigurationValidationService: ObservableObject {
         }
         
         // Capture validation context snapshot to detect stale results
-        let context = ValidationContext(config: config, signature: makeSignature(for: config))
+        let token = UUID()
+        switchToken = token
+        let context = ValidationContext(config: config, signature: makeSignature(for: config), token: token)
         currentContext = context
         
         // Set validating state
@@ -210,12 +215,7 @@ class ConfigurationValidationService: ObservableObject {
             
             if let result = result {
                 if result.success {
-                    // Success - update active configuration
-                    self.appSettings?.setActiveConfiguration(id: configId)
-                    self.aiService?.hydrateActiveConfiguration()
-                    // Build runtime session immediately
-                    self.enhancementService?.applyConfiguration(config)
-                    self.showSuccessIndicator(configId: configId)
+                    self.applyConfigurationAtomically(config: config, token: context.token)
                 } else {
                     // Failure - map error
                     if let statusCode = result.httpStatusCode {
@@ -323,6 +323,15 @@ class ConfigurationValidationService: ObservableObject {
             }
         }
     }
+    
+    /// Apply configuration only if the switch token is still current
+    private func applyConfigurationAtomically(config: AIEnhancementConfiguration, token: UUID) {
+        guard let currentToken = switchToken, currentToken == token else { return }
+        appSettings?.setActiveConfiguration(id: config.id)
+        aiService?.hydrateActiveConfiguration()
+        enhancementService?.applyConfiguration(config)
+        showSuccessIndicator(configId: config.id)
+    }
 }
 
 // MARK: - Validation Context Helpers
@@ -331,14 +340,16 @@ private extension ConfigurationValidationService {
     struct ValidationContext: Equatable {
         let configId: UUID
         let signature: String
+        let token: UUID
         
-        init(config: AIEnhancementConfiguration, signature: String) {
+        init(config: AIEnhancementConfiguration, signature: String, token: UUID) {
             self.configId = config.id
             self.signature = signature
+            self.token = token
         }
         
         func matches(_ other: ValidationContext) -> Bool {
-            return configId == other.configId && signature == other.signature
+            return configId == other.configId && signature == other.signature && token == other.token
         }
     }
     

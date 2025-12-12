@@ -4,9 +4,12 @@ import Foundation
 extension AIEnhancementService {
     /// Apply a validated configuration and rebuild the runtime session snapshot
     func applyConfiguration(_ config: AIEnhancementConfiguration) {
+        let token = beginSessionSwitch()
+        markSwitching(configId: config.id)
+        
         // Profile-based configs require async credential resolution
         if let profileName = config.awsProfileName, !profileName.isEmpty {
-            activeSession = nil
+            setActiveSession(nil, token: token)
             let model = config.model.isEmpty ? (AIProvider(rawValue: config.provider)?.defaultModel ?? config.model) : config.model
             let region = config.region ?? aiService.bedrockRegion
             Task { [weak self] in
@@ -15,30 +18,35 @@ extension AIEnhancementService {
                     let credentials = try await awsProfileService.resolveCredentials(for: profileName)
                     let resolvedRegion = credentials.region ?? region
                     await MainActor.run {
-                        self.activeSession = ActiveSession(
-                            provider: .awsBedrock,
-                            model: model,
-                            region: resolvedRegion,
-                            auth: .bedrockSigV4(credentials, region: resolvedRegion)
+                        self.setActiveSession(
+                            ActiveSession(
+                                provider: .awsBedrock,
+                                model: model,
+                                region: resolvedRegion,
+                                auth: .bedrockSigV4(credentials, region: resolvedRegion)
+                            ),
+                            token: token
                         )
                     }
                 } catch {
-                    await MainActor.run { self.activeSession = nil }
+                    await MainActor.run { self.setActiveSession(nil, token: token) }
                 }
             }
             return
         }
 
-        activeSession = buildSession(from: config)
+        setActiveSession(buildSession(from: config), token: token)
     }
 
     /// Rebuild session from the currently active configuration or legacy settings
     func rebuildActiveSession() {
         if let config = aiService.activeConfiguration {
             applyConfiguration(config)
-        } else {
-            activeSession = buildLegacySession()
+            return
         }
+        
+        let token = beginSessionSwitch()
+        setActiveSession(buildLegacySession(), token: token)
     }
 
     func buildLegacySession() -> ActiveSession? {

@@ -94,6 +94,16 @@ class AIEnhancementService: ObservableObject {
 
     // MARK: - Runtime State (kept here)
     
+    /// High-level runtime state for AI Enhancement
+    enum SessionState {
+        case idle
+        case switching(configId: UUID?)
+        case ready(session: ActiveSession)
+        case enhancing(session: ActiveSession)
+        case error(message: String?)
+    }
+    
+    @Published private(set) var activeSessionState: SessionState = .idle
     @Published var lastSystemMessageSent: String?
     @Published var lastUserMessageSent: String?
     @Published var lastCapturedClipboard: String?
@@ -113,6 +123,9 @@ class AIEnhancementService: ObservableObject {
     
     /// Immutable runtime snapshot derived from the active configuration
     var activeSession: ActiveSession?
+    
+    /// Token used to prevent stale async config applications from overwriting newer ones
+    private var activeSessionToken: UUID = UUID()
     
     struct ActiveSession {
         let provider: AIProvider
@@ -135,6 +148,43 @@ class AIEnhancementService: ObservableObject {
         if let encoded = try? JSONEncoder().encode(triggerPrompts) {
             UserDefaults.standard.set(encoded, forKey: triggerPromptsKey)
         }
+    }
+    
+    /// Begin a new session switch; increments token to invalidate older async setters
+    func beginSessionSwitch() -> UUID {
+        let token = UUID()
+        activeSessionToken = token
+        markSwitching(configId: nil)
+        return token
+    }
+    
+    /// Set activeSession only if the caller still holds the latest token
+    func setActiveSession(_ session: ActiveSession?, token: UUID) {
+        guard token == activeSessionToken else { return }
+        activeSession = session
+        if let session {
+            markReady(with: session)
+        } else {
+            markError("Session not configured")
+        }
+    }
+
+    // MARK: - State helpers (single write point for activeSessionState)
+
+    func markSwitching(configId: UUID?) {
+        activeSessionState = .switching(configId: configId)
+    }
+
+    func markReady(with session: ActiveSession) {
+        activeSessionState = .ready(session: session)
+    }
+
+    func markEnhancing(with session: ActiveSession) {
+        activeSessionState = .enhancing(session: session)
+    }
+
+    func markError(_ message: String?) {
+        activeSessionState = .error(message: message)
     }
 
     init(aiService: AIService, modelContext: ModelContext) {
