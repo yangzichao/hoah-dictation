@@ -20,6 +20,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		44023BD62EEBA58900BA41AC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E11473A82CBE0F0A00318EE4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E11473AF2CBE0F0A00318EE4;
+			remoteInfo = HoAh;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -38,6 +45,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		44023BCD2EEBA58900BA41AC /* HoAhTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HoAhTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E11473B02CBE0F0A00318EE4 /* HoAh.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HoAh.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E11473F62F00F0A000318EE4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E1A0BD052EB1E7B800266859 /* whisper.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = whisper.xcframework; path = "$(HOME)/HoAh-Dependencies/whisper.cpp/build-apple/whisper.xcframework"; sourceTree = "<absolute>"; };
@@ -46,6 +54,11 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		44023BCE2EEBA58900BA41AC /* HoAhTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HoAhTests;
+			sourceTree = "<group>";
+		};
 		E11473B22CBE0F0A00318EE4 /* HoAh */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = HoAh;
@@ -54,6 +67,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		44023BCA2EEBA58900BA41AC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E11473AD2CBE0F0A00318EE4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -76,6 +96,7 @@
 			isa = PBXGroup;
 			children = (
 				E11473B22CBE0F0A00318EE4 /* HoAh */,
+				44023BCE2EEBA58900BA41AC /* HoAhTests */,
 				E114741C2CBE1DE200318EE4 /* Frameworks */,
 				E11473B12CBE0F0A00318EE4 /* Products */,
 				E11473F52F00F0A000318EE4 /* Config */,
@@ -86,8 +107,17 @@
 			isa = PBXGroup;
 			children = (
 				E11473B02CBE0F0A00318EE4 /* HoAh.app */,
+				44023BCD2EEBA58900BA41AC /* HoAhTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E11473F52F00F0A000318EE4 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				E11473F62F00F0A000318EE4 /* Info.plist */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 		E114741C2CBE1DE200318EE4 /* Frameworks */ = {
@@ -100,17 +130,32 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		E11473F52F00F0A000318EE4 /* Config */ = {
-			isa = PBXGroup;
-			children = (
-				E11473F62F00F0A000318EE4 /* Info.plist */,
-			);
-			path = Config;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		44023BCC2EEBA58900BA41AC /* HoAhTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 44023BD42EEBA58900BA41AC /* Build configuration list for PBXNativeTarget "HoAhTests" */;
+			buildPhases = (
+				44023BC92EEBA58900BA41AC /* Sources */,
+				44023BCA2EEBA58900BA41AC /* Frameworks */,
+				44023BCB2EEBA58900BA41AC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				44023BD52EEBA58900BA41AC /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				44023BCE2EEBA58900BA41AC /* HoAhTests */,
+			);
+			name = HoAhTests;
+			packageProductDependencies = (
+			);
+			productName = HoAhTests;
+			productReference = 44023BCD2EEBA58900BA41AC /* HoAhTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		E11473AF2CBE0F0A00318EE4 /* HoAh */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = E11473D72CBE0F0B00318EE4 /* Build configuration list for PBXNativeTarget "HoAh" */;
@@ -148,9 +193,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1600;
+				LastSwiftUpdateCheck = 2610;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
+					44023BCC2EEBA58900BA41AC = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
 					E11473AF2CBE0F0A00318EE4 = {
 						CreatedOnToolsVersion = 16.0;
 					};
@@ -162,6 +210,7 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
 			);
 			mainGroup = E11473A72CBE0F0A00318EE4;
 			minimizedProjectReferenceProxies = 1;
@@ -180,11 +229,19 @@
 			projectRoot = "";
 			targets = (
 				E11473AF2CBE0F0A00318EE4 /* HoAh */,
+				44023BCC2EEBA58900BA41AC /* HoAhTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		44023BCB2EEBA58900BA41AC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E11473AE2CBE0F0A00318EE4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -195,6 +252,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		44023BC92EEBA58900BA41AC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E11473AC2CBE0F0A00318EE4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -205,9 +269,83 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		44023BD52EEBA58900BA41AC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E11473AF2CBE0F0A00318EE4 /* HoAh */;
+			targetProxy = 44023BD62EEBA58900BA41AC /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		44023BD12EEBA58900BA41AC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Y646LMR36U;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yangzichao.HoAhTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HoAh.app/Contents/MacOS/HoAh";
+			};
+			name = Debug;
+		};
+		44023BD22EEBA58900BA41AC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Y646LMR36U;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yangzichao.HoAhTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HoAh.app/Contents/MacOS/HoAh";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		44023BD32EEBA58900BA41AC /* App Store */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Y646LMR36U;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yangzichao.HoAhTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HoAh.app/Contents/MacOS/HoAh";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "App Store";
+		};
 		E11473D52CBE0F0B00318EE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -327,7 +465,86 @@
 			};
 			name = Release;
 		};
-E11473DA2CBE0F0B00318EE4 /* App Store */ = {
+		E11473D82CBE0F0B00318EE4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_ENTITLEMENTS = "";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 323;
+				DEVELOPMENT_ASSET_PATHS = "\"HoAh/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = HoAh;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 3.2.3;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yangzichao.hoah;
+				PRODUCT_MODULE_NAME = HoAh;
+				PRODUCT_NAME = HoAh;
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG ENABLE_NATIVE_SPEECH_ANALYZER $(inherited)";
+				SWIFT_DISABLE_EXPLICIT_MODULES = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		E11473D92CBE0F0B00318EE4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = HoAh/HoAh.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application: Zichao Yang (Y646LMR36U)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 323;
+				DEVELOPMENT_ASSET_PATHS = "\"HoAh/Preview Content\"";
+				DEVELOPMENT_TEAM = Y646LMR36U;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = HoAh;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 3.2.3;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yangzichao.hoah;
+				PRODUCT_MODULE_NAME = HoAh;
+				PRODUCT_NAME = HoAh;
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "ENABLE_NATIVE_SPEECH_ANALYZER $(inherited)";
+				SWIFT_DISABLE_EXPLICIT_MODULES = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		E11473DA2CBE0F0B00318EE4 /* App Store */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -383,86 +600,7 @@ E11473DA2CBE0F0B00318EE4 /* App Store */ = {
 			};
 			name = "App Store";
 		};
-		E11473D82CBE0F0B00318EE4 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "";
-				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
-				CODE_SIGN_STYLE = Manual;
-				CODE_SIGNING_ALLOWED = NO;
-				CODE_SIGNING_REQUIRED = NO;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 323;
-				DEVELOPMENT_ASSET_PATHS = "\"HoAh/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Config/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = HoAh;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 3.2.3;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yangzichao.hoah;
-				PRODUCT_MODULE_NAME = HoAh;
-				PRODUCT_NAME = HoAh;
-				PROVISIONING_PROFILE = "";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_DISABLE_EXPLICIT_MODULES = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG ENABLE_NATIVE_SPEECH_ANALYZER $(inherited)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Debug;
-		};
-		E11473D92CBE0F0B00318EE4 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = HoAh/HoAh.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application: Zichao Yang (Y646LMR36U)";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 323;
-				DEVELOPMENT_ASSET_PATHS = "\"HoAh/Preview Content\"";
-				DEVELOPMENT_TEAM = Y646LMR36U;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Config/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = HoAh;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 3.2.3;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yangzichao.hoah;
-				PRODUCT_MODULE_NAME = HoAh;
-				PRODUCT_NAME = HoAh;
-				PROVISIONING_PROFILE = "";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_DISABLE_EXPLICIT_MODULES = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "ENABLE_NATIVE_SPEECH_ANALYZER $(inherited)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Release;
-		};
-E11473DB2CBE0F0B00318EE4 /* App Store */ = {
+		E11473DB2CBE0F0B00318EE4 /* App Store */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
@@ -493,8 +631,8 @@ E11473DB2CBE0F0B00318EE4 /* App Store */ = {
 				PRODUCT_NAME = HoAh;
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_DISABLE_EXPLICIT_MODULES = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "ENABLE_NATIVE_SPEECH_ANALYZER $(inherited)";
+				SWIFT_DISABLE_EXPLICIT_MODULES = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -503,6 +641,16 @@ E11473DB2CBE0F0B00318EE4 /* App Store */ = {
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		44023BD42EEBA58900BA41AC /* Build configuration list for PBXNativeTarget "HoAhTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				44023BD12EEBA58900BA41AC /* Debug */,
+				44023BD22EEBA58900BA41AC /* Release */,
+				44023BD32EEBA58900BA41AC /* App Store */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		E11473AB2CBE0F0A00318EE4 /* Build configuration list for PBXProject "HoAh" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

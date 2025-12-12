@@ -66,7 +66,11 @@ enum AWSSigV4Signer {
         
         // Create canonical request
         let httpMethod = request.httpMethod ?? "GET"
-        let canonicalURI = url.path.isEmpty ? "/" : url.path
+        // For canonical URI, we need to use the path as it appears in the URL
+        // AWS SigV4 requires URI-encoded path components
+        let rawPath = url.path.isEmpty ? "/" : url.path
+        // Re-encode the path for signing (encode special chars like : to %3A)
+        let canonicalURI = rawPath.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed.subtracting(CharacterSet(charactersIn: ":"))) ?? rawPath
         let canonicalQueryString = url.query ?? ""
         
         // Get signed headers (sorted alphabetically)

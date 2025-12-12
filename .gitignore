@@ -115,3 +115,6 @@ developerID_application.cer
 .cleanup-summary.md
 scripts/packaging/.env
 *.log
+
+# Integration test configuration (contains API keys)
+.env.test

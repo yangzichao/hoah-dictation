@@ -502,9 +502,14 @@ class AIEnhancementService: ObservableObject {
             var requestBody: [String: Any] = [
                 "model": aiService.currentModel,
                 "messages": messages,
-                "temperature": aiService.currentModel.lowercased().hasPrefix("gpt-5") ? 1.0 : 0.3,
                 "stream": false
             ]
+            
+            // gpt-5-mini 和 gpt-5-nano 不支持 temperature 参数
+            let noTemperatureModels = ["gpt-5-mini", "gpt-5-nano"]
+            if !noTemperatureModels.contains(aiService.currentModel) {
+                requestBody["temperature"] = 0.3
+            }
 
             // Add reasoning_effort parameter if the model supports it
             if let reasoningEffort = ReasoningConfig.getReasoningParameter(for: aiService.currentModel) {

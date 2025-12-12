@@ -55,10 +55,10 @@ enum AIProvider: String, CaseIterable {
     var availableModels: [String] {
         switch self {
         case .cerebras:
+            // 注意: llama-4-scout-17b-16e-instruct 已移除 (API 不存在该模型)
             return [
                 "gpt-oss-120b",
                 "llama-3.1-8b",
-                "llama-4-scout-17b-16e-instruct",
                 "llama-3.3-70b",
                 "qwen-3-32b",
                 "qwen-3-235b-a22b-instruct-2507"
