@@ -68,7 +68,7 @@ enum BedrockProvider {
                 request: request,
                 credentials: credentials,
                 region: region,
-                service: "bedrock"
+                service: "bedrock" // Bedrock SigV4 service MUST be "bedrock"
             )
         case .bedrockBearer(let token, _):
             guard !token.isEmpty else { throw EnhancementError.notConfigured }

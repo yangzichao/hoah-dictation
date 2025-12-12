@@ -22,7 +22,9 @@ enum AWSSigV4Signer {
         }
     }
     
-    /// Signs an HTTP request using AWS Signature Version 4
+    /// Signs an HTTP request using AWS Signature Version 4.
+    /// NOTE: Bedrock requires `service = "bedrock"` and colon in model IDs must be percent-encoded;
+    /// do not change the path encoding or service name unless the Bedrock API changes.
     /// - Parameters:
     ///   - request: The URLRequest to sign
     ///   - credentials: AWS credentials (access key, secret key, optional session token)
