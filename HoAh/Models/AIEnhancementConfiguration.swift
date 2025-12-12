@@ -13,6 +13,8 @@ struct AIEnhancementConfiguration: Codable, Identifiable, Equatable {
     // Authentication - API Key stored in Keychain (this is just a flag)
     var hasApiKey: Bool
     var awsProfileName: String?   // AWS Profile name for SigV4 signing (Bedrock only)
+    var awsAccessKeyId: String?   // AWS Access Key ID for direct SigV4 signing (Bedrock only)
+    var hasAwsSecretKey: Bool     // Flag indicating AWS Secret Key is stored in Keychain
     
     // Provider-specific settings
     var region: String?           // AWS Bedrock region (e.g., "us-east-1")
@@ -29,6 +31,11 @@ struct AIEnhancementConfiguration: Codable, Identifiable, Equatable {
         "com.yangzichao.hoah.aiconfig.\(id.uuidString)"
     }
     
+    /// Keychain key for storing the AWS Secret Access Key
+    private var awsSecretKeychainKey: String {
+        "com.yangzichao.hoah.aiconfig.\(id.uuidString).awssecret"
+    }
+    
     // MARK: - Initialization
     
     init(
@@ -38,6 +45,8 @@ struct AIEnhancementConfiguration: Codable, Identifiable, Equatable {
         model: String,
         apiKey: String? = nil,
         awsProfileName: String? = nil,
+        awsAccessKeyId: String? = nil,
+        awsSecretAccessKey: String? = nil,
         region: String? = nil,
         enableCrossRegion: Bool = false,
         createdAt: Date = Date(),
@@ -49,6 +58,8 @@ struct AIEnhancementConfiguration: Codable, Identifiable, Equatable {
         self.model = model
         self.hasApiKey = false
         self.awsProfileName = awsProfileName
+        self.awsAccessKeyId = awsAccessKeyId
+        self.hasAwsSecretKey = false
         self.region = region
         self.enableCrossRegion = enableCrossRegion
         self.createdAt = createdAt
@@ -57,6 +68,11 @@ struct AIEnhancementConfiguration: Codable, Identifiable, Equatable {
         // Store API key in Keychain if provided
         if let key = apiKey, !key.isEmpty {
             self.setApiKey(key)
+        }
+        
+        // Store AWS Secret Access Key in Keychain if provided
+        if let secret = awsSecretAccessKey, !secret.isEmpty {
+            self.setAwsSecretAccessKey(secret)
         }
     }
     
@@ -112,10 +128,63 @@ struct AIEnhancementConfiguration: Codable, Identifiable, Equatable {
         hasApiKey = false
     }
     
+    // MARK: - AWS Secret Access Key Keychain Operations
+    
+    /// Get AWS Secret Access Key from Keychain
+    func getAwsSecretAccessKey() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: awsSecretKeychainKey,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        
+        guard status == errSecSuccess,
+              let data = result as? Data,
+              let key = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+        
+        return key
+    }
+    
+    /// Store AWS Secret Access Key in Keychain
+    mutating func setAwsSecretAccessKey(_ key: String) {
+        guard let data = key.data(using: .utf8) else { return }
+        
+        // Delete existing key first
+        deleteAwsSecretAccessKey()
+        
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: awsSecretKeychainKey,
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlocked
+        ]
+        
+        let status = SecItemAdd(query as CFDictionary, nil)
+        hasAwsSecretKey = (status == errSecSuccess)
+    }
+    
+    /// Delete AWS Secret Access Key from Keychain
+    mutating func deleteAwsSecretAccessKey() {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: awsSecretKeychainKey
+        ]
+        
+        SecItemDelete(query as CFDictionary)
+        hasAwsSecretKey = false
+    }
+    
     // MARK: - Codable
     
     enum CodingKeys: String, CodingKey {
         case id, name, provider, model, hasApiKey, awsProfileName
+        case awsAccessKeyId, hasAwsSecretKey
         case region, enableCrossRegion, createdAt, lastUsedAt
         // Legacy key for migration
         case apiKey
@@ -132,6 +201,8 @@ struct AIEnhancementConfiguration: Codable, Identifiable, Equatable {
         self.provider = try container.decode(String.self, forKey: .provider)
         self.model = try container.decode(String.self, forKey: .model)
         self.awsProfileName = try container.decodeIfPresent(String.self, forKey: .awsProfileName)
+        self.awsAccessKeyId = try container.decodeIfPresent(String.self, forKey: .awsAccessKeyId)
+        self.hasAwsSecretKey = try container.decodeIfPresent(Bool.self, forKey: .hasAwsSecretKey) ?? false
         self.region = try container.decodeIfPresent(String.self, forKey: .region)
         self.enableCrossRegion = try container.decodeIfPresent(Bool.self, forKey: .enableCrossRegion) ?? false
         self.createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
@@ -149,8 +220,8 @@ struct AIEnhancementConfiguration: Codable, Identifiable, Equatable {
         }
         
         // Sync hasApiKey flag with actual Keychain state
-        // This handles cases where Keychain was cleared but hasApiKey is still true
         self.syncHasApiKeyWithKeychain()
+        self.syncHasAwsSecretKeyWithKeychain()
     }
     
     /// Custom encoder - excludes apiKey (stored in Keychain)
@@ -163,11 +234,13 @@ struct AIEnhancementConfiguration: Codable, Identifiable, Equatable {
         try container.encode(model, forKey: .model)
         try container.encode(hasApiKey, forKey: .hasApiKey)
         try container.encodeIfPresent(awsProfileName, forKey: .awsProfileName)
+        try container.encodeIfPresent(awsAccessKeyId, forKey: .awsAccessKeyId)
+        try container.encode(hasAwsSecretKey, forKey: .hasAwsSecretKey)
         try container.encodeIfPresent(region, forKey: .region)
         try container.encode(enableCrossRegion, forKey: .enableCrossRegion)
         try container.encode(createdAt, forKey: .createdAt)
         try container.encodeIfPresent(lastUsedAt, forKey: .lastUsedAt)
-        // Note: apiKey is NOT encoded - it's stored in Keychain
+        // Note: apiKey and awsSecretAccessKey are NOT encoded - stored in Keychain
     }
     
     /// Syncs hasApiKey flag with actual Keychain state
@@ -176,6 +249,14 @@ struct AIEnhancementConfiguration: Codable, Identifiable, Equatable {
         let actuallyHasKey = getApiKey() != nil
         if hasApiKey != actuallyHasKey {
             hasApiKey = actuallyHasKey
+        }
+    }
+    
+    /// Syncs hasAwsSecretKey flag with actual Keychain state
+    mutating func syncHasAwsSecretKeyWithKeychain() {
+        let actuallyHasKey = getAwsSecretAccessKey() != nil
+        if hasAwsSecretKey != actuallyHasKey {
+            hasAwsSecretKey = actuallyHasKey
         }
     }
 }
@@ -215,16 +296,14 @@ extension AIEnhancementConfiguration {
         }
         
         // Authentication validation based on provider
-        // Use hasActualApiKey (Keychain check) instead of hasApiKey flag
-        // Note: For AWS Profile, we only check if profile name is set (lightweight)
-        // Full validation happens at save time in ConfigurationEditSheet
         if let providerEnum = AIProvider(rawValue: provider) {
             switch providerEnum {
             case .awsBedrock:
-                // AWS Bedrock requires either API key or AWS Profile name
+                // AWS Bedrock requires API key, Access Key, or AWS Profile
                 let hasProfileName = !(awsProfileName?.isEmpty ?? true)
-                if !hasActualApiKey && !hasProfileName {
-                    errors.append("AWS Bedrock requires either an API key or an AWS Profile")
+                let hasAccessKey = !(awsAccessKeyId?.isEmpty ?? true) && hasActualAwsSecretKey
+                if !hasActualApiKey && !hasProfileName && !hasAccessKey {
+                    errors.append("AWS Bedrock requires an API key, Access Key, or AWS Profile")
                 }
                 if region?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true {
                     errors.append("Region is required for AWS Bedrock")
@@ -265,10 +344,17 @@ extension AIEnhancementConfiguration {
         }
     }
     
+    /// Whether the AWS Secret Access Key actually exists in Keychain
+    var hasActualAwsSecretKey: Bool {
+        getAwsSecretAccessKey() != nil
+    }
+    
     /// Authentication method used by this configuration
     var authMethod: AuthMethod {
         if let profileName = awsProfileName, !profileName.isEmpty {
             return .awsProfile(profileName)
+        } else if let accessKeyId = awsAccessKeyId, !accessKeyId.isEmpty, hasActualAwsSecretKey {
+            return .awsAccessKey(accessKeyId)
         } else if hasActualApiKey {
             return .apiKey
         } else {
@@ -282,6 +368,7 @@ extension AIEnhancementConfiguration {
 extension AIEnhancementConfiguration {
     enum AuthMethod: Equatable {
         case apiKey
+        case awsAccessKey(String)  // Access Key ID
         case awsProfile(String)
         case none
     }

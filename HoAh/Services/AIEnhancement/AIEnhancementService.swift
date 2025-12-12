@@ -635,24 +635,26 @@ class AIEnhancementService: ObservableObject {
             throw EnhancementError.notConfigured
         }
         
-        // Use AWS Profile (SigV4) if configured; otherwise fall back to API key header
+        // Determine authentication method and build request
         var request: URLRequest
+        guard !region.isEmpty else { throw EnhancementError.notConfigured }
+        let host = "bedrock-runtime.\(region).amazonaws.com"
+        guard let url = URL(string: "https://\(host)/model/\(modelId)/converse") else {
+            throw EnhancementError.invalidResponse
+        }
+        request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = payloadData
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = baseTimeout
+        
+        // Check authentication method in order: AWS Profile > Access Key > API Key (Bearer Token)
         if let profileName = config?.awsProfileName, !profileName.isEmpty {
-            // Resolve credentials via profile
+            // Use AWS Profile (SigV4)
             let credentials = try await awsProfileService.resolveCredentials(for: profileName)
             if let resolved = credentials.region, !resolved.isEmpty {
                 region = resolved
             }
-            guard !region.isEmpty else { throw EnhancementError.notConfigured }
-            let host = "bedrock-runtime.\(region).amazonaws.com"
-            guard let url = URL(string: "https://\(host)/model/\(modelId)/converse") else {
-                throw EnhancementError.invalidResponse
-            }
-            request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.httpBody = payloadData
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.timeoutInterval = baseTimeout
             let signerCredentials = AWSCredentials(
                 accessKeyId: credentials.accessKeyId,
                 secretAccessKey: credentials.secretAccessKey,
@@ -665,17 +667,23 @@ class AIEnhancementService: ObservableObject {
                 region: region,
                 service: "bedrock-runtime"
             )
+        } else if let accessKeyId = config?.awsAccessKeyId, !accessKeyId.isEmpty,
+                  let secretAccessKey = config?.getAwsSecretAccessKey(), !secretAccessKey.isEmpty {
+            // Use Access Key (SigV4)
+            let signerCredentials = AWSCredentials(
+                accessKeyId: accessKeyId,
+                secretAccessKey: secretAccessKey,
+                sessionToken: nil,
+                region: region
+            )
+            request = try AWSSigV4Signer.sign(
+                request: request,
+                credentials: signerCredentials,
+                region: region,
+                service: "bedrock-runtime"
+            )
         } else {
-            guard !region.isEmpty else { throw EnhancementError.notConfigured }
-            let host = "bedrock-runtime.\(region).amazonaws.com"
-            guard let url = URL(string: "https://\(host)/model/\(modelId)/converse") else {
-                throw EnhancementError.invalidResponse
-            }
-            request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.httpBody = payloadData
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.timeoutInterval = baseTimeout
+            // Use API Key (Bearer Token)
             guard !apiKey.isEmpty else {
                 throw EnhancementError.notConfigured
             }

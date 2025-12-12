@@ -32,10 +32,17 @@ struct ConfigurationEditSheet: View {
     @State private var region: String
     @State private var enableCrossRegion: Bool
     
-    // AWS Profile state
-    @State private var useAWSProfile: Bool = false
+    // AWS Authentication state
+    enum AWSAuthMethod: String, CaseIterable {
+        case apiKey = "API Key"
+        case accessKey = "Access Key"
+        case profile = "AWS Profile"
+    }
+    @State private var awsAuthMethod: AWSAuthMethod = .apiKey
     @State private var selectedAWSProfile: String = ""
     @State private var availableAWSProfiles: [String] = []
+    @State private var awsAccessKeyId: String = ""
+    @State private var awsSecretAccessKey: String = ""
     
     // Verification state
     @State private var isVerifying = false
@@ -63,8 +70,17 @@ struct ConfigurationEditSheet: View {
             _selectedModel = State(initialValue: config.model)
             _region = State(initialValue: config.region ?? "us-east-1")
             _enableCrossRegion = State(initialValue: config.enableCrossRegion)
-            _useAWSProfile = State(initialValue: config.awsProfileName != nil && !config.awsProfileName!.isEmpty)
-            _selectedAWSProfile = State(initialValue: config.awsProfileName ?? "")
+            // Determine auth method from config
+            if let profileName = config.awsProfileName, !profileName.isEmpty {
+                _awsAuthMethod = State(initialValue: .profile)
+                _selectedAWSProfile = State(initialValue: profileName)
+            } else if let accessKey = config.awsAccessKeyId, !accessKey.isEmpty {
+                _awsAuthMethod = State(initialValue: .accessKey)
+                _awsAccessKeyId = State(initialValue: accessKey)
+                _awsSecretAccessKey = State(initialValue: config.getAwsSecretAccessKey() ?? "")
+            } else {
+                _awsAuthMethod = State(initialValue: .apiKey)
+            }
         }
     }
     
@@ -87,10 +103,14 @@ struct ConfigurationEditSheet: View {
         switch selectedProvider {
         case .awsBedrock:
             let hasRegion = !region.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            if useAWSProfile {
-                return !selectedAWSProfile.isEmpty && hasRegion
-            } else {
+            switch awsAuthMethod {
+            case .apiKey:
                 return !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && hasRegion
+            case .accessKey:
+                return !awsAccessKeyId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+                       !awsSecretAccessKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && hasRegion
+            case .profile:
+                return !selectedAWSProfile.isEmpty && hasRegion
             }
         default:
             return !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -115,7 +135,7 @@ struct ConfigurationEditSheet: View {
         .onChange(of: selectedProvider) { _, newProvider in
             selectedModel = newProvider.defaultModel
             if newProvider != .awsBedrock {
-                useAWSProfile = false
+                awsAuthMethod = .apiKey
             }
             // Clear error when changing provider
             verificationError = nil
@@ -202,7 +222,8 @@ struct ConfigurationEditSheet: View {
     
     @ViewBuilder
     private var authenticationSection: some View {
-        if selectedProvider == .awsBedrock && useAWSProfile {
+        // For AWS Bedrock, auth is handled in bedrockSection
+        if selectedProvider == .awsBedrock {
             EmptyView()
         } else {
             VStack(alignment: .leading, spacing: 6) {
@@ -265,19 +286,73 @@ struct ConfigurationEditSheet: View {
                     .font(.headline)
                     .foregroundColor(.secondary)
                 
-                Picker("", selection: $useAWSProfile) {
-                    Text(NSLocalizedString("API Key", comment: "")).tag(false)
-                    Text(NSLocalizedString("AWS Profile", comment: "")).tag(true)
+                Picker("", selection: $awsAuthMethod) {
+                    ForEach(AWSAuthMethod.allCases, id: \.self) { method in
+                        Text(NSLocalizedString(method.rawValue, comment: "")).tag(method)
+                    }
                 }
                 .pickerStyle(.segmented)
-                .onChange(of: useAWSProfile) { _, newValue in
-                    if newValue {
+                .onChange(of: awsAuthMethod) { _, newValue in
+                    if newValue == .profile {
                         availableAWSProfiles = awsProfileService.listProfiles()
                     }
                     verificationError = nil
                 }
                 
-                if useAWSProfile {
+                // Auth method specific fields
+                switch awsAuthMethod {
+                case .apiKey:
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text(NSLocalizedString("Bearer Token", comment: ""))
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            if let url = selectedProvider.apiKeyURL {
+                                Link(destination: url) {
+                                    HStack(spacing: 4) {
+                                        Text(NSLocalizedString("Get Token", comment: ""))
+                                        Image(systemName: "arrow.up.right.square")
+                                    }
+                                    .font(.caption)
+                                }
+                            }
+                        }
+                        SecureField(NSLocalizedString("Enter your Bearer token", comment: ""), text: $apiKey)
+                            .textFieldStyle(.roundedBorder)
+                            .onChange(of: apiKey) { _, _ in
+                                verificationError = nil
+                            }
+                    }
+                    
+                case .accessKey:
+                    VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(NSLocalizedString("Access Key ID", comment: ""))
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            TextField(NSLocalizedString("AKIA...", comment: ""), text: $awsAccessKeyId)
+                                .textFieldStyle(.roundedBorder)
+                                .onChange(of: awsAccessKeyId) { _, _ in
+                                    verificationError = nil
+                                }
+                        }
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(NSLocalizedString("Secret Access Key", comment: ""))
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            SecureField(NSLocalizedString("Enter your secret access key", comment: ""), text: $awsSecretAccessKey)
+                                .textFieldStyle(.roundedBorder)
+                                .onChange(of: awsSecretAccessKey) { _, _ in
+                                    verificationError = nil
+                                }
+                        }
+                        Text(NSLocalizedString("Get your Access Key from AWS IAM Console", comment: ""))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                case .profile:
                     if availableAWSProfiles.isEmpty {
                         HStack {
                             Image(systemName: "exclamationmark.triangle.fill")
@@ -340,24 +415,41 @@ struct ConfigurationEditSheet: View {
         let trimmedApiKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedModel = selectedModel.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        // For AWS Bedrock with AWS Profile, verify with real API call using SigV4
-        if selectedProvider == .awsBedrock && useAWSProfile {
-            Task {
-                await verifyAWSProfileWithSigV4(profile: selectedAWSProfile, region: region, model: trimmedModel)
+        // For AWS Bedrock, handle different auth methods
+        if selectedProvider == .awsBedrock {
+            switch awsAuthMethod {
+            case .profile:
+                Task {
+                    await verifyAWSProfileWithSigV4(profile: selectedAWSProfile, region: region, model: trimmedModel)
+                }
+                return
+            case .accessKey:
+                Task {
+                    await verifyAWSAccessKeyWithSigV4(
+                        accessKeyId: awsAccessKeyId.trimmingCharacters(in: .whitespacesAndNewlines),
+                        secretAccessKey: awsSecretAccessKey.trimmingCharacters(in: .whitespacesAndNewlines),
+                        region: region,
+                        model: trimmedModel
+                    )
+                }
+                return
+            case .apiKey:
+                aiService.verifyBedrockConnection(
+                    apiKey: trimmedApiKey,
+                    region: region,
+                    modelId: trimmedModel
+                ) { success, errorMessage in
+                    handleVerificationResult(success: success, errorMessage: errorMessage)
+                }
+                return
             }
-            return
         }
         
         // Verify based on provider
         switch selectedProvider {
         case .awsBedrock:
-            aiService.verifyBedrockConnection(
-                apiKey: trimmedApiKey,
-                region: region,
-                modelId: trimmedModel
-            ) { success, errorMessage in
-                handleVerificationResult(success: success, errorMessage: errorMessage)
-            }
+            // Already handled above
+            break
             
         case .anthropic:
             verifyAnthropicKey(trimmedApiKey, model: trimmedModel)
@@ -478,10 +570,23 @@ struct ConfigurationEditSheet: View {
         }
     }
     
+    /// Verifies AWS Access Key credentials by calling ListFoundationModels API
+    private func verifyAWSAccessKeyWithSigV4(accessKeyId: String, secretAccessKey: String, region: String, model: String) async {
+        guard isVerifying else { return }
+        
+        let credentials = AWSCredentials(
+            accessKeyId: accessKeyId,
+            secretAccessKey: secretAccessKey,
+            sessionToken: nil,
+            region: region
+        )
+        
+        await verifyAWSCredentialsWithSigV4(credentials: credentials, region: region, model: model)
+    }
+    
     /// Verifies AWS Profile credentials by calling ListFoundationModels API
     /// This is a lightweight GET request that validates credentials without invoking a model
     private func verifyAWSProfileWithSigV4(profile: String, region: String, model: String) async {
-        // Check if view is still presented
         guard isVerifying else { return }
         
         // First resolve credentials (supports SSO, assume-role, credential_process)
@@ -498,8 +603,14 @@ struct ConfigurationEditSheet: View {
             return
         }
         
+        await verifyAWSCredentialsWithSigV4(credentials: credentials, region: region, model: model)
+    }
+    
+    /// Common SigV4 verification for both Profile and Access Key auth
+    private func verifyAWSCredentialsWithSigV4(credentials: AWSCredentials, region: String, model: String) async {
+        guard isVerifying else { return }
+        
         // Use ListFoundationModels API as a lightweight probe
-        // This validates credentials without needing model-specific payloads
         let host = "bedrock.\(region).amazonaws.com"
         guard let url = URL(string: "https://\(host)/foundation-models?byOutputModality=TEXT&maxResults=1") else {
             await MainActor.run {
@@ -517,17 +628,11 @@ struct ConfigurationEditSheet: View {
         
         // Sign the request with SigV4
         do {
-            let signerCredentials = AWSCredentials(
-                accessKeyId: credentials.accessKeyId,
-                secretAccessKey: credentials.secretAccessKey,
-                sessionToken: credentials.sessionToken,
-                region: region
-            )
             request = try AWSSigV4Signer.sign(
                 request: request,
-                credentials: signerCredentials,
+                credentials: credentials,
                 region: region,
-                service: "bedrock"  // ListFoundationModels uses "bedrock" service, not "bedrock-runtime"
+                service: "bedrock"
             )
         } catch {
             await MainActor.run {
@@ -556,7 +661,6 @@ struct ConfigurationEditSheet: View {
             
             switch httpResponse.statusCode {
             case 200:
-                // Success - credentials are valid and have Bedrock access
                 await MainActor.run {
                     isVerifying = false
                     saveConfiguration()
@@ -564,7 +668,6 @@ struct ConfigurationEditSheet: View {
                 }
                 
             case 403:
-                // Authentication failed or no permission
                 let errorMsg: String
                 if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                    let message = json["message"] as? String {
@@ -579,10 +682,9 @@ struct ConfigurationEditSheet: View {
                 }
                 
             case 401:
-                // Invalid credentials
                 await MainActor.run {
                     isVerifying = false
-                    verificationError = NSLocalizedString("Invalid AWS credentials. Please check your profile configuration.", comment: "")
+                    verificationError = NSLocalizedString("Invalid AWS credentials. Please check your Access Key and Secret Key.", comment: "")
                     showError = true
                 }
                 
@@ -599,7 +701,6 @@ struct ConfigurationEditSheet: View {
                 }
             }
         } catch let error as URLError where error.code == .cancelled {
-            // Request was cancelled, do nothing
             return
         } catch {
             await MainActor.run {
@@ -612,8 +713,25 @@ struct ConfigurationEditSheet: View {
     }
     
     private func saveConfiguration() {
-        let awsProfile: String? = (selectedProvider == .awsBedrock && useAWSProfile && !selectedAWSProfile.isEmpty) ? selectedAWSProfile : nil
-        let finalApiKey: String? = (selectedProvider == .awsBedrock && useAWSProfile) ? nil : apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Determine auth values based on method
+        var awsProfile: String? = nil
+        var finalApiKey: String? = nil
+        var accessKeyId: String? = nil
+        var secretAccessKey: String? = nil
+        
+        if selectedProvider == .awsBedrock {
+            switch awsAuthMethod {
+            case .apiKey:
+                finalApiKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+            case .accessKey:
+                accessKeyId = awsAccessKeyId.trimmingCharacters(in: .whitespacesAndNewlines)
+                secretAccessKey = awsSecretAccessKey.trimmingCharacters(in: .whitespacesAndNewlines)
+            case .profile:
+                awsProfile = selectedAWSProfile
+            }
+        } else {
+            finalApiKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
         
         let config: AIEnhancementConfiguration
         
@@ -625,6 +743,8 @@ struct ConfigurationEditSheet: View {
                 model: selectedModel.trimmingCharacters(in: .whitespacesAndNewlines),
                 apiKey: finalApiKey,
                 awsProfileName: awsProfile,
+                awsAccessKeyId: accessKeyId,
+                awsSecretAccessKey: secretAccessKey,
                 region: selectedProvider == .awsBedrock ? region : nil,
                 enableCrossRegion: selectedProvider == .awsBedrock ? enableCrossRegion : false
             )
@@ -638,6 +758,8 @@ struct ConfigurationEditSheet: View {
                 model: selectedModel.trimmingCharacters(in: .whitespacesAndNewlines),
                 apiKey: finalApiKey,
                 awsProfileName: awsProfile,
+                awsAccessKeyId: accessKeyId,
+                awsSecretAccessKey: secretAccessKey,
                 region: selectedProvider == .awsBedrock ? region : nil,
                 enableCrossRegion: selectedProvider == .awsBedrock ? enableCrossRegion : false,
                 createdAt: existingConfig.createdAt,
