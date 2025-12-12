@@ -190,6 +190,11 @@ class AIService: ObservableObject {
     /// Selected AI provider - reads from AppSettingsStore
     var selectedProvider: AIProvider {
         get {
+            // Prefer active configuration's provider if present
+            if let config = activeConfiguration, let provider = AIProvider(rawValue: config.provider) {
+                return provider
+            }
+            
             if let appSettings = appSettings {
                 return AIProvider(rawValue: appSettings.selectedAIProvider) ?? .gemini
             }
@@ -249,6 +254,10 @@ class AIService: ObservableObject {
     }
     
     var currentModel: String {
+        if let config = activeConfiguration {
+            return config.model
+        }
+        
         if selectedProvider == .awsBedrock {
             return bedrockModelId
         }
@@ -439,42 +448,13 @@ class AIService: ObservableObject {
         isRefreshingFromConfiguration = true
         defer { isRefreshingFromConfiguration = false }
         
+        // Basic validity check (skip heavy validation for profiles)
         let isAWSProfileConfig = (config.awsProfileName?.isEmpty == false) && config.provider == AIProvider.awsBedrock.rawValue
-        // Check validity for non-profile configs; AWS Profile will be validated below
         if !isAWSProfileConfig {
             guard config.isValid else {
                 self.apiKey = ""
                 self.isAPIKeyValid = false
                 return
-            }
-        }
-        
-        // Sync provider settings from configuration (with equality checks to prevent loops)
-        if let provider = AIProvider(rawValue: config.provider) {
-            // Update provider only if different
-            if appSettings?.selectedAIProvider != provider.rawValue {
-                appSettings?.selectedAIProvider = provider.rawValue
-            }
-            
-            // Update model only if different
-            if let appSettings = appSettings {
-                let currentModel = appSettings.selectedModels[provider.rawValue]
-                if currentModel != config.model {
-                    var models = appSettings.selectedModels
-                    models[provider.rawValue] = config.model
-                    appSettings.selectedModels = models
-                }
-            }
-            
-            // Update provider-specific settings only if different
-            if provider == .awsBedrock {
-                let newRegion = config.region ?? "us-east-1"
-                if appSettings?.bedrockRegion != newRegion {
-                    appSettings?.bedrockRegion = newRegion
-                }
-                if appSettings?.bedrockModelId != config.model {
-                    appSettings?.bedrockModelId = config.model
-                }
             }
         }
         

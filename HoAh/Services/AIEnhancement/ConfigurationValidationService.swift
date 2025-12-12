@@ -86,6 +86,7 @@ class ConfigurationValidationService: ObservableObject {
     
     private weak var appSettings: AppSettingsStore?
     private let awsProfileService = AWSProfileService()
+    private weak var aiService: AIService?
     
     // MARK: - Configuration
     
@@ -110,9 +111,10 @@ class ConfigurationValidationService: ObservableObject {
     
     init() {}
     
-    /// Configure with AppSettingsStore
-    func configure(with appSettings: AppSettingsStore) {
+    /// Configure with AppSettingsStore and AIService reference
+    func configure(with appSettings: AppSettingsStore, aiService: AIService?) {
         self.appSettings = appSettings
+        self.aiService = aiService
     }
     
     // MARK: - Public Methods
@@ -208,6 +210,7 @@ class ConfigurationValidationService: ObservableObject {
                 if result.success {
                     // Success - update active configuration
                     self.appSettings?.setActiveConfiguration(id: configId)
+                    self.aiService?.hydrateActiveConfiguration()
                     self.showSuccessIndicator(configId: configId)
                 } else {
                     // Failure - map error
