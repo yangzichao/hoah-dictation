@@ -1,5 +1,10 @@
 # What's New in# Release Notes
 
+## [3.2.9]
+
+### 🚀 Improvements
+- **Stability**: Minor bug fixes and stability improvements.
+
 ## [3.2.8]
 
 ### 🚀 Improvements
