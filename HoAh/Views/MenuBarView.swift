@@ -8,6 +8,7 @@ struct MenuBarView: View {
     @EnvironmentObject var enhancementService: AIEnhancementService
     @EnvironmentObject var aiService: AIService
     @EnvironmentObject var appSettings: AppSettingsStore
+    @EnvironmentObject var validationService: ConfigurationValidationService
     @ObservedObject var audioDeviceManager = AudioDeviceManager.shared
     @State private var launchAtLoginEnabled = LaunchAtLogin.isEnabled
     @State private var isHovered = false
@@ -107,26 +108,39 @@ struct MenuBarView: View {
                 }
             }
             
-            // AI Configuration Quick Switch
+            // AI Configuration Quick Switch (with validation)
             Menu {
                 ForEach(appSettings.validAIConfigurations) { config in
                     Button {
-                        appSettings.setActiveConfiguration(id: config.id)
+                        validationService.switchToConfiguration(id: config.id)
                     } label: {
                         HStack {
                             Image(systemName: config.providerIcon)
                             Text(config.name)
-                            if appSettings.activeAIConfigurationId == config.id {
+                            if validationService.validatingConfigId == config.id {
+                                Spacer()
+                                ProgressView()
+                                    .scaleEffect(0.6)
+                            } else if appSettings.activeAIConfigurationId == config.id {
                                 Spacer()
                                 Image(systemName: "checkmark")
                             }
                         }
                     }
+                    .disabled(validationService.validatingConfigId != nil)
                 }
                 
                 if appSettings.validAIConfigurations.isEmpty {
                     Text(NSLocalizedString("No configurations available", comment: ""))
                         .foregroundColor(.secondary)
+                }
+                
+                // Show validation error if any
+                if let error = validationService.validationError {
+                    Divider()
+                    Text(error.errorDescription ?? NSLocalizedString("Validation failed", comment: ""))
+                        .foregroundColor(.red)
+                        .font(.caption)
                 }
                 
                 Divider()
@@ -136,6 +150,10 @@ struct MenuBarView: View {
                 }
             } label: {
                 HStack {
+                    if validationService.validatingConfigId != nil {
+                        ProgressView()
+                            .scaleEffect(0.6)
+                    }
                     Text(String(format: NSLocalizedString("AI Config: %@", comment: ""), appSettings.activeAIConfiguration?.name ?? NSLocalizedString("None", comment: "")))
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.system(size: 10))
