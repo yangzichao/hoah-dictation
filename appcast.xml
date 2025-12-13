@@ -3,6 +3,21 @@
     <channel>
         <title>HoAh Releases</title>
         <item>
+            <title>3.3.0</title>
+            <pubDate>Sat, 13 Dec 2025 12:15:00 -0800</pubDate>
+            <sparkle:version>330</sparkle:version>
+            <sparkle:shortVersionString>3.3.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h3>What's New in Version 3.3.0</h3>
+                <ul>
+                    <li><strong>Documentation:</strong> Updated website and documentation to clearly distinguish between Local Whisper (transcription) and Cloud AI (enhancement).</li>
+                    <li><strong>Improvement:</strong> General stability and performance improvements.</li>
+                </ul>
+            ]]></description>
+            <enclosure url="https://github.com/yangzichao/hoah-dictation/releases/download/v3.3.0/HoAh-3.3.0.dmg" length="0" type="application/octet-stream" sparkle:edSignature=""/>
+        </item>
+        <item>
             <title>3.2.11</title>
             <pubDate>Fri, 12 Dec 2025 20:10:00 -0800</pubDate>
             <sparkle:version>331</sparkle:version>

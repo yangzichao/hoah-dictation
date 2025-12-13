@@ -33,9 +33,9 @@
 	<key>CFBundleDisplayName</key>
 	<string>HoAh</string>
 	<key>CFBundleShortVersionString</key>
-	<string>3.2.11</string>
+	<string>3.3.0</string>
 	<key>CFBundleVersion</key>
-	<string>331</string>
+	<string>330</string>
 	<key>SUFeedURL</key>
 	<string>https://raw.githubusercontent.com/yangzichao/hoah-dictation/main/appcast.xml</string>
 	<key>SUEnableAutomaticChecks</key>

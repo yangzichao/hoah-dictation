@@ -1,5 +1,13 @@
 # What's New in# Release Notes
 
+## [3.3.0]
+
+### 📚 Documentation
+- **Clearer Messaging**: Updated website and documentation to explicitly state that dictation runs locally via Whisper models, while Cloud providers are optionally used for AI text enhancement.
+
+### 🚀 Improvements
+- **General**: Various stability fixes and performance optimizations.
+
 ## [3.2.11]
 
 ### 🚀 Improvements
