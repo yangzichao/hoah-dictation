@@ -325,6 +325,8 @@
 "prompt_todo_description" = "把语音转成可执行的任务要点；取消的内容不要列出。";
 "AI Enhancement: On" = "AI 增强：已开启";
 "AI Enhancement: Off" = "AI 增强：已关闭";
+"forever_free_title" = "永久免费";
+"forever_free_body" = "无广告、不盈利、不收集任何用户信息，保持纯净与私密。";
 "Using %@" = "使用 %@";
 "Add a configuration to enable." = "添加配置以启用。";
 "Turn it on to apply your configuration." = "开启后应用当前配置。";

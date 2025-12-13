@@ -286,6 +286,8 @@
 "prompt_todo_description" = "Turn speech into actionable bullet-point tasks; skip cancelled items.";
 "AI Enhancement: On" = "AI Enhancement: On";
 "AI Enhancement: Off" = "AI Enhancement: Off";
+"forever_free_title" = "Forever Free";
+"forever_free_body" = "No ads, no monetization, and no data collection. HoAh stays clean and private.";
 "Using %@" = "Using %@";
 "Add a configuration to enable." = "Add a configuration to enable.";
 "Turn it on to apply your configuration." = "Turn it on to apply your configuration.";
