@@ -75,7 +75,9 @@ Read <TRANSCRIPT> and reply with the direct answer. Do not polish, rewrite, or a
                 description: t("prompt_qna_description"),
                 isPredefined: true,
                 triggerWords: [],
-                useSystemInstructions: true
+                // Q&A should bypass shared system instructions to return raw model output
+                useSystemInstructions: false,
+                isReadOnly: true
             ),
             // Manual presets (no trigger words; user selects explicitly)
             CustomPrompt(

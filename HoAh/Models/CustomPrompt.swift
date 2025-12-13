@@ -85,6 +85,7 @@ struct CustomPrompt: Identifiable, Codable, Equatable {
     let isPredefined: Bool
     let triggerWords: [String]
     let useSystemInstructions: Bool
+    let isReadOnly: Bool
     
     init(
         id: UUID = UUID(),
@@ -95,7 +96,8 @@ struct CustomPrompt: Identifiable, Codable, Equatable {
         description: String? = nil,
         isPredefined: Bool = false,
         triggerWords: [String] = [],
-        useSystemInstructions: Bool = true
+        useSystemInstructions: Bool = true,
+        isReadOnly: Bool = false
     ) {
         self.id = id
         self.title = title
@@ -106,10 +108,11 @@ struct CustomPrompt: Identifiable, Codable, Equatable {
         self.isPredefined = isPredefined
         self.triggerWords = triggerWords
         self.useSystemInstructions = useSystemInstructions
+        self.isReadOnly = isReadOnly
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, title, promptText, isActive, icon, description, isPredefined, triggerWords, useSystemInstructions
+        case id, title, promptText, isActive, icon, description, isPredefined, triggerWords, useSystemInstructions, isReadOnly
     }
 
     init(from decoder: Decoder) throws {
@@ -123,6 +126,7 @@ struct CustomPrompt: Identifiable, Codable, Equatable {
         isPredefined = try container.decode(Bool.self, forKey: .isPredefined)
         triggerWords = try container.decode([String].self, forKey: .triggerWords)
         useSystemInstructions = try container.decodeIfPresent(Bool.self, forKey: .useSystemInstructions) ?? true
+        isReadOnly = try container.decodeIfPresent(Bool.self, forKey: .isReadOnly) ?? false
     }
     
     var finalPromptText: String {
@@ -300,7 +304,7 @@ extension CustomPrompt {
         }
         .contextMenu {
             if onEdit != nil || onDelete != nil {
-                if let onEdit = onEdit {
+                if let onEdit = onEdit, !isReadOnly {
                     Button {
                         onEdit(self)
                     } label: {
