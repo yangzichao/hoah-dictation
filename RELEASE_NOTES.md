@@ -1,5 +1,10 @@
 # What's New in# Release Notes
 
+## [3.2.11]
+
+### 🚀 Improvements
+- **Stability**: Minor bug fixes and stability improvements.
+
 ## [3.2.10]
 
 ### 🚀 Improvements

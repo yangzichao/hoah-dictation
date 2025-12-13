@@ -3,6 +3,20 @@
     <channel>
         <title>HoAh Releases</title>
         <item>
+            <title>3.2.11</title>
+            <pubDate>Fri, 12 Dec 2025 20:10:00 -0800</pubDate>
+            <sparkle:version>331</sparkle:version>
+            <sparkle:shortVersionString>3.2.11</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h3>What's New in Version 3.2.11</h3>
+                <ul>
+                    <li><strong>Improvement:</strong> Minor bug fixes and stability improvements.</li>
+                </ul>
+            ]]></description>
+            <enclosure url="https://github.com/yangzichao/hoah-dictation/releases/download/v3.2.11/HoAh-3.2.11.dmg" length="0" type="application/octet-stream" sparkle:edSignature=""/>
+        </item>
+        <item>
             <title>3.2.10</title>
             <pubDate>Fri, 12 Dec 2025 19:30:00 -0800</pubDate>
             <sparkle:version>330</sparkle:version>
