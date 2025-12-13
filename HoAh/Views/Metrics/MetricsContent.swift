@@ -30,9 +30,7 @@ struct MetricsContent: View {
     @State private var selectedRange: MetricsTimeRange = .last7Days
 
     var body: some View {
-        VStack(spacing: 16) {
-            foreverFreeBanner
-            
+        Group {
             if transcriptions.isEmpty {
                 emptyStateView
             } else {
@@ -44,13 +42,8 @@ struct MetricsContent: View {
                 .padding(.horizontal, 32)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color(.windowBackgroundColor))
-                .cornerRadius(12)
             }
         }
-        .padding(.vertical, 20)
-        .padding(.horizontal, 24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Color(.controlBackgroundColor))
     }
     
     private var emptyStateView: some View {
@@ -63,41 +56,11 @@ struct MetricsContent: View {
             Text("Start your first recording to unlock value insights.")
                 .foregroundColor(.secondary)
         }
-        .padding(.vertical, 32)
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.windowBackgroundColor))
-        .cornerRadius(12)
     }
     
     // MARK: - Sections
-    
-    private var foreverFreeBanner: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "seal.fill")
-                .font(.system(size: 26, weight: .bold))
-                .foregroundColor(.accentColor)
-            
-            VStack(alignment: .leading, spacing: 6) {
-                Text("forever_free_title")
-                    .font(.headline)
-                
-                Text("forever_free_body")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            
-            Spacer()
-        }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.windowBackgroundColor))
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.gray.opacity(0.15), lineWidth: 1)
-        )
-    }
 
     private var rangePicker: some View {
         HStack {
