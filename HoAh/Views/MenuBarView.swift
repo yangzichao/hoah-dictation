@@ -83,7 +83,10 @@ struct MenuBarView: View {
             
             Divider()
             
-            Toggle(NSLocalizedString("AI Enhancement", comment: ""), isOn: $appSettings.isAIEnhancementEnabled)
+            Toggle(appSettings.isAIEnhancementEnabled ?
+                   NSLocalizedString("AI Enhancement: On", comment: "") :
+                   NSLocalizedString("AI Enhancement: Off", comment: ""),
+                   isOn: $appSettings.isAIEnhancementEnabled)
             
             Menu {
                 ForEach(enhancementService.activePrompts) { prompt in
